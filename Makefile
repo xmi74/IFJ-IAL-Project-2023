@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=c99 -g -Wall -Wextra 
 EXEC = project
-FILES = main.c symtable.c scanner.c dynamic_string.c
+FILES = src/main.c src/symtable.c src/scanner.c src/dynamic_string.c
 
 
 all:
