@@ -1,0 +1,15 @@
+function (int x, int y, float z)
+{
+    if x > 3
+        z = 2.5;
+    else
+        z = x + y;
+}
+
+function (int a, int b, float z)
+{
+    if b < 0
+        z = 1;
+    else
+        a = b + z;
+}
