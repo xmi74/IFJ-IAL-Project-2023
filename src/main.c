@@ -91,39 +91,111 @@ int main() {
         {
             printf("[ Integer: %d ]\n", token.attribute.number);
         } 
-        else if (token.type == TOK_FLOAT) 
+        else if (token.type == TOK_DOUBLE) 
         {
-            printf("[ Float: %f]\n", token.attribute.decimal);
+            printf("[ Double: %f]\n", token.attribute.decimal);
         } 
+        else if (token.type == TOK_BLOCK_COM_END)
+        {
+            printf("[ BLOCK COMMENT END SIGN ]\n");
+        }
+        else if (token.type == TOK_DIV)
+        {
+            printf("[ DIVISION ]\n");
+        }
+        else if (token.type == TOK_BLOCK_COM_START)
+        {
+            printf("[ BLOCK COMMENT START SIGN ]\n");
+        }
+        else if (token.type == TOK_COMMENT)
+        {
+            printf("[ COMMENT ]\n");
+        }
+        else if (token.type == TOK_PLUS)
+        {
+            printf("[ PLUS ]\n");
+        }
+        else if (token.type == TOK_MINUS)
+        {
+            printf("[ MINUS ]\n");
+        }
+        else if (token.type == TOK_ARROW)
+        {
+            printf("[ ARROW ]\n");
+        }
+        else if (token.type == TOK_R_CRL_BRCKT)
+        {
+            printf("[ RIGHT CURLY BRACKET ]\n");
+        }
+        else if (token.type == TOK_L_CRL_BRCKT)
+        {
+            printf("[ LEFT CURLY BRACKET ]\n");
+        }
+        else if (token.type == TOK_R_BRCKT)
+        {
+            printf("[ RIGHT BRACKET ]\n");
+        }
+        else if (token.type == TOK_L_BRCKT)
+        {
+            printf("[ LEFT BRACKET ]\n");
+        }
+        else if (token.type == TOK_NOT)
+        {
+            printf("[ NOT ]\n");
+        }
+        else if (token.type == TOK_NOT_EQUAL)
+        {
+            printf("[ NOT EQUAL ]\n");
+        }
+        else if (token.type == TOK_LESSER)
+        {
+            printf("[ LESSER ]\n");
+        }
+        else if (token.type == TOK_LESSER_OR_EQUAL)
+        {
+            printf("[ LESSER OR EQUAL ]\n");
+        }
+        else if (token.type == TOK_GREATER)
+        {
+            printf("[ GREATER ]\n");
+        }
+        else if (token.type == TOK_GREATER_OR_EQUAL)
+        {
+            printf("[ GREATER OR EQUAL ]\n");
+        }
         else if (token.type == TOK_EQUAL) 
         {
-            printf("[ Equal ]\n");
+            printf("[ EQUAL ]\n");
         } 
-        else if (token.type == TOK_NOT_EQUAL) 
+        else if (token.type == TOK_ASSIGN)
         {
-            printf("[ Not Equal ]\n");
-        } 
-        else if (token.type == TOK_LESSER) 
-        {
-            printf("[ Lesser ]\n");
-        } 
-        else if (token.type == TOK_LESSER_OR_EQUAL) 
-        {
-            printf("[ Lesser or Equal ]\n");
-        } 
-        else if (token.type == TOK_GREATER) 
-        {
-            printf("[ Greater ]\n");
-        } 
-        else if (token.type == TOK_PLUS) 
-        {
-            printf("[ Plus ]\n");
-        } 
-        else if (token.type == TOK_MINUS) 
-        {
-            printf("[ Minus ]\n");
+            printf("[ ASSIGN ]\n");
         }
-        
+        else if (token.type == TOK_COLON)
+        {
+            printf("[ COLON ]\n");
+        }
+        else if (token.type == TOK_COMMA) 
+        {
+            printf("[ COMMA ]\n");
+        }
+        else if (token.type == TOK_SEMICLN) 
+        {
+            printf("[ SEMICOLON ]\n");
+        }
+        else if (token.type == TOK_DOT)
+        {
+            printf("[ DOT ]\n");
+        }
+        else if (token.type == TOK_QUESTION)
+        {
+            printf("[ DOUBLE QUESTION MARK ]\n");
+        }
+        else if (token.type == TOK_STRING)
+        {
+            printf("[ String : %s ]\n", token.attribute.str.data);
+            dstringFree(&(token.attribute.str));
+        }
     }
 
     printSymbolTable(symbolTable);

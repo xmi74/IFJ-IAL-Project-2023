@@ -24,33 +24,43 @@ typedef enum typ
 
     TOK_IDENTIFIER,       // IDENTIFIKATOR
 
-    TOK_EOF,              // END OF
+    TOK_EOF,              // END OF FILE
     TOK_INT,              // INTEGER
-    TOK_FLOAT,            // FLOAT
+    TOK_DOUBLE,           // DOUBLE
+    TOK_STRING_START,     // "
+    TOK_STRING,           // STRING
 
-    TOK_EQUAL,            // ===
-    TOK_NOT_EQUAL,        // !==
+    
+    TOK_MUL,              // *
+    TOK_DIV,              // /
+    TOK_PLUS,             // +
+    TOK_MINUS,            // -
+
+    TOK_R_CRL_BRCKT,      // }
+    TOK_L_CRL_BRCKT,      // {
+    TOK_R_BRCKT,          // )
+    TOK_L_BRCKT,          // (
+    TOK_ARROW,            // ->
+
+    TOK_NOT,              // !
+    TOK_NOT_EQUAL,        // !=
     TOK_LESSER,           // <
     TOK_LESSER_OR_EQUAL,  // <=
     TOK_GREATER,          // >
     TOK_GREATER_OR_EQUAL, // >=
-    TOK_ASSIGN,           // =
-    TOK_NOT,              // !
+    TOK_EQUAL,            // =
+    TOK_ASSIGN,           // ==
 
-    TOK_PLUS,             // +
-    TOK_MINUS,            // -
-    TOK_MUL,              // *
-    TOK_DIV,              // /
-
-    TOK_R_BRCKT,          // )
-    TOK_L_BRCKT,          // (
-    TOK_R_CRL_BRCKT,      // }
-    TOK_L_CRL_BRCKT,      // {
-
-    TOK_CONCAT,           // .
+    TOK_COLON,            // :
     TOK_COMMA,            // ,
-    TOK_CLN,              // :
-    TOK_SEMICLN           // ;
+    TOK_SEMICLN,          // ;
+    TOK_DOT,              // .
+
+    TOK_QUESTION,         // ??
+
+    TOK_COMMENT,          // //
+    TOK_BLOCK_COM_START,  // /*
+    TOK_BLOCK_COM_END    // */    
 } token_type_t;
 
 // Atribut tokenu
