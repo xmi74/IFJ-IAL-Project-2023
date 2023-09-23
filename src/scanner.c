@@ -19,39 +19,6 @@
 
 #include "scanner.h"
 
-
-#define STATE_START 1
-
-#define STATE_IDENTIFIER 2
-
-#define STATE_EOF 3
-#define STATE_INT 4
-#define STATE_FLOAT 5
-
-#define STATE_EQUAL 6
-#define STATE_NOT_EQUAL 7
-#define STATE_LESSER 8
-#define STATE_LESSER_OR_EQUAL 9
-#define STATE_GREATER 10
-#define STATE_GREATER_OR_EQUAL 11
-#define STATE_ASSIGN 12
-#define STATE_NOT 13
-
-#define STATE_PLUS 14
-#define STATE_MINUS 15
-#define STATE_MUL 16
-#define STATE_DIV 17
-
-#define STATE_R_BRCKT 18
-#define STATE_L_BRCKT 19
-#define STATE_R_CRL_BRCKT 20
-#define STATE_L_CRL_BRCKT 21
-
-#define STATE_CONCAT 22
-#define STATE_COMMA 23
-#define STATE_CLN 24
-#define STATE_SEMICLN 25
-
 // Nacitanie znaku zo vstupu
 int getNextChar() 
 {
@@ -89,12 +56,8 @@ token_t getNextToken()
     initToken(&token);
 
     while (isspace(c = getNextChar())) {}
-
-    if (c == EOF)                       // EOF
-    {
-        token.type = TOK_EOF;
-    } 
-    else if (isalpha(c) || c == '_')    // IDENTIFIER
+ 
+    if (isalpha(c) || c == '_')    // IDENTIFIER
     {
         string_t identifier;
         dstringInit(&identifier);
@@ -109,7 +72,7 @@ token_t getNextToken()
         token.type = TOK_IDENTIFIER;
         token.attribute.str = identifier;
     } 
-    else if (isdigit(c) || c == '-')    // FLOAT
+    else if (isdigit(c))                // INT/DOUBLE
     {
         char buffer[100];
         int i = 0;
@@ -123,41 +86,180 @@ token_t getNextToken()
 
         if (strchr(buffer, '.') != NULL) 
         {
-            token.type = TOK_FLOAT;
-            token.attribute.decimal = atof(buffer);
+            token.type = TOK_DOUBLE;
+            token.attribute.decimal = atof(buffer);//strtod ! ! !
         } else 
         {
             token.type = TOK_INT;
             token.attribute.number = atoi(buffer);
         }
-    } 
-    else if (c == '=') token.type = TOK_EQUAL;  // =
-    else if (c == '!')                      // !
+    }
+    else if (c == '*')
     {
         c = getNextChar();
-        if (c == '=')                       // !=
+        if (c == '/')                               // */
+        {
+            token.type = TOK_BLOCK_COM_END;         
+        }
+        else if (isspace(c))                        // *
+        {
+            token.type = TOK_MUL;           
+        }
+        else                                        // ERROR
+        {
+            ungetChar(c);
+        }
+    }
+    else if (c == '/')
+    {
+        c = getNextChar();
+        if (c == '*')                               // /*
+        {
+            token.type = TOK_BLOCK_COM_START;
+        }
+        else if (c == '/')                          // //
+        {
+            token.type = TOK_COMMENT;
+            while ((c = getNextChar()) != EOF && c != '\n') 
+            {
+                // Sme v komentari, teda nepotrebujeme nacitavat znaky az do konca riadku
+            }        
+        }
+        else if (isspace(c))                        // /
+        {
+            token.type = TOK_DIV;
+        }
+        else
+        {
+            ungetChar(c);                           // ERROR
+        }
+    }
+    else if (c == EOF) token.type = TOK_EOF;        // EOF
+    else if (c == '+') token.type = TOK_PLUS;       // +
+    else if (c == '-')
+    {
+        c = getNextChar();
+        if (c == '>')                               // ->
+        {
+            token.type = TOK_ARROW;
+        } 
+        else if (isspace(c))                        // -
+        {
+            token.type = TOK_MINUS;                 
+        }
+        else
+        {
+            ungetChar(c);                           // ERROR
+        }
+    }
+    else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
+    else if (c == '{') token.type = TOK_L_CRL_BRCKT;// {
+    else if (c == ')') token.type = TOK_R_BRCKT;    // )
+    else if (c == '(') token.type = TOK_L_BRCKT;    // (
+    else if (c == '!')                              // !
+    {
+        c = getNextChar();
+        if (c == '=')                               // !=
         {
             token.type = TOK_NOT_EQUAL;
-        } else 
+        } 
+        else if (isspace(c))                        // !
         {
-            ungetChar(c);
+            token.type = TOK_NOT;   
+        }
+        else
+        {
+            ungetChar(c);                           // ERROR
         }
     } 
-    else if (c == '<')                      // <
+    else if (c == '<')                              
     {
         c = getNextChar();
-        if (c == '=') 
+        if (c == '=')                               // <=
         {
-            token.type = TOK_LESSER_OR_EQUAL;   // <=
-        } else 
+            token.type = TOK_LESSER_OR_EQUAL;       
+        } 
+        else if (isspace(c))                        // <
         {
-            ungetChar(c);
             token.type = TOK_LESSER;
         }
-    } 
-    else if (c == '>') token.type = TOK_GREATER;            
-    else if (c == '+') token.type = TOK_PLUS;        
-    else if (c == '-') token.type = TOK_MINUS;    
+        else 
+        {
+            ungetChar(c);                           // ERROR
+            //token.type = TOK_LESSER;              // ???? SEM POZRET
+        }
+    }
+    else if (c == '>')
+    {
+        c = getNextChar();
+        if (c == '=')
+        {
+             token.type = TOK_GREATER_OR_EQUAL;     // >=
+        }
+        else if (isspace(c))
+        {
+            token.type = TOK_GREATER;               // >
+        }
+        else
+        {
+            ungetChar(c);                           // ERROR
+        }
+    }
+    else if (c == '=')
+    {
+        c = getNextChar();
+        if (c == '=')
+        {
+            token.type = TOK_ASSIGN;                // ==
+        }
+        else if (isspace(c))
+        {
+            token.type = TOK_EQUAL;                 // =
+        }
+        else
+        {
+            ungetChar(c);                           // ERROR
+        }
+    }
+    else if (c == ':') token.type = TOK_COLON;      // ,       
+    else if (c == ',') token.type = TOK_COMMA;      // ,
+    else if (c == ';') token.type = TOK_SEMICLN;    // ;
+    else if (c == '.') token.type = TOK_DOT;        // .
+    else if (c == '?')
+    {
+        c = getNextChar();
+        if (c == '?')
+        {
+            token.type = TOK_QUESTION;              // ?
+        }
+        else
+        {
+            ungetChar(c);                           // ERROR
+        }
+    }
+    else if (c == '"')
+    {
+        c = getNextChar();
+
+        string_t string;
+        dstringInit(&string);
+        dstringAppend(&string, c);
+
+        while ((c = getNextChar()) != EOF && c != '"') 
+        {
+            dstringAppend(&string, c);
+        }
+        //ungetChar(c);
+        token.type = TOK_STRING;
+        token.attribute.str = string;
+    }
+    
+    
 
     return token;
 }
+
+/* TODO:
+    SNIMANIE ? ZA DATOVYM TYPOM
+    ...
+*/
