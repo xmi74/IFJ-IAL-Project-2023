@@ -15,12 +15,18 @@
 
 typedef enum keyword_type
 {
-    ID,
-    FUNC,
-    IF,
-    ELSE,
-    WHILE,
-    FOR
+    kw_id,
+    kw_Double,
+    kw_else,
+    kw_func,
+    kw_if,
+    kw_Int,
+    kw_let,
+    kw_nil,
+    kw_return,
+    kw_String,
+    kw_var,
+    kw_while
 } keyword_t;
 
 keyword_t keyword_type(token_t token);

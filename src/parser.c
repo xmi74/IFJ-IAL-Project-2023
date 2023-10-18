@@ -15,23 +15,44 @@
 
 keyword_t keyword_type(token_t token) // rozliseni identifikatoru a klicovych slov
 {
-    if (!strcmp(token.attribute.str.data, "func")) {
-        return FUNC;
-    }
-    else if (!strcmp(token.attribute.str.data, "if")) {
-        return IF;
+    if (!strcmp(token.attribute.str.data, "Double")) {
+        return kw_Double;
     }
     else if (!strcmp(token.attribute.str.data, "else")) {
-        return ELSE;
+        return kw_else;
+    }
+    else if (!strcmp(token.attribute.str.data, "func")) {
+        return kw_func;
+    }
+    else if (!strcmp(token.attribute.str.data, "if")) {
+        return kw_if;
+    }
+    else if (!strcmp(token.attribute.str.data, "Int")) {
+        return kw_Int;
+    }
+    else if (!strcmp(token.attribute.str.data, "let")) {
+        return kw_let;
+    }
+    else if (!strcmp(token.attribute.str.data, "nil")) {
+        return kw_nil;
+    }
+    else if (!strcmp(token.attribute.str.data, "return")) {
+        return kw_return;
+    }
+    else if (!strcmp(token.attribute.str.data, "String")) {
+        return kw_String;
     }
     else if (!strcmp(token.attribute.str.data, "while")) {
-        return WHILE;
+        return kw_while;
     }
-    else if (!strcmp(token.attribute.str.data, "for")) {
-        return FOR;
+    else if (!strcmp(token.attribute.str.data, "var")) {
+        return kw_var;
+    }
+    else if (!strcmp(token.attribute.str.data, "while")) {
+        return kw_func;
     }
     else {
-        return ID;
+        return kw_id;
     }
 }
 
@@ -43,11 +64,12 @@ int parse()
     while (currentToken.type != TOK_EOF) {
         if (currentToken.type == TOK_COMMENT)
         {
-            
+            ;
         }
         else if (currentToken.type == TOK_IDENTIFIER)
         {
             keyword_type(currentToken);
+
         }
         
 
