@@ -57,6 +57,13 @@ keyword_t keyword_type(token_t token) // rozliseni identifikatoru a klicovych sl
 }
 
 
+int handle_assignment(token_t token_assigner)
+{
+    token_t currentToken = getNextToken();
+    bool typeDeclared = false;
+
+}
+
 int parse()
 {
     token_t currentToken;
@@ -70,16 +77,19 @@ int parse()
         {
             while (currentToken.type != TOK_BLOCK_COM_END)
             {
-                getNextToken();
+                currentToken = getNextToken();
             }
             continue;
         }
         else if (currentToken.type == TOK_IDENTIFIER)
         {
-            keyword_type(currentToken);
-
+            keyword_t currentKeyword = keyword_type(currentToken);
+            if (currentKeyword == kw_let || currentKeyword == kw_var)
+            {
+                handle_assignment(currentToken);
+            }
+            
         }
-        
 
         currentToken = getNextToken();
     }

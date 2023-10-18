@@ -31,4 +31,6 @@ typedef enum keyword_type
 
 keyword_t keyword_type(token_t token);
 
+int handle_assignment();
+
 int parse();
