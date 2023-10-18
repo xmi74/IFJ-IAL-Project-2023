@@ -66,6 +66,14 @@ int parse()
         {
             ;
         }
+        if (currentToken.type == TOK_BLOCK_COM_START)
+        {
+            while (currentToken.type != TOK_BLOCK_COM_END)
+            {
+                getNextToken();
+            }
+            continue;
+        }
         else if (currentToken.type == TOK_IDENTIFIER)
         {
             keyword_type(currentToken);
