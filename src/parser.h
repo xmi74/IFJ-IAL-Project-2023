@@ -31,8 +31,8 @@ typedef enum keyword_type
 
 keyword_t keyword_type(token_t token);
 
-int handle_assignment();
+int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_t *local_table);
 
-int parse_block(int nest_level);
+int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *local_table_one_up);
 
 int parse();

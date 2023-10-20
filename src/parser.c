@@ -57,7 +57,7 @@ keyword_t keyword_type(token_t token) // rozliseni identifikatoru a klicovych sl
 }
 
 
-int handle_assignment(token_t token_assigner)
+int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_t *local_table)
 {
     token_t currentToken = getNextToken();
 
@@ -94,10 +94,19 @@ int handle_assignment(token_t token_assigner)
 
 }
 
-int parse_block(int nest_level)
+int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *local_table_one_up)
 {
     token_t currentToken;
     currentToken = getNextToken();
+
+    local_symtab_t *local_table;
+    local_init(&local_table);
+
+    if (nest_level == 0) // main block
+    {
+        ;
+    }
+
     while (currentToken.type != TOK_EOF) {
         if (currentToken.type == TOK_COMMENT)
         {
@@ -116,17 +125,19 @@ int parse_block(int nest_level)
             keyword_t currentKeyword = keyword_type(currentToken);
             if (currentKeyword == kw_let || currentKeyword == kw_var)
             {
-                handle_assignment(currentToken);
+                handle_assignment(currentToken, global_table, local_table);
             }
             
         }
-
         currentToken = getNextToken();
     }
 }
 
 int parse()
 {
-    parse_block(0);
+    global_symtab_t global_table;
+    global_init(&global_table);
+    parse_block(0, &global_table, NULL); // main block
+    global_dispose(&global_table);
     return 1;
 }
