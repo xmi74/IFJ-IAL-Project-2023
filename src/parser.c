@@ -60,11 +60,41 @@ keyword_t keyword_type(token_t token) // rozliseni identifikatoru a klicovych sl
 int handle_assignment(token_t token_assigner)
 {
     token_t currentToken = getNextToken();
-    bool typeDeclared = false;
+
+    if (keyword_type(currentToken) != kw_id)
+    {
+        //error
+    }
+
+    if (currentToken.type == TOK_COLON)
+    {
+        currentToken = getNextToken();
+        if (keyword_type(currentToken) != kw_Double && keyword_type(currentToken) != kw_Int && keyword_type(currentToken) != kw_String)
+        {
+            //error
+        }
+        currentToken = getNextToken();
+        if (currentToken.type != TOK_ASSIGN)
+        {
+            //error
+        }
+        // bottom-up parsing
+    }
+    else {
+        if (currentToken.type != TOK_ASSIGN)
+        {
+            //error
+        }
+
+       if (currentToken.type == TOK_SEMICLN) // nebo newline
+       {
+           //local_insert()
+       }
+    }
 
 }
 
-int parse()
+int parse_block(int nest_level)
 {
     token_t currentToken;
     currentToken = getNextToken();
@@ -93,5 +123,10 @@ int parse()
 
         currentToken = getNextToken();
     }
+}
+
+int parse()
+{
+    parse_block(0);
     return 1;
 }
