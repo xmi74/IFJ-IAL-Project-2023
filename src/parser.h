@@ -10,7 +10,6 @@
  * @author Tomas Arlt (xarltt00)
 */
 
-#include "scanner.c"
 #include "symtable.c"
 
 
