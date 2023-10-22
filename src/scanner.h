@@ -7,7 +7,7 @@
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author
+ * @author Tomas Arlt (xarltt00)
 */
 
 #include "dynamic_string.h"
@@ -23,6 +23,18 @@ typedef enum typ
     TOK_NOTHING,          // POCIATOCNY, PRAZDNY TOKEN
 
     TOK_IDENTIFIER,       // IDENTIFIKATOR
+                          // KLUCOVE SLOVA  
+    TOK_KW_DOUBLE,        // Double 
+    TOK_KW_ELSE,          // else
+    TOK_KW_FUNC,          // func
+    TOK_KW_IF,            // if
+    TOK_KW_INT,           // Int
+    TOK_KW_LET,           // let
+    TOK_KW_NIL,           // nil
+    TOK_KW_RETURN,        // return
+    TOK_KW_STRING,        // String
+    TOK_KW_VAR,           // var
+    TOK_KW_WHILE,         // while
 
     TOK_EOF,              // END OF FILE
     TOK_INT,              // INTEGER
@@ -56,7 +68,8 @@ typedef enum typ
     TOK_SEMICLN,          // ;
     TOK_DOT,              // .
 
-    TOK_QUESTION,         // ??
+    TOK_QUEST_MARK,       // ?
+    TOK_DOUBLE_QUEST_MARK,// ?
 
     TOK_COMMENT,          // //
     TOK_BLOCK_COM_START,  // /*
