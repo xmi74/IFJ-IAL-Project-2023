@@ -7,7 +7,7 @@
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author
+ * @author Tomas Arlt (xarltt00)
 */
 
 #include <stdio.h>
@@ -47,6 +47,59 @@ void freeToken(token_t *token)
     }
 }
 
+void assignIdentifier(token_t *token, string_t identifier)
+{
+    if (strcmp(identifier.data, "Double") == 0) 
+    {
+        token->type = TOK_KW_DOUBLE;
+    }
+    else if (strcmp(identifier.data, "else") == 0) 
+    {
+        token->type = TOK_KW_ELSE;
+    }
+    else if (strcmp(identifier.data, "func") == 0) 
+    {
+        token->type = TOK_KW_FUNC;
+    }
+    else if (strcmp(identifier.data, "if") == 0) 
+    {
+        token->type = TOK_KW_IF;
+    }
+    else if (strcmp(identifier.data, "Int") == 0)   //
+    {
+        token->type = TOK_KW_INT;
+    }
+    else if (strcmp(identifier.data, "let") == 0) 
+    {
+        token->type = TOK_KW_LET;
+    }
+    else if (strcmp(identifier.data, "_") == 0)     // CHECK NIL
+    {
+        token->type = TOK_KW_NIL;
+    }
+    else if (strcmp(identifier.data, "return") == 0) 
+    {
+        token->type = TOK_KW_RETURN;
+    }
+    else if (strcmp(identifier.data, "String") == 0) 
+    {
+        token->type = TOK_KW_STRING;
+    }
+    else if (strcmp(identifier.data, "var") == 0) 
+    {
+        token->type = TOK_KW_VAR;
+    }
+    else if (strcmp(identifier.data, "while") == 0) 
+    {
+        token->type = TOK_KW_WHILE;
+    }
+    else
+    {
+        token->type = TOK_IDENTIFIER;
+        token->attribute.str = identifier;
+    }
+}
+
 // Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
 token_t getNextToken() 
 {
@@ -69,8 +122,7 @@ token_t getNextToken()
         }
         ungetChar(c);
 
-        token.type = TOK_IDENTIFIER;
-        token.attribute.str = identifier;
+        assignIdentifier(&token, identifier);
     } 
     else if (isdigit(c))                // INT/DOUBLE
     {
@@ -230,7 +282,11 @@ token_t getNextToken()
         c = getNextChar();
         if (c == '?')
         {
-            token.type = TOK_QUESTION;              // ?
+            token.type = TOK_DOUBLE_QUEST_MARK;     // ??
+        }
+        else if (isspace(c))
+        {
+            token.type = TOK_QUEST_MARK;            // ERROR
         }
         else
         {
@@ -260,6 +316,5 @@ token_t getNextToken()
 }
 
 /* TODO:
-    SNIMANIE ? ZA DATOVYM TYPOM
-    ...
+    KONTROLA isdigit(c) je staticka
 */
