@@ -87,6 +87,52 @@ int main() {
 
             dstringFree(&(token.attribute.str));
         }
+        // KEYWORDS
+        else if (token.type == TOK_KW_DOUBLE) 
+        {
+            printf("[ KW : Double ]\n");
+        } 
+        else if (token.type == TOK_KW_ELSE) 
+        {
+            printf("[ KW : else ]\n");
+        } 
+        else if (token.type == TOK_KW_FUNC) 
+        {
+            printf("[ KW : func ]\n");
+        } 
+        else if (token.type == TOK_KW_IF) 
+        {
+            printf("[ KW : if ]\n");
+        } 
+        else if (token.type == TOK_KW_INT) 
+        {
+            printf("[ KW : int ]\n");
+        } 
+        else if (token.type == TOK_KW_LET) 
+        {
+            printf("[ KW : let ]\n");
+        } 
+        else if (token.type == TOK_KW_NIL) 
+        {
+            printf("[ KW : nil ]\n");
+        } 
+        else if (token.type == TOK_KW_RETURN) 
+        {
+            printf("[ KW : return ]\n");
+        } 
+        else if (token.type == TOK_KW_STRING) 
+        {
+            printf("[ KW : String ]\n");
+        } 
+        else if (token.type == TOK_KW_VAR) 
+        {
+            printf("[ KW : var ]\n");
+        } 
+        else if (token.type == TOK_KW_WHILE) 
+        {
+            printf("[ KW : while ]\n");
+        } 
+        // KEYWORDS
         else if (token.type == TOK_INT) 
         {
             printf("[ Integer: %d ]\n", token.attribute.number);
@@ -187,7 +233,11 @@ int main() {
         {
             printf("[ DOT ]\n");
         }
-        else if (token.type == TOK_QUESTION)
+        else if (token.type == TOK_QUEST_MARK)
+        {
+            printf("[ QUESTION MARK (after type declaration) ]\n");
+        }
+        else if (token.type == TOK_DOUBLE_QUEST_MARK)
         {
             printf("[ DOUBLE QUESTION MARK ]\n");
         }
