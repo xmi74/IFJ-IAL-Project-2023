@@ -59,19 +59,30 @@
 
 int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_t *local_table)
 {
+    token_t identifier;
+    token_t var_type;
     bool is_constant = false;
 
-    if (token_assigner.type == TOK_KW_LET)
+    if (token_assigner.type == TOK_KW_LET) // let uvádí konstantní proměnnou
     {
         is_constant = true;
     }
 
     token_t currentToken = getNextToken();
+    identifier = currentToken;
+
+    if (identifier.type != TOK_IDENTIFIER) // musí následovat identifikátor
+    {
+        //error
+    }
+
+    currentToken = getNextToken();
 
     if (currentToken.type == TOK_COLON)
     {
         currentToken = getNextToken();
-        if (currentToken.type != TOK_KW_DOUBLE && currentToken.type != TOK_KW_INT && currentToken.type != TOK_KW_STRING)
+        var_type = currentToken;
+        if (var_type.type != TOK_KW_DOUBLE && var_type.type != TOK_KW_INT && var_type.type != TOK_KW_STRING)
         {
             //error
         }
