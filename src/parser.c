@@ -127,9 +127,18 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *l
         }
         if (currentToken.type == TOK_BLOCK_COM_START)
         {
-            while (currentToken.type != TOK_BLOCK_COM_END)
+            int comment_nest_level = 1;
+            while (comment_nest_level != 0)
             {
                 currentToken = getNextToken();
+                if (currentToken.type == TOK_BLOCK_COM_START)
+                {
+                    comment_nest_level++;
+                }
+                else if (currentToken.type == TOK_BLOCK_COM_END)
+                {
+                    comment_nest_level--;
+                }
             }
             continue;
         }
