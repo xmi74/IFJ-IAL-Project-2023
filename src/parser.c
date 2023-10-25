@@ -57,7 +57,7 @@
 //}
 
 
-int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_t *local_table)
+int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table)
 {
     token_t identifier;
     token_t var_type;
@@ -108,13 +108,13 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
 
 }
 
-int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *local_table_one_up)
+int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up)
 {
     token_t currentToken;
     currentToken = getNextToken();
 
-    local_symtab_t *local_table;
-    local_init(&local_table);
+    local_symtab_w_par_ptr_t local_table;
+    local_init_w_par_ptr_t(&local_table);
 
     if (nest_level == 0) // main block
     {
@@ -145,7 +145,7 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *l
         }
         else if (currentToken.type == TOK_KW_LET || currentToken.type == TOK_KW_VAR)
         {
-            handle_assignment(currentToken, global_table, local_table);
+            handle_assignment(currentToken, global_table, &local_table);
             
         }
         currentToken = getNextToken();
