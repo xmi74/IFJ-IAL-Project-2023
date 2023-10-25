@@ -87,16 +87,17 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
             //error
         }
         currentToken = getNextToken();
-        if (currentToken.type != TOK_ASSIGN)
+        if (currentToken.type != TOK_EQUAL)
         {
             //error
         }
         // bottom-up parsing
     }
     else {
-        if (currentToken.type != TOK_ASSIGN)
+        if (currentToken.type != TOK_EQUAL)
         {
             //error
+            printf("error");
         }
 
        if (currentToken.type == TOK_SEMICLN) // nebo newline
@@ -153,9 +154,9 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *l
 
 int parse()
 {
-    global_symtab_t global_table;
+    global_symtab_t *global_table;
     global_init(&global_table);
-    parse_block(0, &global_table, NULL); // main block
+    parse_block(0, global_table, NULL);
     global_dispose(&global_table);
     return 1;
 }

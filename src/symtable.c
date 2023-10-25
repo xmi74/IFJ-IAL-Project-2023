@@ -21,6 +21,12 @@ void local_init(local_symtab_t **local_table)
     (*local_table) = NULL;
 }
 
+void local_init_w_par_ptr_t(local_symtab_w_par_ptr_t *local_table)
+{
+    local_init(&(local_table->table));
+    local_table->parent = NULL;
+}
+
 local_symtab_t *local_search(local_symtab_t *local_table, string_t *key)
 {
     if (local_table != NULL)
@@ -38,6 +44,21 @@ local_symtab_t *local_search(local_symtab_t *local_table, string_t *key)
         {
             return local_search(local_table->right, key);
         }
+    }
+    return NULL;
+}
+
+local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, string_t *key)
+{
+    local_symtab_w_par_ptr_t *tmp = local_table;
+    while (tmp != NULL)
+    {
+        local_symtab_t *found = local_search(tmp->table, key);
+        if (found != NULL)
+        {
+            return found;
+        }
+        tmp = tmp->parent;
     }
     return NULL;
 }

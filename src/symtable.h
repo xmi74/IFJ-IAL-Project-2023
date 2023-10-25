@@ -24,6 +24,7 @@ typedef enum type_t
     VOID_T
 } type_t;
 
+
 typedef struct local_symtab
 {
     string_t key;
@@ -31,6 +32,12 @@ typedef struct local_symtab
     struct local_symtab *left;
     struct local_symtab *right;
 } local_symtab_t;
+
+typedef struct local_symtab_w_par_ptr
+{
+    struct local_symtab *table;
+    struct local_symtab_w_par_ptr *parent;
+} local_symtab_w_par_ptr_t;
 
 typedef struct global_symtab
 {
@@ -47,8 +54,14 @@ typedef struct global_symtab
 // Inicializacia lokalnej tabulky
 void local_init(local_symtab_t **local_table);
 
+// Inicializace lokalni tabulky s ukazatelem na predka
+void local_init_w_par_ptr_t(local_symtab_w_par_ptr_t *local_table);
+
 // Vyhladanie symbolu (na zaklade kluca - key) v lokalnej tabulke
 local_symtab_t *local_search(local_symtab_t *local_table, string_t *key);
+
+// Vyhledavani symbolu v lokalni tabulce a v jejich predcich
+local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, string_t *key);
 
 // Vlozenie symbolu do lokalnej tabulky
 void local_insert(local_symtab_t **local_table, string_t *key, token_type_t type);
