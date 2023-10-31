@@ -68,39 +68,39 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
         is_constant = true;
     }
 
-    token_t currentToken = getNextToken();
-    identifier = currentToken;
+    token_t current_token = getNextToken();
+    identifier = current_token;
 
     if (identifier.type != TOK_IDENTIFIER) // musí následovat identifikátor
     {
         //error
     }
 
-    currentToken = getNextToken();
+    current_token = getNextToken();
 
-    if (currentToken.type == TOK_COLON)
+    if (current_token.type == TOK_COLON)
     {
-        currentToken = getNextToken();
-        var_type = currentToken;
+        current_token = getNextToken();
+        var_type = current_token;
         if (var_type.type != TOK_KW_DOUBLE && var_type.type != TOK_KW_INT && var_type.type != TOK_KW_STRING)
         {
             //error
         }
-        currentToken = getNextToken();
-        if (currentToken.type != TOK_EQUAL)
+        current_token = getNextToken();
+        if (current_token.type != TOK_EQUAL)
         {
             //error
         }
         // bottom-up parsing
     }
     else {
-        if (currentToken.type != TOK_EQUAL)
+        if (current_token.type != TOK_EQUAL)
         {
             //error
             printf("error");
         }
 
-       if (currentToken.type == TOK_SEMICLN) // nebo newline
+       if (current_token.type == TOK_SEMICLN) // nebo newline
        {
            //local_insert()
        }
@@ -110,8 +110,8 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
 
 int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up)
 {
-    token_t currentToken;
-    currentToken = getNextToken();
+    token_t current_token;
+    current_token = getNextToken();
 
     local_symtab_w_par_ptr_t local_table;
     local_init_w_par_ptr_t(&local_table);
@@ -121,42 +121,148 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_pa
         ;
     }
 
-    while (currentToken.type != TOK_EOF) {
-        if (currentToken.type == TOK_COMMENT)
+    while (current_token.type != TOK_EOF) {
+        if (current_token.type == TOK_COMMENT)
         {
             ;
         }
-        if (currentToken.type == TOK_BLOCK_COM_START)
+        if (current_token.type == TOK_BLOCK_COM_START)
         {
             int comment_nest_level = 1;
             while (comment_nest_level != 0)
             {
-                currentToken = getNextToken();
-                if (currentToken.type == TOK_BLOCK_COM_START)
+                current_token = getNextToken();
+                if (current_token.type == TOK_BLOCK_COM_START)
                 {
                     comment_nest_level++;
                 }
-                else if (currentToken.type == TOK_BLOCK_COM_END)
+                else if (current_token.type == TOK_BLOCK_COM_END)
                 {
                     comment_nest_level--;
                 }
             }
             continue;
         }
-        else if (currentToken.type == TOK_KW_LET || currentToken.type == TOK_KW_VAR)
+        else if (current_token.type = TOK_L_CRL_BRCKT)
         {
-            handle_assignment(currentToken, global_table, &local_table);
+            parse_block(nest_level + 1, global_table, &local_table);
+        }
+        else if (current_token.type = TOK_R_CRL_BRCKT)
+        {
+            // error
+        }
+        else if (current_token.type == TOK_KW_LET || current_token.type == TOK_KW_VAR)
+        {
+            handle_assignment(current_token, global_table, &local_table);
             
         }
-        currentToken = getNextToken();
+        current_token = getNextToken();
+    }
+}
+
+int read_subblock(token_t token)
+{
+    token_t block_end;
+    if (token.type == '(')
+    {
+        block_end.type = ')';
+    }
+    else if (token.type == '{')
+    {
+        block_end.type = '}';
+    }
+    else
+    {
+        // error
+    }
+
+    token_t current_token = getNextToken();
+    while (current_token.type != block_end.type)
+    {
+        if (current_token.type == TOK_EOF)
+        {
+            // error
+        }
+        else if (current_token.type == TOK_COMMENT)
+        {
+            ;
+        }
+        else if (current_token.type == TOK_BLOCK_COM_START)
+        {
+            int comment_nest_level = 1;
+            while (comment_nest_level != 0)
+            {
+                current_token = getNextToken();
+                if (current_token.type == TOK_BLOCK_COM_START)
+                {
+                    comment_nest_level++;
+                }
+                else if (current_token.type == TOK_BLOCK_COM_END)
+                {
+                    comment_nest_level--;
+                }
+            }
+        } 
+        else if (current_token.type == TOK_L_CRL_BRCKT || current_token.type == TOK_L_BRCKT)
+        {
+            read_subblock(current_token);
+        }
+        else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
+        {
+            // error
+        }
+        current_token = getNextToken();
+    }
+    return;
+}
+
+int find_functions()
+{
+    token_t current_token;
+    current_token = getNextToken();
+
+    while (current_token.type != TOK_EOF) {
+        if (current_token.type == TOK_COMMENT)
+        {
+            ;
+        }
+        if (current_token.type == TOK_BLOCK_COM_START)
+        {
+            int comment_nest_level = 1;
+            while (comment_nest_level != 0)
+            {
+                current_token = getNextToken();
+                if (current_token.type == TOK_BLOCK_COM_START)
+                {
+                    comment_nest_level++;
+                }
+                else if (current_token.type == TOK_BLOCK_COM_END)
+                {
+                    comment_nest_level--;
+                }
+            }
+            continue;
+        }
+        
+        if (current_token.type == TOK_L_CRL_BRCKT || current_token.type == TOK_L_BRCKT)
+        {
+            read_subblock(current_token);
+        }
+        else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
+        {
+            // error
+        }
+
+        current_token = getNextToken();
     }
 }
 
 int parse()
 {
     global_symtab_t *global_table;
+    find_functions();
     global_init(&global_table);
-    parse_block(0, global_table, NULL);
+    //parse_block(0, global_table, NULL);
     global_dispose(&global_table);
     return 1;
 }

@@ -34,6 +34,10 @@
 
 int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
-int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_t *local_table_one_up);
+int read_subblock(token_t token);
+
+int find_functions();
+
+int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
 
 int parse();
