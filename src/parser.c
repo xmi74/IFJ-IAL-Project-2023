@@ -256,7 +256,7 @@ int find_functions()
         {
             // error
         }
-        else if (current_token.type == TOK_KW_FUNC)
+        else if (current_token.type == TOK_KW_FUNC) // neresim kde je definovana, jen ze ne v podbloku
         {
             token_t func_name;
             current_token = getNextToken();
@@ -264,21 +264,27 @@ int find_functions()
             {
                 // error
             }
-            else
+            // funkce nesmi byt zabudovana/jiz definovana
+            func_name = current_token;
+            current_token = getNextToken();
+            if (current_token.type != TOK_L_BRCKT)
             {
-                func_name = current_token;
+                // error
             }
+            current_token = getNextToken();
 
+            // TODO
+
+            // zapis do tabulky funkci
         }
-
         current_token = getNextToken();
     }
 }
 
 int parse()
 {
-    global_symtab_t *global_table;
     find_functions();
+    global_symtab_t *global_table;
     global_init(&global_table);
     //parse_block(0, global_table, NULL);
     global_dispose(&global_table);
