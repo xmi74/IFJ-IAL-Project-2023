@@ -108,8 +108,8 @@ token_t getNextToken()
 
     initToken(&token);
 
-    while (isspace(c = getNextChar())) {}
- 
+    while (isspace(c = getNextChar()) && c != '\n') {}
+
     if (isalpha(c) || c == '_')    // IDENTIFIER
     {
         string_t identifier;
@@ -309,6 +309,7 @@ token_t getNextToken()
         token.type = TOK_STRING;
         token.attribute.str = string;
     }
+    else if (c == '\n') token.type = TOK_EOL;       // EOL
     
     
 

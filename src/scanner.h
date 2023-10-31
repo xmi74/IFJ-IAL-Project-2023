@@ -73,7 +73,8 @@ typedef enum typ
 
     TOK_COMMENT,          // //
     TOK_BLOCK_COM_START,  // /*
-    TOK_BLOCK_COM_END    // */    
+    TOK_BLOCK_COM_END,    // */    
+    TOK_EOL               // \n
 } token_type_t;
 
 // Atribut tokenu

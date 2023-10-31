@@ -34,7 +34,7 @@
 
 int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
-int read_subblock(token_t token);
+void read_subblock(token_t token);
 
 int find_functions();
 

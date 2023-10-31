@@ -246,6 +246,10 @@ int main() {
             printf("[ String : %s ]\n", token.attribute.str.data);
             dstringFree(&(token.attribute.str));
         }
+        else if (token.type == TOK_EOL)
+        {
+            printf("[ EOL ]\n");
+        }
     }
 
     printSymbolTable(symbolTable);

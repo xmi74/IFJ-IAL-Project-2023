@@ -160,7 +160,7 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_pa
     }
 }
 
-int read_subblock(token_t token)
+void read_subblock(token_t token)
 {
     token_t block_end;
     if (token.type == '(')
@@ -211,6 +211,10 @@ int read_subblock(token_t token)
         {
             // error
         }
+        else if (current_token.type == TOK_KW_FUNC)
+        {
+            // error - funkce definovana v podbloku
+        }
         current_token = getNextToken();
     }
     return;
@@ -226,7 +230,7 @@ int find_functions()
         {
             ;
         }
-        if (current_token.type == TOK_BLOCK_COM_START)
+        else if (current_token.type == TOK_BLOCK_COM_START)
         {
             int comment_nest_level = 1;
             while (comment_nest_level != 0)
@@ -244,13 +248,27 @@ int find_functions()
             continue;
         }
         
-        if (current_token.type == TOK_L_CRL_BRCKT || current_token.type == TOK_L_BRCKT)
+        else if (current_token.type == TOK_L_CRL_BRCKT || current_token.type == TOK_L_BRCKT)
         {
             read_subblock(current_token);
         }
         else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
         {
             // error
+        }
+        else if (current_token.type == TOK_KW_FUNC)
+        {
+            token_t func_name;
+            current_token = getNextToken();
+            if (current_token.type != TOK_IDENTIFIER)
+            {
+                // error
+            }
+            else
+            {
+                func_name = current_token;
+            }
+
         }
 
         current_token = getNextToken();
