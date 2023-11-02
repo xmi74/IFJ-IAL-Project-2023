@@ -220,9 +220,41 @@ void read_subblock(token_t token)
     return;
 }
 
+void init_func_table(func_table_t *table)
+{
+    table->capacity = 64;
+    table->size = 0;
+    table->members = (func_table_member_t *)malloc(sizeof(func_table_member_t) * table->capacity);
+    if (table->members == NULL)
+    {
+        // malloc error
+    }
+}
+
+void add_to_func_table(func_table_t *table, func_table_member_t *member)
+{
+    if (table->size >= table->capacity)
+    {
+        resize_func_table(table);
+    }
+    table->members[table->size] = *member;
+    table->size++;
+}
+
+void resize_func_table(func_table_t *table)
+{
+    table->capacity *= 2;
+    table->members = (func_table_member_t *)realloc(table->members, sizeof(func_table_member_t) * table->capacity);
+    if (table->members == NULL)
+    {
+        // realloc error
+    }
+}
+
 int find_functions()
 {
     func_table_t func_table;
+    init_func_table(&func_table);
     token_t current_token;
     current_token = getNextToken();
 
@@ -259,24 +291,35 @@ int find_functions()
         }
         else if (current_token.type == TOK_KW_FUNC) // neresim kde je definovana, jen ze ne v podbloku
         {
-            token_t func_name;
+            func_table_member_t func_table_member;
             current_token = getNextToken();
             if (current_token.type != TOK_IDENTIFIER)
             {
                 // error
             }
             // funkce nesmi byt zabudovana/jiz definovana
-            func_name = current_token;
+            func_table_member.key = current_token.attribute.str;
             current_token = getNextToken();
             if (current_token.type != TOK_L_BRCKT)
             {
                 // error
             }
             current_token = getNextToken();
+            while (current_token.type != TOK_R_BRCKT)
+            {
+                current_token = getNextToken();
+                if (current_token.type != TOK_IDENTIFIER)
+                {
+                    // error
+                }
 
-            // TODO
-
-            // zapis do tabulky funkci
+                current_token = getNextToken();
+                if (current_token.type != TOK_IDENTIFIER)
+                {
+                    // error
+                }
+            }
+            add_to_func_table(&func_table, &func_table_member);
         }
         current_token = getNextToken();
     }

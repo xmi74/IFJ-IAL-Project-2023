@@ -50,6 +50,12 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
 
 void read_subblock(token_t token);
 
+void init_func_table(func_table_t *table);
+
+void add_to_func_table(func_table_t *table, func_table_member_t *member);
+
+void resize_func_table(func_table_t *table);
+
 int find_functions();
 
 int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
