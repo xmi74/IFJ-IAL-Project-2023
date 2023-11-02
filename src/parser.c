@@ -222,6 +222,7 @@ void read_subblock(token_t token)
 
 int find_functions()
 {
+    func_table_t func_table;
     token_t current_token;
     current_token = getNextToken();
 

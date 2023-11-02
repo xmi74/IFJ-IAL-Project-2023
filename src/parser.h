@@ -32,6 +32,20 @@
 //
 //keyword_t keyword_type(token_t token);
 
+typedef struct func_table_member
+{
+    string_t key;
+    type_t type;
+    token_t params[100];
+} func_table_member_t;
+
+typedef struct func_table
+{
+    func_table_member_t *members;
+    int size;
+    int capacity;
+} func_table_t;
+
 int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
 void read_subblock(token_t token);
