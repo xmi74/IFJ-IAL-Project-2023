@@ -309,8 +309,17 @@ token_t getNextToken()
         token.type = TOK_STRING;
         token.attribute.str = string;
     }
-    else if (c == '\n') token.type = TOK_EOL;       // EOL
-    
+    else if (c == '\n')
+    {
+        token.type = TOK_EOL;                       // EOL
+
+        c = getNextChar();
+        while (c == '\n' || isspace(c))
+        {
+            c = getNextChar();
+        }
+        ungetChar(c);                               // ERROR
+    }
     
 
     return token;
