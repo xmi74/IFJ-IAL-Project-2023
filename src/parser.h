@@ -32,11 +32,18 @@
 //
 //keyword_t keyword_type(token_t token);
 
+typedef struct
+{
+    token_attribute_t name;
+    token_attribute_t identifier;
+    token_type_t type;
+} func_param_t;
+
 typedef struct func_table_member
 {
     string_t key;
-    type_t type;
-    token_t params[100];
+    token_type_t type;
+    func_param_t params[100];
 } func_table_member_t;
 
 typedef struct func_table

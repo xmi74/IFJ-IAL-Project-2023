@@ -173,7 +173,7 @@ void read_subblock(token_t token)
     }
     else
     {
-        // error
+        ;// error
     }
 
     token_t current_token = getNextToken();
@@ -181,7 +181,7 @@ void read_subblock(token_t token)
     {
         if (current_token.type == TOK_EOF)
         {
-            // error
+            ;// error
         }
         else if (current_token.type == TOK_COMMENT)
         {
@@ -209,11 +209,11 @@ void read_subblock(token_t token)
         }
         else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
         {
-            // error
+            ;// error
         }
         else if (current_token.type == TOK_KW_FUNC)
         {
-            // error - funkce definovana v podbloku
+            ;// error - funkce definovana v podbloku
         }
         current_token = getNextToken();
     }
@@ -287,38 +287,76 @@ int find_functions()
         }
         else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
         {
-            // error
+            ;// error
         }
         else if (current_token.type == TOK_KW_FUNC) // neresim kde je definovana, jen ze ne v podbloku
         {
             func_table_member_t func_table_member;
+            dstringInit(&(func_table_member.key));
             current_token = getNextToken();
             if (current_token.type != TOK_IDENTIFIER)
             {
-                // error
+                ;// error
             }
             // funkce nesmi byt zabudovana/jiz definovana
-            func_table_member.key = current_token.attribute.str;
+            dstringCopy(&func_table_member.key, &current_token.attribute.str);
             current_token = getNextToken();
             if (current_token.type != TOK_L_BRCKT)
             {
-                // error
+                ;// error
             }
             current_token = getNextToken();
+            int param_cntr = 0;
             while (current_token.type != TOK_R_BRCKT)
             {
+                dstringInit(&func_table_member.params[param_cntr].name.str);
+                dstringInit(&func_table_member.params[param_cntr].identifier.str);
                 current_token = getNextToken();
                 if (current_token.type != TOK_IDENTIFIER)
                 {
-                    // error
+                    ;// error
                 }
+                dstringCopy(&func_table_member.params[param_cntr].name.str, &current_token.attribute.str);
 
                 current_token = getNextToken();
                 if (current_token.type != TOK_IDENTIFIER)
                 {
-                    // error
+                    ;// error
                 }
+                dstringCopy(&func_table_member.params[param_cntr].identifier.str, &current_token.attribute.str);
+
+                current_token = getNextToken();
+                if (current_token.type != TOK_COLON)
+                {
+                    ;// error
+                }
+
+                current_token = getNextToken();
+                if (current_token.type != TOK_KW_DOUBLE && current_token.type != TOK_KW_INT && current_token.type != TOK_KW_STRING)
+                {
+                    ;// error
+                }
+                func_table_member.params[param_cntr].type = current_token.type;
+
+                current_token = getNextToken();
+                param_cntr++;
             }
+            current_token = getNextToken();
+            if (current_token.type != TOK_ARROW)
+            {
+                ;// error
+            }
+
+            current_token = getNextToken();
+            if (current_token.type == TOK_KW_DOUBLE || current_token.type == TOK_KW_INT || current_token.type == TOK_KW_STRING)
+            {
+                func_table_member.type = current_token.type;
+            }
+            else
+            {
+                ;// error
+            }
+            // obsah uvnitr funkce resim v 2. pruchodu
             add_to_func_table(&func_table, &func_table_member);
         }
         current_token = getNextToken();
