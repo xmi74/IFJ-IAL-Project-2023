@@ -305,18 +305,25 @@ int find_functions()
             {
                 ;// error
             }
-            current_token = getNextToken();
             int param_cntr = 0;
             while (current_token.type != TOK_R_BRCKT)
             {
                 dstringInit(&func_table_member.params[param_cntr].name.str);
                 dstringInit(&func_table_member.params[param_cntr].identifier.str);
                 current_token = getNextToken();
-                if (current_token.type != TOK_IDENTIFIER)
+                if (current_token.type == TOK_KW_NIL)
+                {
+                    dstringAppend(&func_table_member.params[param_cntr].name.str, '_');
+                }
+                else if (current_token.type == TOK_IDENTIFIER)
+                {
+                    dstringCopy(&func_table_member.params[param_cntr].name.str, &current_token.attribute.str);
+                }
+                else
                 {
                     ;// error
                 }
-                dstringCopy(&func_table_member.params[param_cntr].name.str, &current_token.attribute.str);
+                
 
                 current_token = getNextToken();
                 if (current_token.type != TOK_IDENTIFIER)
@@ -339,6 +346,11 @@ int find_functions()
                 func_table_member.params[param_cntr].type = current_token.type;
 
                 current_token = getNextToken();
+                if (current_token.type != TOK_COMMA)
+                {
+                    ;// error
+                }
+
                 param_cntr++;
             }
             current_token = getNextToken();
