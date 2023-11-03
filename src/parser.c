@@ -13,50 +13,6 @@
 #include "parser.h"
 
 
-//keyword_t keyword_type(token_t token) // rozliseni identifikatoru a klicovych slov
-//{
-//    if (!strcmp(token.attribute.str.data, "Double")) {
-//        return kw_Double;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "else")) {
-//        return kw_else;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "func")) {
-//        return kw_func;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "if")) {
-//        return kw_if;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "Int")) {
-//        return kw_Int;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "let")) {
-//        return kw_let;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "nil")) {
-//        return kw_nil;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "return")) {
-//        return kw_return;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "String")) {
-//        return kw_String;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "while")) {
-//        return kw_while;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "var")) {
-//        return kw_var;
-//    }
-//    else if (!strcmp(token.attribute.str.data, "while")) {
-//        return kw_func;
-//    }
-//    else {
-//        return kw_id;
-//    }
-//}
-
-
 int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table)
 {
     token_t identifier;
@@ -97,7 +53,6 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
         if (current_token.type != TOK_EQUAL)
         {
             //error
-            printf("error");
         }
 
        if (current_token.type == TOK_SEMICLN) // nebo newline
@@ -173,7 +128,7 @@ void read_subblock(token_t token)
     }
     else
     {
-        ;// error
+        // error
     }
 
     token_t current_token = getNextToken();
@@ -181,7 +136,7 @@ void read_subblock(token_t token)
     {
         if (current_token.type == TOK_EOF)
         {
-            ;// error
+            // error
         }
         else if (current_token.type == TOK_COMMENT)
         {
@@ -209,11 +164,11 @@ void read_subblock(token_t token)
         }
         else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
         {
-            ;// error
+            // error
         }
         else if (current_token.type == TOK_KW_FUNC)
         {
-            ;// error - funkce definovana v podbloku
+            // error - funkce definovana v podbloku
         }
         current_token = getNextToken();
     }
@@ -287,7 +242,7 @@ int find_functions()
         }
         else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT)
         {
-            ;// error
+            // error
         }
         else if (current_token.type == TOK_KW_FUNC) // neresim kde je definovana, jen ze ne v podbloku
         {
@@ -296,14 +251,14 @@ int find_functions()
             current_token = getNextToken();
             if (current_token.type != TOK_IDENTIFIER)
             {
-                ;// error
+                // error
             }
             // funkce nesmi byt zabudovana/jiz definovana
             dstringCopy(&func_table_member.key, &current_token.attribute.str);
             current_token = getNextToken();
             if (current_token.type != TOK_L_BRCKT)
             {
-                ;// error
+                // error
             }
             int param_cntr = 0;
             while (current_token.type != TOK_R_BRCKT)
@@ -321,34 +276,34 @@ int find_functions()
                 }
                 else
                 {
-                    ;// error
+                    // error
                 }
                 
 
                 current_token = getNextToken();
                 if (current_token.type != TOK_IDENTIFIER)
                 {
-                    ;// error
+                    // error
                 }
                 dstringCopy(&func_table_member.params[param_cntr].identifier.str, &current_token.attribute.str);
 
                 current_token = getNextToken();
                 if (current_token.type != TOK_COLON)
                 {
-                    ;// error
+                    // error
                 }
 
                 current_token = getNextToken();
                 if (current_token.type != TOK_KW_DOUBLE && current_token.type != TOK_KW_INT && current_token.type != TOK_KW_STRING)
                 {
-                    ;// error
+                    // error
                 }
                 func_table_member.params[param_cntr].type = current_token.type;
 
                 current_token = getNextToken();
                 if (current_token.type != TOK_COMMA)
                 {
-                    ;// error
+                    // error
                 }
 
                 param_cntr++;
@@ -356,7 +311,7 @@ int find_functions()
             current_token = getNextToken();
             if (current_token.type != TOK_ARROW)
             {
-                ;// error
+                // error
             }
 
             current_token = getNextToken();
@@ -366,7 +321,7 @@ int find_functions()
             }
             else
             {
-                ;// error
+                // error
             }
             // obsah uvnitr funkce resim v 2. pruchodu
             add_to_func_table(&func_table, &func_table_member);
