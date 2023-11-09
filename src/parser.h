@@ -14,23 +14,27 @@
 #include "symtable.c"
 
 
-//typedef enum keyword_type
-//{
-//    kw_id,
-//    kw_Double,
-//    kw_else,
-//    kw_func,
-//    kw_if,
-//    kw_Int,
-//    kw_let,
-//    kw_nil,
-//    kw_return,
-//    kw_String,
-//    kw_var,
-//    kw_while
-//} keyword_t;
-//
-//keyword_t keyword_type(token_t token);
+// Struktura tabulky tokenu
+typedef struct
+{
+    token_t *tokens;
+    int size;
+    int capacity;
+    int index;
+    bool insert;
+} token_table_t;
+
+// Inicializace tabulky tokenu
+void initTokenTable(token_table_t *table);
+
+// Uvolneni pameti tabulky tokenu
+void freeTokenTable(token_table_t *table);
+
+// Pridani tokenu do tabulky tokenu
+void addTableToken(token_table_t *table, token_t token);
+
+// Vraceni tokenu z tabulky tokenu
+token_t getTableToken(token_table_t *table);
 
 typedef struct
 {
@@ -52,6 +56,10 @@ typedef struct func_table
     int size;
     int capacity;
 } func_table_t;
+
+token_t getToken();
+
+token_t getTokenAssert(token_type_t type);
 
 int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
