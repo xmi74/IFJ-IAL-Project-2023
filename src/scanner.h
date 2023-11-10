@@ -57,6 +57,7 @@ typedef enum typ
     TOK_DOT,              // .
 
     TOK_QUESTION,         // ??
+    TOK_DOLLAR,           // $
 
     TOK_COMMENT,          // //
     TOK_BLOCK_COM_START,  // /*

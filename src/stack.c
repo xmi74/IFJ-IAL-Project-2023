@@ -12,9 +12,6 @@
 
 // TODO : error handling, viac testov ?
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include "stack.h"
 
 // Funkcia na inicializaciu zasobnika
@@ -33,7 +30,7 @@ void Stack_Init(Stack *stack)
     stack->size = 0;
 
     // Alokacia pamate pre pole prvkov
-    stack->elements = malloc(stack->capacity * sizeof(StackElem));
+    stack->elements = malloc(stack->capacity * sizeof(token_t));
 
     // Kontrola, ci sa alokacia podarila
     if (stack->elements == NULL)
@@ -56,7 +53,7 @@ void Stack_CheckSize(Stack *stack)
         size_t newSize = stack->capacity * 2;
 
         // Realokacia pamate pre pole prvkov
-        StackElem *newArray = realloc(stack->elements, newSize * sizeof(StackElem));
+        token_t *newArray = realloc(stack->elements, newSize * sizeof(token_t));
 
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
@@ -76,7 +73,7 @@ void Stack_CheckSize(Stack *stack)
         size_t newSize = stack->capacity / 2;
 
         // Realokacia pamate pre pole prvkov
-        StackElem *newArray = realloc(stack->elements, newSize * sizeof(StackElem));
+        token_t *newArray = realloc(stack->elements, newSize * sizeof(token_t));
 
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
@@ -99,7 +96,7 @@ bool Stack_IsEmpty(const Stack *stack)
 }
 
 // Funkcia na ziskanie prvku na vrchole zasobnika
-void Stack_Top(const Stack *stack, StackElem *dataPtr)
+void Stack_Top(const Stack *stack, token_t *dataPtr)
 {
     // Ak zasobnik nie je prazdny
     if (!Stack_IsEmpty(stack))
@@ -125,14 +122,14 @@ void Stack_Pop(Stack *stack)
 }
 
 // Funkcia na vlozenie prvku na vrchol zasobnika
-void Stack_Push(Stack *stack, StackElem element)
+void Stack_Push(Stack *stack, token_t *element)
 {
     // Inkrementuj index vrcholu a pocet prvkov v zasobniku
     stack->topIndex++;
     stack->size++;
 
     // Pridajte prvok na vrchol zasobnika
-    stack->elements[stack->topIndex] = element;
+    stack->elements[stack->topIndex] = *element;
 
     // Kontrola velkosti zasobnika
     Stack_CheckSize(stack);
@@ -146,33 +143,4 @@ void Stack_Dispose(Stack *stack)
 
     stack->topIndex = -1;
     stack->elements = NULL;
-}
-
-// Funkcia na vypis stavu a prvkov zasobnika
-void Stack_Print(const Stack *stack)
-{
-    // Maximalny index zasobnika
-    size_t maxIndex = (size_t)stack->topIndex;
-
-    // Vypis stavu zasobnika
-    printf("[STACK] Status:\n");
-    printf("Size: %zu | Capacity: %zu | TopIndex: %d\n", stack->size, stack->capacity, stack->topIndex);
-
-    // Ak nie je zasobnik inicializovany
-    if (stack->elements == NULL)
-    {
-        printf("[STACK Error]: NOT INITIALIZED\n");
-        return;
-    }
-
-    // Vypis prvkov zasobnika od spodu po vrch
-    printf("STACK: BOTTOM [");
-    if (!Stack_IsEmpty(stack))
-    {
-        for (size_t i = 0; i < maxIndex; i++)
-        {
-            printf("<%s, %s, %d, %d>, ", stack->elements[i].string, stack->elements[i].relation, stack->elements[i].id, stack->elements[i].value);
-        }
-    }
-    printf(" ] TOP\n");
 }
