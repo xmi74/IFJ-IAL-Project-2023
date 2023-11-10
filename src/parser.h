@@ -21,7 +21,7 @@ typedef struct
     int size;
     int capacity;
     int index;
-    bool insert;
+    bool insert; // vkladani/cteni
 } token_table_t;
 
 // Inicializace tabulky tokenu
@@ -61,7 +61,9 @@ token_t getToken();
 
 token_t getTokenAssert(token_type_t type);
 
-int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
+int handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
+
+int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
 void read_subblock(token_t token);
 

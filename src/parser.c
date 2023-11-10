@@ -63,6 +63,19 @@ token_t getTokenAssert(token_type_t type) // getToken, vraci chybu pokud obdrzi 
     return token;
 }
 
+token_t getTokenAssertArr(token_type_t *type) // getToken, vraci chybu pokud obdrzi jiny token nez ze seznamu ocekavanych
+{
+    token_t token = getToken();
+    for(int i = 0; type[i] != '\0'; i++)
+    {
+        if (token.type == type[i])
+        {
+            return token;
+        }
+    }
+    // error
+}
+
 token_t getToken()
 {
     if(token_table.insert == true)
@@ -77,7 +90,7 @@ token_t getToken()
     }
 }
 
-int handle_assignment(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table)
+int handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table)
 {
     token_t identifier;
     token_t var_type;
@@ -95,27 +108,38 @@ int handle_assignment(token_t token_assigner, global_symtab_t *global_table, loc
 
     if (current_token.type == TOK_COLON)
     {
-        current_token = getToken();
+        getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
         var_type = current_token;
-        if (var_type.type != TOK_KW_DOUBLE && var_type.type != TOK_KW_INT && var_type.type != TOK_KW_STRING)
-        {
-            //error
-        }
+
         current_token = getTokenAssert(TOK_EQUAL);
         // bottom-up parsing
     }
     else {
-        if (current_token.type != TOK_EQUAL)
-        {
-            //error
-        }
+        getTokenAssert(TOK_EQUAL);
 
-       if (current_token.type == TOK_SEMICLN) // nebo newline
-       {
-           //local_insert()
-       }
+        if (current_token.type == TOK_SEMICLN) // nebo newline
+        {
+            //local_insert()
+        }
     }
 
+}
+
+int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table)
+{
+    token_t current_token = getToken();
+    if (current_token.type == TOK_L_BRCKT)
+    {
+        // call function
+    }
+    else if (current_token.type == TOK_EQUAL)
+    {
+        // assign
+    }
+    else
+    {
+        // error
+    }
 }
 
 int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up)
@@ -163,8 +187,11 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_pa
         }
         else if (current_token.type == TOK_KW_LET || current_token.type == TOK_KW_VAR)
         {
-            handle_assignment(current_token, global_table, &local_table);
-            
+            handle_variable(current_token, global_table, &local_table);
+        }
+        else if (current_token.type == TOK_IDENTIFIER)
+        {
+            handle_assign_or_call_func(current_token, global_table, &local_table);
         }
         current_token = getToken();
     }
@@ -306,8 +333,7 @@ int find_functions()
             current_token = getTokenAssert(TOK_IDENTIFIER);
             // TODO funkce nesmi byt zabudovana/jiz definovana
             dstringCopy(&func_table_member.key, &current_token.attribute.str);
-            current_token = getToken();
-            getTokenAssert(TOK_L_BRCKT);
+            current_token = getTokenAssert(TOK_L_BRCKT);
             int param_cntr = 0;
             while (current_token.type != TOK_R_BRCKT)
             {
@@ -333,11 +359,8 @@ int find_functions()
 
                 current_token = getTokenAssert(TOK_COLON);
 
-                current_token = getToken();
-                if (current_token.type != TOK_KW_DOUBLE && current_token.type != TOK_KW_INT && current_token.type != TOK_KW_STRING)
-                {
-                    // error
-                }
+                getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
+
                 func_table_member.params[param_cntr].type = current_token.type;
 
                 current_token = getTokenAssert(TOK_COMMA);
@@ -346,15 +369,10 @@ int find_functions()
             }
             current_token = getTokenAssert(TOK_ARROW);
 
-            current_token = getToken();
-            if (current_token.type == TOK_KW_DOUBLE || current_token.type == TOK_KW_INT || current_token.type == TOK_KW_STRING)
-            {
-                func_table_member.type = current_token.type;
-            }
-            else
-            {
-                // error
-            }
+            getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
+            
+            func_table_member.type = current_token.type;
+            
             // obsah uvnitr funkce resim v 2. pruchodu
             add_to_func_table(&func_table, &func_table_member);
         }
