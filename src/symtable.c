@@ -101,6 +101,21 @@ local_symtab_t *local_search(local_symtab_t *local_table, string_t *key)
     return NULL;
 }
 
+local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, string_t *key)
+{
+    local_symtab_w_par_ptr_t *tmp = local_table;
+    while (tmp != NULL)
+    {
+        local_symtab_t *found = local_search(tmp->table, key);
+        if (found != NULL)
+        {
+            return found;
+        }
+        tmp = tmp->parent;
+    }
+    return NULL;
+}
+
 local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type)
 {
     
@@ -277,11 +292,11 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         }
         else if (cmp < 0)
         {            
-            global_insert(global_table->left, key, type, params);
+            global_table->left = global_insert(global_table->left, key, type, params);
         }
         else
         {            
-            global_insert(global_table->right, key, type, params);
+            global_table->right = global_insert(global_table->right, key, type, params);
         }
 
         // Vyskove vyvazenie
