@@ -7,7 +7,7 @@
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author
+ * @author Tomas Arlt (xarltt00)
 */
 
 #include <stdio.h>
@@ -41,10 +41,60 @@ void initToken(token_t *token)
 // Uvolnenie pamati tokenu
 void freeToken(token_t *token) 
 {
-    if (token->type == TOK_IDENTIFIER) 
+    dstringFree(&(token->attribute.str));
+}
+
+void assignIdentifier(token_t *token, string_t identifier)
+{
+    if (strcmp(identifier.data, "Double") == 0) 
     {
-        dstringFree(&(token->attribute.str));
+        token->type = TOK_KW_DOUBLE;
     }
+    else if (strcmp(identifier.data, "else") == 0) 
+    {
+        token->type = TOK_KW_ELSE;
+    }
+    else if (strcmp(identifier.data, "func") == 0) 
+    {
+        token->type = TOK_KW_FUNC;
+    }
+    else if (strcmp(identifier.data, "if") == 0) 
+    {
+        token->type = TOK_KW_IF;
+    }
+    else if (strcmp(identifier.data, "Int") == 0)   //
+    {
+        token->type = TOK_KW_INT;
+    }
+    else if (strcmp(identifier.data, "let") == 0) 
+    {
+        token->type = TOK_KW_LET;
+    }
+    else if (strcmp(identifier.data, "return") == 0) 
+    {
+        token->type = TOK_KW_RETURN;
+    }
+    else if (strcmp(identifier.data, "String") == 0) 
+    {
+        token->type = TOK_KW_STRING;
+    }
+    else if (strcmp(identifier.data, "_") == 0) // samotne _ nie je ID, __ uz je ID
+    {
+        token->type = TOK_UNDERSCORE;
+    }
+    else if (strcmp(identifier.data, "var") == 0) 
+    {
+        token->type = TOK_KW_VAR;
+    }
+    else if (strcmp(identifier.data, "while") == 0) 
+    {
+        token->type = TOK_KW_WHILE;
+    }
+    else
+    {
+        token->type = TOK_IDENTIFIER;
+    }
+    token->attribute.str = identifier;  // aj klucove slova budu obsahovat atribut
 }
 
 // Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
@@ -69,10 +119,9 @@ token_t getNextToken()
         }
         ungetChar(c);
 
-        token.type = TOK_IDENTIFIER;
-        token.attribute.str = identifier;
+        assignIdentifier(&token, identifier);
     } 
-    else if (isdigit(c))                // INT/DOUBLE
+    else if (isdigit(c))                // INT/DOUBLE   uklada hodnoty aj do token.attribute.str.data
     {
         char buffer[100];
         int i = 0;
@@ -87,11 +136,12 @@ token_t getNextToken()
         if (strchr(buffer, '.') != NULL) 
         {
             token.type = TOK_DOUBLE;
-            token.attribute.decimal = atof(buffer);//strtod ! ! !
-        } else 
+            token.attribute.doubleValue = atof(buffer);//strtod ! ! !
+        } 
+        else 
         {
             token.type = TOK_INT;
-            token.attribute.number = atoi(buffer);
+            token.attribute.intValue = atoi(buffer);
         }
     }
     else if (c == '*')
@@ -108,6 +158,10 @@ token_t getNextToken()
         else                                        // ERROR
         {
             ungetChar(c);
+            fprintf(stderr, "Pri nacitavani *\n");
+            returnError(SCANNER_ERR);
+            //GLOBAL_ERROR_VALUE = SCANNER_ERR;
+            
         }
     }
     else if (c == '/')
@@ -116,6 +170,15 @@ token_t getNextToken()
         if (c == '*')                               // /*
         {
             token.type = TOK_BLOCK_COM_START;
+            while ((c = getNextChar()) != EOF) 
+            {
+                if (c == '*' && (c = getNextChar()) == '/')
+                {
+                    ungetChar('/');
+                    ungetChar('*');
+                    break;
+                }
+            }
         }
         else if (c == '/')                          // //
         {
@@ -132,6 +195,7 @@ token_t getNextToken()
         else
         {
             ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == EOF) token.type = TOK_EOF;        // EOF
@@ -150,6 +214,8 @@ token_t getNextToken()
         else
         {
             ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
+            //GLOBAL_ERROR_VALUE = 1;
         }
     }
     else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
@@ -170,6 +236,8 @@ token_t getNextToken()
         else
         {
             ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
+            //GLOBAL_ERROR_VALUE = 1;
         }
     } 
     else if (c == '<')                              
@@ -186,7 +254,7 @@ token_t getNextToken()
         else 
         {
             ungetChar(c);                           // ERROR
-            //token.type = TOK_LESSER;              // ???? SEM POZRET
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == '>')
@@ -202,7 +270,8 @@ token_t getNextToken()
         }
         else
         {
-            ungetChar(c);                           // ERROR
+            //ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == '=')
@@ -218,7 +287,8 @@ token_t getNextToken()
         }
         else
         {
-            ungetChar(c);                           // ERROR
+            //ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == ':') token.type = TOK_COLON;      // ,       
@@ -230,14 +300,19 @@ token_t getNextToken()
         c = getNextChar();
         if (c == '?')
         {
-            token.type = TOK_QUESTION;              // ?
+            token.type = TOK_DOUBLE_QUEST_MARK;     // ??
+        }
+        else if (isspace(c))
+        {
+            token.type = TOK_QUEST_MARK;            // ERROR
         }
         else
         {
             ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
         }
     }
-    else if (c == '"')
+    else if (c == '"')                              // STRING_LITERAL (mozno bude treba dalsie upravy)
     {
         c = getNextChar();
 
@@ -247,19 +322,75 @@ token_t getNextToken()
 
         while ((c = getNextChar()) != EOF && c != '"') 
         {
+            if (c == '\\')              // Escape sekvencia
+            {
+                c = getNextChar();
+                switch (c)
+                {
+                    case 'n':       // '\n'
+                        c = '\n';
+                        break;
+                    case 'r':       // '\r'
+                        c = '\r';
+                        break;
+                    case 't':       // '\t'
+                        c = '\t';
+                        break;
+                    case '\\':      // '\\'
+                        c = '\\';
+                        break;  
+                    case 'u':       // HEXADECIMAL
+                        if ((c = getNextChar()) == '{')
+                        {
+                            int value = 0;
+                            while ((c = getNextChar()) != '}')
+                            {
+                                if (isxdigit(c))    // kod z https://copyprogramming.com/howto/how-to-convert-hex-to-ascii-in-c-with-and-without-using-sprintf
+                                {
+                                    if (isdigit(c)) 
+                                    {
+                                        value = (16 * value) + (c - '0');
+                                    }
+                                    else
+                                    {
+                                        value = (16 * value) + (tolower(c) - 'a' + 10);
+                                    }   
+                                }
+                                else    // /u{G -> pokracuj
+                                {
+                                    value = c;
+                                    break;
+                                }
+                            }
+                            c = value;                                                            
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }   
             dstringAppend(&string, c);
         }
         //ungetChar(c);
         token.type = TOK_STRING;
         token.attribute.str = string;
     }
-    
-    
+    else if (c == '\n')
+    {
+        token.type = TOK_EOL;                       // EOL
+
+        c = getNextChar();
+        while (c == '\n' || isspace(c))
+        {
+            c = getNextChar();
+        }
+        ungetChar(c);                               // ERROR
+    }
+    else
+    {
+        fprintf(stderr, "Nacitanie neznameho tokenu\n");
+        returnError(SCANNER_ERR);
+    }
 
     return token;
 }
-
-/* TODO:
-    SNIMANIE ? ZA DATOVYM TYPOM
-    ...
-*/
