@@ -37,6 +37,12 @@ typedef struct local_symtab
     struct local_symtab *right; // Pravy potomok
 } local_symtab_t;
 
+typedef struct local_symtab_w_par_ptr
+{
+    struct local_symtab *table;
+    struct local_symtab_w_par_ptr *parent;
+} local_symtab_w_par_ptr_t;
+
 typedef struct global_symtab
 {
     string_t key;
