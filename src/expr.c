@@ -101,6 +101,168 @@ int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
 // 3: E → (E)
 // 4: E → i
 
+bool applyRule(Stack *stack)
+{
+    Stack_Print(stack);
+    token_t stackTop;
+    Stack_Top(stack, &stackTop);
+
+    // 4. E->i
+    if (stackTop.type == TOK_IDENTIFIER)
+    {
+        token_t prevPopped;
+        while (stackTop.type != TOK_LESSER)
+        {
+            prevPopped = stackTop;
+            Stack_Pop(stack);
+            Stack_Top(stack, &stackTop);
+        }
+
+        Stack_Pop(stack);
+
+        if (prevPopped.type == TOK_IDENTIFIER)
+        {
+            prevPopped.type = TOK_EXPRESSION;
+            Stack_Push(stack, &prevPopped);
+        }
+        return true;
+    }
+    else if (stackTop.type == TOK_EXPRESSION || stackTop.type == TOK_R_BRCKT)
+    {
+        if (stack->elements[stack->size - 2].type == TOK_MUL && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        {
+            // 2. E->E*E
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        }
+        else if (stack->elements[stack->size - 2].type == TOK_PLUS && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        {
+            // 1. E->E+E
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        }
+        else if (stack->elements[stack->size - 1].type == TOK_L_BRCKT && stack->elements[stack->size - 2].type == TOK_EXPRESSION && stack->elements[stack->size - 3].type == TOK_R_BRCKT)
+        {
+            // 3. E->(E)
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        } // E -> E/E
+        else if (stack->elements[stack->size - 2].type == TOK_DIV && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        {
+            // 2. E->E/E
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        }
+        else if (stack->elements[stack->size - 2].type == TOK_MINUS && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        {
+            // 1. E->E-E
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        }
+        else if (stack->elements[stack->size - 2].type == TOK_EQUAL && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        {
+            // 1. E->E=E
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        }
+        else if (stack->elements[stack->size - 2].type == TOK_NOT_EQUAL && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        {
+            // 1. E->E!=E
+            while (stackTop.type != TOK_LESSER)
+            {
+                Stack_Pop(stack);
+                Stack_Top(stack, &stackTop);
+            }
+
+            Stack_Pop(stack);
+
+            token_t expr;
+            expr.type = TOK_EXPRESSION;
+
+            Stack_Push(stack, &expr);
+            return true;
+        }
+        else
+        {
+            // Nebolo pouzite ziadne pravidlo
+            Stack_Print(stack);
+            return false;
+        }
+    }
+    else
+    {
+        // Nebolo pouzite ziadne pravidlo
+        Stack_Print(stack);
+        return false;
+    }
+}
+
 // Kontrolovanie dat typov ? Napr. pri == musia byt rovnake inak chyba...
 bool checkExpression()
 {
@@ -110,8 +272,6 @@ bool checkExpression()
     // Spodok stacku je $E
     token_t stackBottom;
     stackBottom.type = TOK_EOF;
-    dstringInit(&stackBottom.attribute.str);
-    dstringAppend(&stackBottom.attribute.str, '$');
 
     Stack_Push(&stack, &stackBottom);
 
@@ -122,46 +282,22 @@ bool checkExpression()
         Stack_Print(&stack);
         token_t stackTop;
         Stack_Top(&stack, &stackTop);
-        // Stack_Pop(&stack);
         int result = precedenceTable[getTokenIndex(stackTop)][getTokenIndex(token)];
 
+        // Load stack
         if (result == L)
         {
-            // token_t less;
-            // less.type = TOK_LESSER;
-            // Stack_Push(&stack, &less);
             Stack_InsertLesser(&stack);
             Stack_Push(&stack, &token);
             token = getNextToken();
             continue;
         }
-        // Redukcia podla pravidiel
+        // Redukuj stack
         else if (result == R)
         {
-            // 4: E → i
-            token_t previousToken;
-            while (stackTop.type != TOK_LESSER)
-            {
-                previousToken = stackTop;
-                Stack_Pop(&stack);
-                Stack_Top(&stack, &stackTop);
-            }
-
-            Stack_Pop(&stack);
-
-            if (previousToken.type == TOK_IDENTIFIER)
-            {
-                previousToken.type = TOK_EXPRESSION;
-                Stack_Push(&stack, &previousToken);
-            }
-
+            applyRule(&stack);
             Stack_InsertLesser(&stack);
-
             Stack_Push(&stack, &token);
-
-            // printf("-----PO-----\n");
-            // Stack_Print(&stack);
-
             token = getNextToken();
         }
         else if (result == E)
@@ -171,93 +307,19 @@ bool checkExpression()
         }
     }
 
-    // RULES:
-    // 1: E → E+E
-    // 2: E → E*E
-    // 3: E → (E)
-    // 4: E → i
-
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
-        Stack_Print(&stack);
-        token_t stackTop;
-        Stack_Top(&stack, &stackTop);
-
-        // 4. E->i
-        if (stackTop.type == TOK_IDENTIFIER)
+        if (applyRule(&stack) == false)
         {
-            token_t prevPopped;
-            while (stackTop.type != TOK_LESSER)
-            {
-                prevPopped = stackTop;
-                Stack_Pop(&stack);
-                Stack_Top(&stack, &stackTop);
-            }
-
-            Stack_Pop(&stack);
-
-            if (prevPopped.type == TOK_IDENTIFIER)
-            {
-                prevPopped.type = TOK_EXPRESSION;
-                Stack_Push(&stack, &prevPopped);
-            }
-        }
-        else if (stackTop.type == TOK_EXPRESSION)
-        {
-            if (stack.elements[stack.size - 2].type == TOK_MUL && stack.elements[stack.size - 3].type == TOK_EXPRESSION)
-            {
-                // 2. E->E*E
-                while (stackTop.type != TOK_LESSER)
-                {
-                    Stack_Pop(&stack);
-                    Stack_Top(&stack, &stackTop);
-                }
-
-                Stack_Pop(&stack);
-
-                token_t expr;
-                expr.type = TOK_EXPRESSION;
-
-                Stack_Push(&stack, &expr);
-            }
-            else if (stack.elements[stack.size - 2].type == TOK_PLUS && stack.elements[stack.size - 3].type == TOK_EXPRESSION)
-            {
-                // 1. E->E+E
-                while (stackTop.type != TOK_LESSER)
-                {
-                    Stack_Pop(&stack);
-                    Stack_Top(&stack, &stackTop);
-                }
-
-                Stack_Pop(&stack);
-
-                token_t expr;
-                expr.type = TOK_EXPRESSION;
-
-                Stack_Push(&stack, &expr);
-            }
-            else if (stack.elements[stack.size - 2].type == TOK_L_BRCKT && stack.elements[stack.size - 3].type == TOK_EXPRESSION && stack.elements[stack.size - 4].type == TOK_R_BRCKT)
-            {
-                // 3. E->(E)
-                while (stackTop.type != TOK_LESSER)
-                {
-                    Stack_Pop(&stack);
-                    Stack_Top(&stack, &stackTop);
-                }
-
-                Stack_Pop(&stack);
-
-                token_t expr;
-                expr.type = TOK_EXPRESSION;
-
-                Stack_Push(&stack, &expr);
-            }
-            else
-            {
-                Stack_Print(&stack);
-                return true;
-            }
+            printf("[EXPR] FAIL\n");
+            Stack_Dispose(&stack);
+            return false;
         }
     }
+
+    Stack_Print(&stack);
+    Stack_Dispose(&stack);
+    printf("[EXPR] OK\n");
+    return true;
 }

@@ -29,6 +29,7 @@ typedef enum typ
     TOK_DOUBLE,           // DOUBLE
     TOK_STRING_START,     // "
     TOK_STRING,           // STRING
+    TOK_EXPRESSION,       // VYRAZ
 
     
     TOK_MUL,              // *
@@ -57,7 +58,6 @@ typedef enum typ
     TOK_DOT,              // .
 
     TOK_QUESTION,         // ??
-    TOK_DOLLAR,           // $
 
     TOK_COMMENT,          // //
     TOK_BLOCK_COM_START,  // /*

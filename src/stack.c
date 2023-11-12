@@ -157,20 +157,23 @@ void Stack_Print(Stack *stack)
     printf("-------------------\n");
 }
 
+// Funkcia sluzi na vlozenie '<' pred prvy terminal v zasobniku.
+// Vyhlada index vlozenia, posunie vsetky prvky o jedno miesto doprava a vlozi '<'.
 void Stack_InsertLesser(Stack *stack)
 {
     token_t lesser;
     lesser.type = TOK_LESSER;
-
     token_t currToken;
     Stack_Top(stack, &currToken);
 
+    // TOK_EOF == $ (Stack Bottom)
     if (currToken.type == TOK_EOF)
     {
         Stack_Push(stack, &lesser);
         return;
     }
 
+    // Vyhladanie indexu vlozenia
     int currIndex = -1;
     for (int i = stack->size - 1; i >= 0; i--)
     {
@@ -178,28 +181,27 @@ void Stack_InsertLesser(Stack *stack)
         if (currToken.type != TOK_EXPRESSION && currToken.type != TOK_IDENTIFIER)
         {
             currIndex = i;
-            printf("currIndex: %d\n", currIndex);
-            Stack_Print(stack);
             break;
         }
     }
 
     if (currIndex != -1)
     {
-        Stack_Print(stack);
-
+        // Zvacsenie zasobnika a inkrementacia topIndexu pre posunutie prvkov
         stack->size++;
         stack->topIndex++;
-        Stack_CheckSize(stack); // Increase stack size
 
+        // Kontrola velkosti zasobnika
+        Stack_CheckSize(stack);
+
+        // Posunutie prvkov
         for (int i = stack->size - 1; i > currIndex; i--)
         {
             stack->elements[i] = stack->elements[i - 1]; // Shift elements
         }
 
+        // Vlozenie '<' na spravne miesto
         stack->elements[currIndex + 1] = lesser; // Add "lesser" token after the current token
-
-        Stack_Print(stack);
 
         return;
     }
