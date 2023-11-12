@@ -96,10 +96,20 @@ int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
 };
 
 // RULES:
-// 1: E → E+E
+// 1: E → !E
 // 2: E → E*E
-// 3: E → (E)
-// 4: E → i
+// 3: E → E/E
+// 4: E → E+E
+// 5: E → E-E
+// 6: E → E==E
+// 7: E → E!=E
+// 8: E → E<E
+// 9: E → E>E
+// 10: E → E<=E
+// 11: E → E>=E
+// 12: E → E??E
+// 13: E → (E)
+// 14: E → i
 
 bool applyRule(Stack *stack)
 {
