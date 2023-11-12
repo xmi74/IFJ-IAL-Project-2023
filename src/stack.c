@@ -13,6 +13,7 @@
 // TODO : error handling, viac testov ?
 
 #include "stack.h"
+#include "debug/printTokenType.c"
 
 // Funkcia na inicializaciu zasobnika
 void Stack_Init(Stack *stack)
@@ -143,4 +144,63 @@ void Stack_Dispose(Stack *stack)
 
     stack->topIndex = -1;
     stack->elements = NULL;
+}
+
+void Stack_Print(Stack *stack)
+{
+    printf("------ Stack ------\n");
+    printf("Size: %ld, capacity : %ld\n", stack->size, stack->capacity);
+    for (int i = 0; i < stack->size; i++)
+    {
+        printf("ID : %d => Type: %s\n", i, getTokenTypeName(stack->elements[i].type));
+    }
+    printf("-------------------\n");
+}
+
+void Stack_InsertLesser(Stack *stack)
+{
+    token_t lesser;
+    lesser.type = TOK_LESSER;
+
+    token_t currToken;
+    Stack_Top(stack, &currToken);
+
+    if (currToken.type == TOK_EOF)
+    {
+        Stack_Push(stack, &lesser);
+        return;
+    }
+
+    int currIndex = -1;
+    for (int i = stack->size - 1; i >= 0; i--)
+    {
+        currToken = stack->elements[i];
+        if (currToken.type != TOK_EXPRESSION && currToken.type != TOK_IDENTIFIER)
+        {
+            currIndex = i;
+            printf("currIndex: %d\n", currIndex);
+            Stack_Print(stack);
+            break;
+        }
+    }
+
+    if (currIndex != -1)
+    {
+        Stack_Print(stack);
+
+        stack->size++;
+        stack->topIndex++;
+        Stack_CheckSize(stack); // Increase stack size
+
+        for (int i = stack->size - 1; i > currIndex; i--)
+        {
+            stack->elements[i] = stack->elements[i - 1]; // Shift elements
+        }
+
+        stack->elements[currIndex + 1] = lesser; // Add "lesser" token after the current token
+
+        Stack_Print(stack);
+
+        return;
+    }
 }
