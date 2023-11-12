@@ -77,22 +77,22 @@ enum
 
 int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
     /*! *  /  +  -  == != <  > <=  >= ?? (  )  i  $ */
-    {U, L, L, L, L, L, L, L, L, L, L, R, R, L, R, L}, // !
-    {L, R, R, R, R, R, R, R, R, R, R, L, R, R, L, L}, // *
-    {L, R, R, R, R, R, R, R, R, R, R, L, R, R, R, L}, // /
-    {L, R, R, R, R, R, R, R, R, R, R, L, R, R, R, L}, // +
-    {L, R, R, R, R, R, R, R, R, R, R, L, R, R, R, L}, // -
-    {L, R, R, R, R, U, U, U, U, U, U, R, R, R, R, L}, // ==
-    {L, R, R, R, R, U, U, U, U, U, U, R, R, R, R, L}, // !=
-    {L, R, R, R, R, U, U, U, U, U, U, R, R, R, R, L}, // <
-    {L, R, R, R, R, U, U, U, U, U, U, R, R, R, R, L}, // >
-    {L, R, R, R, R, U, U, U, U, U, U, R, R, R, R, L}, // <=
-    {R, L, L, L, L, U, U, U, U, U, U, R, R, R, R, L}, // >=
-    {L, L, L, L, L, L, L, L, L, L, L, U, E, R, L, L}, // ??
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, E, U, U}, // (
-    {R, R, R, R, R, R, R, R, R, R, R, R, R, R, U, L}, // )
-    {R, R, R, R, R, R, R, R, R, R, R, R, L, R, U, R}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, U, L, E}, // $ (EOF)
+    {U, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // !
+    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // *
+    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // /
+    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // +
+    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // -
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // ==
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // !=
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, R, L, R}, // ??
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, U}, // $ (EOF)
 };
 
 // RULES:
