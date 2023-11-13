@@ -35,6 +35,9 @@ int getTokenIndex(token_t token)
     case TOK_R_BRCKT:
         return 13; // ')'
     case TOK_IDENTIFIER:
+    case TOK_STRING:
+    case TOK_INT:
+    case TOK_DOUBLE:
         return 14; // 'i'
     case TOK_EOF:
         return 15; // '$'
@@ -88,7 +91,7 @@ int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
     {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
     {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
     {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, R, L, R}, // ??
+    {L, L, L, L, L, L, L, L, L, L, L, U, L, R, L, R}, // ??
     {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
     {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
     {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
@@ -111,11 +114,63 @@ int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
 // 13: E → (E)
 // 14: E → i
 
+// Funckia na redukciu aritmetickych vyrazov
+void reduceArithmetic(Stack *stack)
+{
+    token_t stackTop;
+    Stack_Top(stack, &stackTop);
+    while (stackTop.type != TOK_LESSER)
+    {
+        Stack_Pop(stack);
+        Stack_Top(stack, &stackTop);
+    }
+
+    Stack_Pop(stack);
+
+    token_t expr;
+    expr.type = TOK_EXPRESSION;
+
+    Stack_Push(stack, &expr);
+}
+
+bool reduceLogical(Stack *stack)
+{
+    token_t stackTop;
+    Stack_Top(stack, &stackTop);
+    if (stackTop.type == TOK_EXPRESSION)
+    {
+        token_t operand1 = stack->elements[stack->size - 1];
+        token_t operand2 = stack->elements[stack->size - 3];
+
+        if (dataTypeEqual(operand1, operand2) == false)
+        {
+            printf("[EXPR] ERROR: Incompatible data types\n");
+            return false;
+        }
+
+        while (stackTop.type != TOK_LESSER)
+        {
+            Stack_Pop(stack);
+            Stack_Top(stack, &stackTop);
+        }
+
+        Stack_Pop(stack);
+
+        token_t expr;
+        expr.type = TOK_EXPRESSION;
+
+        Stack_Push(stack, &expr);
+        return true;
+    }
+}
+
 bool applyRule(Stack *stack)
 {
     Stack_Print(stack);
     token_t stackTop;
     Stack_Top(stack, &stackTop);
+    token_t operation = stack->elements[stack->size - 2];
+    operation.type = stack->elements[stack->size - 2].type;
 
     // 4. E->i
     if (stackTop.type == TOK_IDENTIFIER)
@@ -137,138 +192,37 @@ bool applyRule(Stack *stack)
         }
         return true;
     }
-    else if (stackTop.type == TOK_EXPRESSION || stackTop.type == TOK_R_BRCKT)
+    else if (stackTop.type == TOK_EXPRESSION || stackTop.type == TOK_DOUBLE || stackTop.type == TOK_INT || stackTop.type == TOK_STRING)
     {
-        if (stack->elements[stack->size - 2].type == TOK_MUL && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        // Aritmeticka redukcia
+        if (operation.type == TOK_MUL || operation.type == TOK_DIV || operation.type == TOK_PLUS || operation.type == TOK_MINUS)
         {
-            // 2. E->E*E
-            while (stackTop.type != TOK_LESSER)
-            {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
-            }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
+            reduceArithmetic(stack);
             return true;
         }
-        else if (stack->elements[stack->size - 2].type == TOK_PLUS && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
+        // Logicka redukcia
+        else if (operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL || operation.type == TOK_LESSER || operation.type == TOK_GREATER || operation.type == TOK_LESSER_OR_EQUAL || operation.type == TOK_GREATER_OR_EQUAL)
         {
-            // 1. E->E+E
-            while (stackTop.type != TOK_LESSER)
+            // Nastala chyba pri redukcii
+            if (reduceLogical(stack) != true)
             {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
+                printf("[EXPR] ERROR: Incompatible data types\n");
+                return false;
             }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
-            return true;
-        }
-        else if (stack->elements[stack->size - 1].type == TOK_L_BRCKT && stack->elements[stack->size - 2].type == TOK_EXPRESSION && stack->elements[stack->size - 3].type == TOK_R_BRCKT)
-        {
-            // 3. E->(E)
-            while (stackTop.type != TOK_LESSER)
-            {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
-            }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
-            return true;
-        } // E -> E/E
-        else if (stack->elements[stack->size - 2].type == TOK_DIV && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
-        {
-            // 2. E->E/E
-            while (stackTop.type != TOK_LESSER)
-            {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
-            }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
-            return true;
-        }
-        else if (stack->elements[stack->size - 2].type == TOK_MINUS && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
-        {
-            // 1. E->E-E
-            while (stackTop.type != TOK_LESSER)
-            {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
-            }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
-            return true;
-        }
-        else if (stack->elements[stack->size - 2].type == TOK_EQUAL && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
-        {
-            // 1. E->E=E
-            while (stackTop.type != TOK_LESSER)
-            {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
-            }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
-            return true;
-        }
-        else if (stack->elements[stack->size - 2].type == TOK_NOT_EQUAL && stack->elements[stack->size - 3].type == TOK_EXPRESSION)
-        {
-            // 1. E->E!=E
-            while (stackTop.type != TOK_LESSER)
-            {
-                Stack_Pop(stack);
-                Stack_Top(stack, &stackTop);
-            }
-
-            Stack_Pop(stack);
-
-            token_t expr;
-            expr.type = TOK_EXPRESSION;
-
-            Stack_Push(stack, &expr);
             return true;
         }
         else
         {
-            // Nebolo pouzite ziadne pravidlo
-            Stack_Print(stack);
+            printf("[EXPR] ERROR: Unknown operation\n");
             return false;
         }
     }
+    // 3. E->(E)
     else
     {
         // Nebolo pouzite ziadne pravidlo
         Stack_Print(stack);
+        printf("[EXPR] ERROR: Unknown rule\n");
         return false;
     }
 }
@@ -313,6 +267,7 @@ bool checkExpression()
         else if (result == E)
         {
             // Errorovy stav ? alebo ok
+            printf("[EXPR] ERROR: EQUAL\n");
             return true;
         }
     }
