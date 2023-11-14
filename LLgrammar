@@ -2,18 +2,18 @@
 2.        <PROGRAM> → func ID ( <PARAMS> ) <DEF_FUNC_2> EOL <PROGRAM>
 3.        <PROGRAM> → EOF
 
-4.        <SEQ> → let ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL <SEQ> EOF   # DEFINE VARIABLE
-5.        <SEQ> → var ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL <SEQ> EOF   # DEFINE VARIABLE
+4.        <SEQ> → let ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL   # DEFINE VARIABLE
+5.        <SEQ> → var ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL   # DEFINE VARIABLE
 6.        <DEF_TYPE_VAR> → ε
-7.        <DEF_TYPE_VAR> → : <TYPE> <QUEST_MARK>
+7.        <DEF_TYPE_VAR> → : <TYPE>
 8.        <ASSIGN_VARIABLE> → = <EXPRESSION>
 9.        <ASSIGN_VARIABLE> → ε
 
-10.       <SEQ> → ID <ASSIGN_OR_CALL_FUNC> EOL <SEQ> EOF                  # ASSIGN || CALL_FUNCTION
-11.       <ASSIGN_OR_CALL_FUNC> → = <ASSIGN_OR_CALL_FUNC_N>               # BUD BUDE ID = EXPRESSION || ID = VOLANIE NON-VOID FUNKCIE
-12.       <ASSIGN_OR_CALL_FUNC> → ( <PARAMS_IN>                           # ALEBO ID ( PARAMS_IN )
+10.       <SEQ> → ID <ASSIGN_OR_CALL_FUNC> EOL                     # ASSIGN || CALL_FUNCTION
+11.       <ASSIGN_OR_CALL_FUNC> → = <ASSIGN_OR_CALL_FUNC_N>        # BUD BUDE ID = EXPRESSION || ID = VOLANIE NON-VOID FUNKCIE
+12.       <ASSIGN_OR_CALL_FUNC> → ( <PARAMS_IN>                    # ALEBO ID ( PARAMS_IN )
 13.       <ASSIGN_OR_CALL_FUNC_N> → <EXPRESSION>
-14.       <ASSIGN_OR_CALL_FUNC_N> → <CALL_FUNC>                           # VOLANIE NE-VOID FUNKCIE 
+14.       <ASSIGN_OR_CALL_FUNC_N> → <CALL_FUNC>                    # VOLANIE NE-VOID FUNKCIE 
 15.       <CALL_FUNC> → ID ( <PARAMS_IN>  
 16.       <PARAMS_IN> → <PARAMS_IN_N>
 17.       <PARAMS_IN> → ID <PARAMS_IN_NAME> <PARAMS_IN_N>
@@ -24,16 +24,16 @@
 22.       <PARAMS_IN_N> → , <PARAMS_IN>
 23.       <PARAMS_IN_N> → )
 
-24.       <SEQ> → if <IF_EXPRESSION> { <SEQ> } <ELSE_STATEMENT> EOL <SEQ> EOF       # IF
+24.       <SEQ> → if <IF_EXPRESSION> { <SEQ> } <ELSE_STATEMENT> EOL       # IF
 25.       <ELSE_STATEMENT> → else { <SEQ> }
 26.       IF_EXPRESSION> → <EXPRESSION>
 27.       <IF_EXPRESSION> → let ID
 
-28.       <SEQ> → while <EXPRESSION> { <SEQ> } EOL <SEQ> EOF                        # LOOP
+28.       <SEQ> → while <EXPRESSION> { <SEQ> } EOL                        # LOOP
         
-29.       <DEF_FUNC_2> → -> <TYPE> <QUEST_MARK> { <SEQ> <RETURN_FUNC> }
+29.       <DEF_FUNC_2> → -> <TYPE> { <SEQ> <RETURN_FUNC> }
 30.       <PARAMS> → <PARAMS_N>
-31.       <PARAMS> → <PARAMS_NAME> ID : <TYPE> <QUEST_MARK> <PARAMS_N>
+31.       <PARAMS> → <PARAMS_NAME> ID : <TYPE> <PARAMS_N>
 32.       <PARAMS_NAME> → _
 33.       <PARAMS_NAME> → ID
 34.       <PARAMS_N> → )          
@@ -44,13 +44,12 @@
 38.       <TYPE> → Int
 39.       <TYPE> → Double
 40.       <TYPE> → String
-41.       <QUEST_MARK> → ?
-42.       <QUEST_MARK> → ε
 
-43.       <TERM> → ID
-44.       <TERM> → INT_LITERAL
-45.       <TERM> → DOUBLE_LITERAL
-46.       <TERM> → STRING_LITERAL
+41.       <TERM> → ID
+42.       <TERM> → INT_LITERAL
+43.       <TERM> → DOUBLE_LITERAL
+44.       <TERM> → STRING_LITERAL
+45.       <TERM> → nil
 
 
 
@@ -68,15 +67,3 @@
 <EXPRESSION> -> <EXPRESSION> ! EOL
 <EXPRESSION> -> ( <EXPRESSION> ) EOL      
 <EXPRESSION> -> <TERM>
-
-CETNOSTI PRAVIDIEL:
-    1)  5     11) 1     21) 1       31) 2      41) 1
-    2)  1     12) 1     22) 1       32) 1      42) 5
-    3)  1     13) 1     23) 1       33) 1      43) 1
-    4)  1     14) 1     24) 1       34) 1      44) 1
-    5)  1     15) 1     25) 1       35) 1      45) 1
-    6)  2     16) 2     26) 1       36) 1      46) 1
-    7)  1     17) 1     27) 1       37) 1
-    8)  1     18) 1     28) 1       38) 1
-    9)  1     19) 1     29) 1       39) 1
-    10) 1     20) 1     30) 2       40) 1

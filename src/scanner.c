@@ -70,6 +70,10 @@ void assignIdentifier(token_t *token, string_t identifier)
     {
         token->type = TOK_KW_LET;
     }
+    else if (strcmp(identifier.data, "nil") == 0) 
+    {
+        token->type = TOK_KW_NIL;
+    }
     else if (strcmp(identifier.data, "return") == 0) 
     {
         token->type = TOK_KW_RETURN;
@@ -118,8 +122,20 @@ token_t getNextToken()
             dstringAppend(&identifier, c);
         }
         ungetChar(c);
-
         assignIdentifier(&token, identifier);
+        if (token.type == TOK_KW_DOUBLE || token.type == TOK_KW_INT || token.type == TOK_KW_STRING)
+        {
+            if ((c = getNextChar()) == '?')
+            {
+                token.attribute.includesNil = true;
+            }
+            else
+            {
+                ungetChar(c);
+                token.attribute.includesNil = false;
+            }
+        }
+        
     } 
     else if (isdigit(c))                // INT/DOUBLE   uklada hodnoty aj do token.attribute.str.data
     {
@@ -304,7 +320,9 @@ token_t getNextToken()
         }
         else if (isspace(c))
         {
-            token.type = TOK_QUEST_MARK;            // ERROR
+            //token.type = TOK_QUEST_MARK;            // ? ZMAZENIE, SAMOTNY QUEST_MARK NEEXISTUJE
+            fprintf(stderr, "Spracovanie ?\n");
+            returnError(SCANNER_ERR);
         }
         else
         {
