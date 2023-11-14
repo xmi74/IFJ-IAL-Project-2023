@@ -276,7 +276,7 @@ global_symtab_t *global_search(global_symtab_t *global_table, string_t *key)
 }
 
 
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, string_t params)
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, func_param_t *params)
 {
     if (global_table == NULL)
     {        

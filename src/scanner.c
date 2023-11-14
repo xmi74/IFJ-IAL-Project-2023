@@ -101,58 +101,6 @@ void assignIdentifier(token_t *token, string_t identifier)
     token->attribute.str = identifier;  // aj klucove slova budu obsahovat atribut
 }
 
-void assignIdentifier(token_t *token, string_t identifier)
-{
-    if (strcmp(identifier.data, "Double") == 0) 
-    {
-        token->type = TOK_KW_DOUBLE;
-    }
-    else if (strcmp(identifier.data, "else") == 0) 
-    {
-        token->type = TOK_KW_ELSE;
-    }
-    else if (strcmp(identifier.data, "func") == 0) 
-    {
-        token->type = TOK_KW_FUNC;
-    }
-    else if (strcmp(identifier.data, "if") == 0) 
-    {
-        token->type = TOK_KW_IF;
-    }
-    else if (strcmp(identifier.data, "Int") == 0)   //
-    {
-        token->type = TOK_KW_INT;
-    }
-    else if (strcmp(identifier.data, "let") == 0) 
-    {
-        token->type = TOK_KW_LET;
-    }
-    else if (strcmp(identifier.data, "_") == 0)     // CHECK NIL
-    {
-        token->type = TOK_KW_NIL;
-    }
-    else if (strcmp(identifier.data, "return") == 0) 
-    {
-        token->type = TOK_KW_RETURN;
-    }
-    else if (strcmp(identifier.data, "String") == 0) 
-    {
-        token->type = TOK_KW_STRING;
-    }
-    else if (strcmp(identifier.data, "var") == 0) 
-    {
-        token->type = TOK_KW_VAR;
-    }
-    else if (strcmp(identifier.data, "while") == 0) 
-    {
-        token->type = TOK_KW_WHILE;
-    }
-    else
-    {
-        token->type = TOK_IDENTIFIER;
-        token->attribute.str = identifier;
-    }
-}
 
 // Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
 token_t getNextToken() 

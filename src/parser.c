@@ -117,7 +117,7 @@ int handle_variable(token_t token_assigner, global_symtab_t *global_table, local
     else {
         getTokenAssert(TOK_EQUAL);
 
-        if (current_token.type == TOK_SEMICLN) // nebo newline
+        if (current_token.type == TOK_EOL) // nebo newline
         {
             //local_insert()
         }
@@ -193,6 +193,25 @@ int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_pa
         {
             handle_assign_or_call_func(current_token, global_table, &local_table);
         }
+        else if (current_token.type == TOK_KW_FUNC)
+        {
+            if (nest_level != 0)
+            {
+                // error - funkce definovana v podbloku
+            }
+            else
+            {
+                // TODO
+            }
+        }
+        else if (current_token.type == TOK_KW_IF)
+        {
+            // TODO
+        }
+        else if (current_token.type == TOK_KW_WHILE)
+        {
+            // TODO
+        }
         current_token = getToken();
     }
 }
@@ -257,41 +276,8 @@ void read_subblock(token_t token)
     return;
 }
 
-void init_func_table(func_table_t *table)
+int find_functions(global_symtab_t *global_table)
 {
-    table->capacity = 64;
-    table->size = 0;
-    table->members = (func_table_member_t *)malloc(sizeof(func_table_member_t) * table->capacity);
-    if (table->members == NULL)
-    {
-        // malloc error
-    }
-}
-
-void add_to_func_table(func_table_t *table, func_table_member_t *member)
-{
-    if (table->size >= table->capacity)
-    {
-        resize_func_table(table);
-    }
-    table->members[table->size] = *member;
-    table->size++;
-}
-
-void resize_func_table(func_table_t *table)
-{
-    table->capacity *= 2;
-    table->members = (func_table_member_t *)realloc(table->members, sizeof(func_table_member_t) * table->capacity);
-    if (table->members == NULL)
-    {
-        // realloc error
-    }
-}
-
-int find_functions()
-{
-    func_table_t func_table;
-    init_func_table(&func_table);
     token_t current_token;
     current_token = getToken();
 
@@ -328,40 +314,49 @@ int find_functions()
         }
         else if (current_token.type == TOK_KW_FUNC) // neresim kde je definovana, jen ze ne v podbloku
         {
-            func_table_member_t func_table_member;
-            dstringInit(&(func_table_member.key));
-            current_token = getTokenAssert(TOK_IDENTIFIER);
+            token_t func_name = getTokenAssert(TOK_IDENTIFIER);
             // TODO funkce nesmi byt zabudovana/jiz definovana
-            dstringCopy(&func_table_member.key, &current_token.attribute.str);
             current_token = getTokenAssert(TOK_L_BRCKT);
+            func_param_t *params;
             int param_cntr = 0;
             while (current_token.type != TOK_R_BRCKT)
             {
-                dstringInit(&func_table_member.params[param_cntr].name.str);
-                dstringInit(&func_table_member.params[param_cntr].identifier.str);
-                current_token = getToken();
-                if (current_token.type == TOK_KW_NIL)
+                token_t name = getToken();
+                if (name.type == TOK_KW_NIL)
                 {
-                    dstringAppend(&func_table_member.params[param_cntr].name.str, '_');
+                    dstringAppend(&name.attribute.str, '_');
                 }
-                else if (current_token.type == TOK_IDENTIFIER)
-                {
-                    dstringCopy(&func_table_member.params[param_cntr].name.str, &current_token.attribute.str);
-                }
-                else
+                else if (name.type != TOK_IDENTIFIER)
                 {
                     // error
                 }
                 
+                token_t id = getTokenAssert(TOK_IDENTIFIER);
 
-                current_token = getTokenAssert(TOK_IDENTIFIER);
-                dstringCopy(&func_table_member.params[param_cntr].identifier.str, &current_token.attribute.str);
+                getTokenAssert(TOK_COLON);
 
-                current_token = getTokenAssert(TOK_COLON);
+                current_token = getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
 
-                getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
+                if (param_cntr == 0)
+                {
+                    params = malloc(sizeof(func_param_t));
+                    if (params == 0)
+                    {
+                        // error
+                    }
+                }
+                else
+                {
+                    params = realloc(params, sizeof(func_param_t) * param_cntr + 1); // neni idealni, ale asi nebude tolik paramentru aby na tom zalezelo
+                    if (params == 0)
+                    {
+                        // error
+                    }
+                }
 
-                func_table_member.params[param_cntr].type = current_token.type;
+                params[param_cntr].name.str = name.attribute.str;
+                params[param_cntr].identifier.str = id.attribute.str;
+                params[param_cntr].type = current_token.type;
 
                 current_token = getTokenAssert(TOK_COMMA);
 
@@ -371,10 +366,10 @@ int find_functions()
 
             getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
             
-            func_table_member.type = current_token.type;
+            global_table = global_insert(global_table, &func_name.attribute.str, current_token.type, params);
             
             // obsah uvnitr funkce resim v 2. pruchodu
-            add_to_func_table(&func_table, &func_table_member);
+            // TODO: add to global symtable
         }
         current_token = getToken();
     }
@@ -382,11 +377,11 @@ int find_functions()
 
 int parse()
 {
-    initTokenTable(&token_table);
-    find_functions();
-    token_table.insert == false;
     global_symtab_t *global_table;
     global_init(&global_table);
+    initTokenTable(&token_table);
+    find_functions(global_table);
+    token_table.insert == false;
     //parse_block(0, global_table, NULL);
     freeTokenTable(&token_table);
     global_dispose(&global_table);

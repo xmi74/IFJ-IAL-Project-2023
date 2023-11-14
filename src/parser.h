@@ -36,27 +36,6 @@ void addTableToken(token_table_t *table, token_t token);
 // Vraceni tokenu z tabulky tokenu
 token_t getTableToken(token_table_t *table);
 
-typedef struct
-{
-    token_attribute_t name;
-    token_attribute_t identifier;
-    token_type_t type;
-} func_param_t;
-
-typedef struct func_table_member
-{
-    string_t key;
-    token_type_t type;
-    func_param_t params[100];
-} func_table_member_t;
-
-typedef struct func_table
-{
-    func_table_member_t *members;
-    int size;
-    int capacity;
-} func_table_t;
-
 token_t getToken();
 
 token_t getTokenAssert(token_type_t type);
@@ -67,13 +46,7 @@ int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, 
 
 void read_subblock(token_t token);
 
-void init_func_table(func_table_t *table);
-
-void add_to_func_table(func_table_t *table, func_table_member_t *member);
-
-void resize_func_table(func_table_t *table);
-
-int find_functions();
+int find_functions(global_symtab_t *global_table);
 
 int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
 
