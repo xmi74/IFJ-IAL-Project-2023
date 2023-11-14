@@ -10,6 +10,9 @@
  * @author Tomas Arlt (xarltt00)
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifndef _ERROR_H
 #define _ERROR_H
 
@@ -28,3 +31,5 @@
 #define INTERN_ERR 99               // interna chyba prekladaca
 
 #endif
+
+void returnError(int GLOBAL_ERROR_VALUE);

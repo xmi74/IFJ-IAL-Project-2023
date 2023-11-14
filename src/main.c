@@ -60,6 +60,193 @@ void printSymbolTable(local_symtab_t *local_table) {
     printf("--------------------------\n");
 }
 
+void scan(token_t *token)
+{
+    printf(" TYPE\t\t| ATTRIBUTE\n");
+    printf(" ↓↓ \t\t|    ↓↓↓   \n");
+
+    while (1)
+    {
+        *token = getNextToken();
+        if (token->type == TOK_EOF) 
+        {
+            printf("[ EOF ]\n");
+            break;
+        } 
+        else if (token->type == TOK_IDENTIFIER) 
+        {
+            printf("[ Identifier: %s ]\n", token->attribute.str.data);
+            //dstringFree(&(token->attribute.str));
+        }
+        // KEYWORDS
+        else if (token->type == TOK_KW_DOUBLE) 
+        {
+            printf("[ KW : Double ]\n");
+        } 
+        else if (token->type == TOK_KW_ELSE) 
+        {
+            printf("[ KW : else ]\n");
+        } 
+        else if (token->type == TOK_KW_FUNC) 
+        {
+            printf("[ KW : func ]\n");
+        } 
+        else if (token->type == TOK_KW_IF) 
+        {
+            printf("[ KW : if ]\n");
+        } 
+        else if (token->type == TOK_KW_INT) 
+        {
+            printf("[ KW : int ]\n");
+        } 
+        else if (token->type == TOK_KW_LET) 
+        {
+            printf("[ KW : let ]\n");
+        } 
+        else if (token->type == TOK_UNDERSCORE) 
+        {
+            printf("[ UNDERSCORE ]\n");
+        } 
+        else if (token->type == TOK_KW_RETURN) 
+        {
+            printf("[ KW : return ]\n");
+        } 
+        else if (token->type == TOK_KW_STRING) 
+        {
+            printf("[ KW : String ]\n");
+        } 
+        else if (token->type == TOK_KW_VAR) 
+        {
+            printf("[ KW : var ]\n");
+        } 
+        else if (token->type == TOK_KW_WHILE) 
+        {
+            printf("[ KW : while ]\n");
+        } 
+        // KEYWORDS
+        else if (token->type == TOK_INT) 
+        {
+            printf("[ Integer: %d ]\n", token->attribute.intValue);
+        } 
+        else if (token->type == TOK_DOUBLE) 
+        {
+            printf("[ Double: %f ]\n", token->attribute.doubleValue);
+        } 
+        else if (token->type == TOK_BLOCK_COM_END)
+        {
+            printf("[ BLOCK COMMENT END SIGN ]\n");
+        }
+        else if (token->type == TOK_DIV)
+        {
+            printf("[ DIVISION ]\n");
+        }
+        else if (token->type == TOK_BLOCK_COM_START)
+        {
+            printf("[ BLOCK COMMENT START SIGN ]\n");
+        }
+        else if (token->type == TOK_COMMENT)
+        {
+            printf("[ COMMENT ]\n");
+        }
+        else if (token->type == TOK_PLUS)
+        {
+            printf("[ PLUS ]\n");
+        }
+        else if (token->type == TOK_MINUS)
+        {
+            printf("[ MINUS ]\n");
+        }
+        else if (token->type == TOK_ARROW)
+        {
+            printf("[ ARROW ]\n");
+        }
+        else if (token->type == TOK_R_CRL_BRCKT)
+        {
+            printf("[ RIGHT CURLY BRACKET ]\n");
+        }
+        else if (token->type == TOK_L_CRL_BRCKT)
+        {
+            printf("[ LEFT CURLY BRACKET ]\n");
+        }
+        else if (token->type == TOK_R_BRCKT)
+        {
+            printf("[ RIGHT BRACKET ]\n");
+        }
+        else if (token->type == TOK_L_BRCKT)
+        {
+            printf("[ LEFT BRACKET ]\n");
+        }
+        else if (token->type == TOK_NOT)
+        {
+            printf("[ NOT ]\n");
+        }
+        else if (token->type == TOK_NOT_EQUAL)
+        {
+            printf("[ NOT EQUAL ]\n");
+        }
+        else if (token->type == TOK_LESSER)
+        {
+            printf("[ LESSER ]\n");
+        }
+        else if (token->type == TOK_LESSER_OR_EQUAL)
+        {
+            printf("[ LESSER OR EQUAL ]\n");
+        }
+        else if (token->type == TOK_GREATER)
+        {
+            printf("[ GREATER ]\n");
+        }
+        else if (token->type == TOK_GREATER_OR_EQUAL)
+        {
+            printf("[ GREATER OR EQUAL ]\n");
+        }
+        else if (token->type == TOK_EQUAL) 
+        {
+            printf("[ EQUAL ]\n");
+        } 
+        else if (token->type == TOK_ASSIGN)
+        {
+            printf("[ ASSIGN ]\n");
+        }
+        else if (token->type == TOK_COLON)
+        {
+            printf("[ COLON ]\n");
+        }
+        else if (token->type == TOK_COMMA) 
+        {
+            printf("[ COMMA ]\n");
+        }
+        else if (token->type == TOK_SEMICLN) 
+        {
+            printf("[ SEMICOLON ]\n");
+        }
+        else if (token->type == TOK_DOT)
+        {
+            printf("[ DOT ]\n");
+        }
+        else if (token->type == TOK_QUEST_MARK)
+        {
+            printf("[ QUESTION MARK (after type declaration) ]\n");
+        }
+        else if (token->type == TOK_DOUBLE_QUEST_MARK)
+        {
+            printf("[ DOUBLE QUESTION MARK ]\n");
+        }
+        else if (token->type == TOK_STRING)
+        {
+            printf("[ String : %s ]\n", token->attribute.str.data);
+        }
+        else if (token->type == TOK_UNDERSCORE)
+        {
+            printf("[ UNDERSCORE ]\n");
+        }
+        else if (token->type == TOK_EOL)
+        {
+            printf("[ EOL ]\n");
+        }
+        freeToken(token);
+    }
+}
 
 int main() {
     token_t token;
@@ -67,194 +254,31 @@ int main() {
     local_symtab_t* symbolTable;
     local_init(&symbolTable);
 
-
-    printf(" TYPE\t\t| ATTRIBUTE\n");
-    printf(" ↓↓ \t\t|    ↓↓↓   \n");
-
-    while (1) 
+    // scan(&token, symbolTable);    
+    
+    while (1)
     {
         token = getNextToken();
-
-        if (token.type == TOK_EOF) 
+        if (token.type == TOK_IDENTIFIER)
         {
-            printf("[ EOF ]\n");
+            symbolTable = local_insert(symbolTable, &token.attribute.str, token.type);
+        }
+        else if (token.type == TOK_EOF)
+        {
             break;
-        } 
-        else if (token.type == TOK_IDENTIFIER) 
-        {
-            printf("[ Identifier: %s ]\n", token.attribute.str.data);
-            local_insert(&symbolTable, &token.attribute.str, token.type);
-
-            dstringFree(&(token.attribute.str));
         }
-        // KEYWORDS
-        else if (token.type == TOK_KW_DOUBLE) 
-        {
-            printf("[ KW : Double ]\n");
-        } 
-        else if (token.type == TOK_KW_ELSE) 
-        {
-            printf("[ KW : else ]\n");
-        } 
-        else if (token.type == TOK_KW_FUNC) 
-        {
-            printf("[ KW : func ]\n");
-        } 
-        else if (token.type == TOK_KW_IF) 
-        {
-            printf("[ KW : if ]\n");
-        } 
-        else if (token.type == TOK_KW_INT) 
-        {
-            printf("[ KW : int ]\n");
-        } 
-        else if (token.type == TOK_KW_LET) 
-        {
-            printf("[ KW : let ]\n");
-        } 
-        else if (token.type == TOK_KW_NIL) 
-        {
-            printf("[ KW : nil ]\n");
-        } 
-        else if (token.type == TOK_KW_RETURN) 
-        {
-            printf("[ KW : return ]\n");
-        } 
-        else if (token.type == TOK_KW_STRING) 
-        {
-            printf("[ KW : String ]\n");
-        } 
-        else if (token.type == TOK_KW_VAR) 
-        {
-            printf("[ KW : var ]\n");
-        } 
-        else if (token.type == TOK_KW_WHILE) 
-        {
-            printf("[ KW : while ]\n");
-        } 
-        // KEYWORDS
-        else if (token.type == TOK_INT) 
-        {
-            printf("[ Integer: %d ]\n", token.attribute.number);
-        } 
-        else if (token.type == TOK_DOUBLE) 
-        {
-            printf("[ Double: %f]\n", token.attribute.decimal);
-        } 
-        else if (token.type == TOK_BLOCK_COM_END)
-        {
-            printf("[ BLOCK COMMENT END SIGN ]\n");
-        }
-        else if (token.type == TOK_DIV)
-        {
-            printf("[ DIVISION ]\n");
-        }
-        else if (token.type == TOK_BLOCK_COM_START)
-        {
-            printf("[ BLOCK COMMENT START SIGN ]\n");
-        }
-        else if (token.type == TOK_COMMENT)
-        {
-            printf("[ COMMENT ]\n");
-        }
-        else if (token.type == TOK_PLUS)
-        {
-            printf("[ PLUS ]\n");
-        }
-        else if (token.type == TOK_MINUS)
-        {
-            printf("[ MINUS ]\n");
-        }
-        else if (token.type == TOK_ARROW)
-        {
-            printf("[ ARROW ]\n");
-        }
-        else if (token.type == TOK_R_CRL_BRCKT)
-        {
-            printf("[ RIGHT CURLY BRACKET ]\n");
-        }
-        else if (token.type == TOK_L_CRL_BRCKT)
-        {
-            printf("[ LEFT CURLY BRACKET ]\n");
-        }
-        else if (token.type == TOK_R_BRCKT)
-        {
-            printf("[ RIGHT BRACKET ]\n");
-        }
-        else if (token.type == TOK_L_BRCKT)
-        {
-            printf("[ LEFT BRACKET ]\n");
-        }
-        else if (token.type == TOK_NOT)
-        {
-            printf("[ NOT ]\n");
-        }
-        else if (token.type == TOK_NOT_EQUAL)
-        {
-            printf("[ NOT EQUAL ]\n");
-        }
-        else if (token.type == TOK_LESSER)
-        {
-            printf("[ LESSER ]\n");
-        }
-        else if (token.type == TOK_LESSER_OR_EQUAL)
-        {
-            printf("[ LESSER OR EQUAL ]\n");
-        }
-        else if (token.type == TOK_GREATER)
-        {
-            printf("[ GREATER ]\n");
-        }
-        else if (token.type == TOK_GREATER_OR_EQUAL)
-        {
-            printf("[ GREATER OR EQUAL ]\n");
-        }
-        else if (token.type == TOK_EQUAL) 
-        {
-            printf("[ EQUAL ]\n");
-        } 
-        else if (token.type == TOK_ASSIGN)
-        {
-            printf("[ ASSIGN ]\n");
-        }
-        else if (token.type == TOK_COLON)
-        {
-            printf("[ COLON ]\n");
-        }
-        else if (token.type == TOK_COMMA) 
-        {
-            printf("[ COMMA ]\n");
-        }
-        else if (token.type == TOK_SEMICLN) 
-        {
-            printf("[ SEMICOLON ]\n");
-        }
-        else if (token.type == TOK_DOT)
-        {
-            printf("[ DOT ]\n");
-        }
-        else if (token.type == TOK_QUEST_MARK)
-        {
-            printf("[ QUESTION MARK (after type declaration) ]\n");
-        }
-        else if (token.type == TOK_DOUBLE_QUEST_MARK)
-        {
-            printf("[ DOUBLE QUESTION MARK ]\n");
-        }
-        else if (token.type == TOK_STRING)
-        {
-            printf("[ String : %s ]\n", token.attribute.str.data);
-            dstringFree(&(token.attribute.str));
-        }
-        else if (token.type == TOK_EOL)
-        {
-            printf("[ EOL ]\n");
-        }
+        freeToken(&token);
     }
+    
+    int symtabHeight = heightL(symbolTable);
+    int symtabBalance = balanceL(symbolTable);
+
+    printf("Vyska tabulky symbolov: %d\n", symtabHeight);
+    printf("Vyvazenost : %d\n\t{-1, 0, 1} -> vyvazena\n", symtabBalance);
 
     printSymbolTable(symbolTable);
     createFile(symbolTable);
     local_dispose(&symbolTable);
-    
+
     return 0;
 }
