@@ -10,6 +10,7 @@
  * @author Tomas Arlt (xarltt00)
 */
 
+#include <stdbool.h>
 #include "dynamic_string.h"
 #include "error.h"
 
@@ -35,7 +36,7 @@ typedef enum typ
     TOK_KW_IF,            // if X
     TOK_KW_INT,           // Int X
     TOK_KW_LET,           // let X 
-    //TOK_KW_NIL,           // nil _ ??X??
+    TOK_KW_NIL,           // nil _ ??X??
     TOK_KW_RETURN,        // return X
     TOK_KW_STRING,        // String X
     TOK_KW_VAR,           // var X
@@ -79,7 +80,9 @@ typedef enum typ
     TOK_COMMENT,          // // X
     TOK_BLOCK_COM_START,  // /* X 
     TOK_BLOCK_COM_END,    // */  X
-    TOK_EOL
+    TOK_EOL,
+    
+    TOK_EXPRESSION
 } token_type_t;
 
 // Atribut tokenu
@@ -88,6 +91,7 @@ typedef struct   // struct namiesto union
     string_t str;
     double doubleValue;
     int intValue;
+    bool includesNil;
 } token_attribute_t;
 
 // Struktura tokenu (typ, atribut)
