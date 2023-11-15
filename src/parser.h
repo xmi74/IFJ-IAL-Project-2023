@@ -44,6 +44,8 @@ int handle_variable(token_t token_assigner, global_symtab_t *global_table, local
 
 int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
+int handle_func_def(token_t token, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
+
 void read_subblock(token_t token);
 
 int find_functions(global_symtab_t *global_table);
