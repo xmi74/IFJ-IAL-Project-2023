@@ -157,6 +157,20 @@ void Stack_Print(Stack *stack)
     printf("-------------------\n");
 }
 
+token_t *Stack_GetTopTerminal(Stack *stack)
+{
+    token_t *currToken = NULL;
+    for (int i = stack->size - 1; i >= 0; i--)
+    {
+        currToken = &stack->elements[i];
+        if (currToken->type != TOK_EXPRESSION)
+        {
+            return currToken;
+        }
+    }
+    return NULL;
+}
+
 // Funkcia sluzi na vlozenie '<' pred prvy terminal v zasobniku.
 // Vyhlada index vlozenia, posunie vsetky prvky o jedno miesto doprava a vlozi '<'.
 void Stack_InsertLesser(Stack *stack)
@@ -178,7 +192,7 @@ void Stack_InsertLesser(Stack *stack)
     for (int i = stack->size - 1; i >= 0; i--)
     {
         currToken = stack->elements[i];
-        if (currToken.type != TOK_EXPRESSION && currToken.type != TOK_IDENTIFIER)
+        if (currToken.type != TOK_EXPRESSION)
         {
             currIndex = i;
             break;
