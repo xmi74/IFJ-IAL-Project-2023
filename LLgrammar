@@ -1,55 +1,64 @@
-1.        <PROGRAM> → <SEQ> <PROGRAM>                                   
-2.        <PROGRAM> → func ID ( <PARAMS> ) <DEF_FUNC_2> EOL <PROGRAM>
-3.        <PROGRAM> → EOF
+1.	'<PROGRAM> → <SEQ> <PROGRAM>',                                   
+2.	'<PROGRAM> → func ID ( <PARAMS> <DEF_FUNC_2> EOL <PROGRAM>',
+3.	'<PROGRAM> → EOF',
 
-4.        <SEQ> → let ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL   # DEFINE VARIABLE
-5.        <SEQ> → var ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL   # DEFINE VARIABLE
-6.        <DEF_TYPE_VAR> → ε
-7.        <DEF_TYPE_VAR> → : <TYPE>
-8.        <ASSIGN_VARIABLE> → = <EXPRESSION>
-9.        <ASSIGN_VARIABLE> → ε
+4.	'<DEF_FUNC_2> → -> <TYPE> { <SEQ> <SEQ_N> <RETURN_FUNC> }',
+5.	'<PARAMS> → ) ',
+6.	'<PARAMS> → <PARAMS_NAME> ID : <TYPE> <PARAMS_N>',
+7.	'<PARAMS_NAME> → _',
+8.	'<PARAMS_NAME> → ID',
+9.	'<PARAMS_N> → )',           # eps <=> )
+10.	'<PARAMS_N> → , <PARAMS>',
+11.	'<RETURN_FUNC> → return <EXPRESSION>',
+12.	'<RETURN_FUNC> → ε',       
 
-10.       <SEQ> → ID <ASSIGN_OR_CALL_FUNC> EOL                     # ASSIGN || CALL_FUNCTION
-11.       <ASSIGN_OR_CALL_FUNC> → = <ASSIGN_OR_CALL_FUNC_N>        # BUD BUDE ID = EXPRESSION || ID = VOLANIE NON-VOID FUNKCIE
-12.       <ASSIGN_OR_CALL_FUNC> → ( <PARAMS_IN>                    # ALEBO ID ( PARAMS_IN )
-13.       <ASSIGN_OR_CALL_FUNC_N> → <EXPRESSION>
-14.       <ASSIGN_OR_CALL_FUNC_N> → <CALL_FUNC>                    # VOLANIE NE-VOID FUNKCIE 
-15.       <CALL_FUNC> → ID ( <PARAMS_IN>  
-16.       <PARAMS_IN> → <PARAMS_IN_N>
-17.       <PARAMS_IN> → ID <PARAMS_IN_NAME> <PARAMS_IN_N>
-18.       <PARAMS_IN> → STRING_LITERAL
-19.       <PARAMS_IN> → INT_LITERAL
-20.       <PARAMS_IN> → DOUBLE_LITERAL
-21.       <PARAMS_IN_NAME> → : <TERM>
-22.       <PARAMS_IN_N> → , <PARAMS_IN>
-23.       <PARAMS_IN_N> → )
+13.	'<SEQ_N> → <SEQ> <SEQ_N>',
+14.	'<SEQ_N> → ε',
+15.	'<SEQ> → let ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL',  # DEFINE VARIABLE
+16.	'<SEQ> → var ID <DEF_TYPE_VAR> <ASSIGN_VARIABLE> EOL',  # DEFINE VARIABLE
+17.	'<DEF_TYPE_VAR> → ε',
+18.	'<DEF_TYPE_VAR> → : <TYPE>',
+19.	'<ASSIGN_VARIABLE> → ε',
+20.	'<ASSIGN_VARIABLE> → = <CALL_F_OR_EXPRESSION>',   # alebo volanie funkcie
+21.	'<CALL_F_OR_EXPRESSION> → <EXPRESSION>',
+22.	'<CALL_F_OR_EXPRESSION> → <CALL_FUNC>',
 
-24.       <SEQ> → if <IF_EXPRESSION> { <SEQ> } <ELSE_STATEMENT> EOL       # IF
-25.       <ELSE_STATEMENT> → else { <SEQ> }
-26.       IF_EXPRESSION> → <EXPRESSION>
-27.       <IF_EXPRESSION> → let ID
+23.	'<SEQ> → ID <ASSIGN_OR_CALL_FUNC> EOL',                  # ASSIGN || CALL_FUNCTION
+24.	'<ASSIGN_OR_CALL_FUNC> → = <ASSIGN_OR_CALL_FUNC_N>',               
+25.	'<ASSIGN_OR_CALL_FUNC> → ( <PARAMS_IN> ',                          # ALEBO ID ( PARAMS_IN )
+26.	'<ASSIGN_OR_CALL_FUNC_N> → <EXPRESSION>',
+27.	'<ASSIGN_OR_CALL_FUNC_N> → <CALL_FUNC>',                           # VOLANIE NE-VOID FUNKCIE 
+28.	'<CALL_FUNC> → ID ( <PARAMS_IN>',  
+29.	'<PARAMS_IN> → )',
+30.	'<PARAMS_IN> → ID <PARAMS_IN_NAME> <PARAMS_IN_N>',
+31.	'<PARAMS_IN> → STRING_LITERAL <PARAMS_IN_N>', 
+32.	'<PARAMS_IN> → INT_LITERAL <PARAMS_IN_N>',
+33.	'<PARAMS_IN> → DOUBLE_LITERAL <PARAMS_IN_N>',
+34.	'<PARAMS_IN> → nil <PARAMS_IN_N>',     # MOZE BYT VSTUPNY PARAMETER AJ NIL?
+35.	'<PARAMS_IN_NAME> → : <TERM>',
+36.	'<PARAMS_IN_NAME> → ε',
+37.	'<PARAMS_IN_N> → , <PARAMS_IN>',
+38.	'<PARAMS_IN_N> → )',
 
-28.       <SEQ> → while <EXPRESSION> { <SEQ> } EOL                        # LOOP
-        
-29.       <DEF_FUNC_2> → -> <TYPE> { <SEQ> <RETURN_FUNC> }
-30.       <PARAMS> → <PARAMS_N>
-31.       <PARAMS> → <PARAMS_NAME> ID : <TYPE> <PARAMS_N>
-32.       <PARAMS_NAME> → _
-33.       <PARAMS_NAME> → ID
-34.       <PARAMS_N> → )          
-35.       <PARAMS_N> → , <PARAMS>
-36.       <RETURN_FUNC> → return <EXPRESSION>
-37.       <RETURN_FUNC> → ε       
+39.	'<SEQ> → if <IF_EXPRESSION> { <SEQ> <SEQ_N> } <ELSE_STATEMENT> EOL',       # IF
+40.	'<IF_EXPRESSION> → <EXPRESSION>',
+41.	'<IF_EXPRESSION> → let ID',
+42.	'<ELSE_STATEMENT> → else { <SEQ> <SEQ_N> }',
 
-38.       <TYPE> → Int
-39.       <TYPE> → Double
-40.       <TYPE> → String
+43.	'<SEQ> → while <EXPRESSION> { <SEQ> <SEQ_N> } EOL',                        # LOOP
 
-41.       <TERM> → ID
-42.       <TERM> → INT_LITERAL
-43.       <TERM> → DOUBLE_LITERAL
-44.       <TERM> → STRING_LITERAL
-45.       <TERM> → nil
+
+44.	'<TYPE> → Int',
+45.	'<TYPE> → Double',
+46.	'<TYPE> → String',
+
+47.	'<TERM> → ID',
+48.	'<TERM> → INT_LITERAL',
+49.	'<TERM> → DOUBLE_LITERAL',
+50.	'<TERM> → STRING_LITERAL',
+51.	'<TERM> → nil'
+
+
 
 
 
