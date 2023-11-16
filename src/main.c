@@ -1,26 +1,120 @@
 #include <stdio.h>
 
-#include "symtable.h"
+#include "abstract_syntax_tree.h"
 
-//local_symtab_t* symbolTable = NULL;
+
+void generateAST(FILE *dotFile, ast_node_t *tree) 
+{
+    if (tree != NULL) 
+    {
+        //fprintf(dotFile, "  node%p [label=\"%s %d %f\"];\n", (void *)tree, tree->token.attribute.str.data, tree->token.attribute.intValue, tree->token.attribute.doubleValue);    
+        if (tree->token.type == TOK_PLUS)
+        {
+            fprintf(dotFile, "  node%p [label=\"+\"];\n", (void *)tree);    
+        }
+        else if (tree->token.type == TOK_MINUS)
+        {
+            fprintf(dotFile, "  node%p [label=\"-\"];\n", (void *)tree);    
+        }
+        else if(tree->token.type == TOK_MUL)
+        {
+            fprintf(dotFile, "  node%p [label=\"*\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_DIV)
+        {
+            fprintf(dotFile, "  node%p [label=\"/\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_NOT_EQUAL)
+        {
+            fprintf(dotFile, "  node%p [label=\"!=\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_LESSER)
+        {
+            fprintf(dotFile, "  node%p [label=\"<\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_LESSER_OR_EQUAL)
+        {
+            fprintf(dotFile, "  node%p [label=\"<=\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_GREATER)
+        {
+            fprintf(dotFile, "  node%p [label=\">\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_GREATER_OR_EQUAL)
+        {
+            fprintf(dotFile, "  node%p [label=\">=\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_EQUAL)
+        {
+            fprintf(dotFile, "  node%p [label=\"=\"];\n", (void *)tree);
+        }
+        else if(tree->token.type == TOK_ASSIGN)
+        {
+            fprintf(dotFile, "  node%p [label=\"==\"];\n", (void *)tree);
+        }
+        else if (tree->token.type == TOK_IDENTIFIER)
+        {
+            fprintf(dotFile, "  node%p [label=\"%s\"];\n", (void *)tree, tree->token.attribute.str.data);    
+            //fprintf(dotFile, "  node%p [label=\"ID\"];\n", (void *)tree);    
+        }
+        else if (tree->token.type == TOK_INT)
+        {
+            fprintf(dotFile, "  node%p [label=\"%d\"];\n", (void *)tree, tree->token.attribute.intValue);  
+            //fprintf(dotFile, "  node%p [label=\"INT\"];\n", (void *)tree);    
+        }
+        else if(tree->token.type == TOK_DOUBLE)
+        {
+            fprintf(dotFile, "  node%p [label=\"%f\"];\n", (void *)tree, tree->token.attribute.doubleValue);  
+            //fprintf(dotFile, "  node%p [label=\"DOUBLE\"];\n", (void *)tree);    
+        }
+        else if(tree->token.type == TOK_STRING)
+        {
+            fprintf(dotFile, "  node%p [label=\"STRING\"];\n", (void *)tree);    
+        }
+        
+        if (tree->left != NULL) {
+            fprintf(dotFile, "  node%p -> node%p [label=\"left\"];\n", (void *)tree, (void *)(tree->left));
+            generateAST(dotFile, tree->left);
+        }
+
+        if (tree->right != NULL) {
+            fprintf(dotFile, "  node%p -> node%p [label=\"right\"];\n", (void *)tree, (void *)(tree->right));
+            generateAST(dotFile, tree->right);
+        }
+    }
+}
+
+void createFileAST(ast_node_t *tree) {
+    FILE* dotFile = fopen("ast.dot", "w");
+    if (dotFile == NULL) {
+        perror("Subor ast.dot nemozno otvorit\n");
+        return;
+    }
+
+    fprintf(dotFile, "digraph AST {\n");
+    generateAST(dotFile, tree);
+    fprintf(dotFile, "}\n");
+    fclose(dotFile);
+}
 
 // Funkcia pre graficke znazornenie tabulky symbolov
-void generateGraphvizCode(local_symtab_t* root, FILE* file) 
+void generateLocalSymtable(local_symtab_t* root, FILE* file) 
 {
     if (root != NULL) 
     {
         if (root->left != NULL) 
         {
             fprintf(file, "\"%s\" -> \"%s\" [label=\"L\"];\n", root->key.data, root->left->key.data);
-            generateGraphvizCode(root->left, file);
+            generateLocalSymtable(root->left, file);
         }
         if (root->right != NULL) 
         {
             fprintf(file, "\"%s\" -> \"%s\" [label=\"R\"];\n", root->key.data, root->right->key.data);
-            generateGraphvizCode(root->right, file);
+            generateLocalSymtable(root->right, file);
         }
     }
 }
+
 
 // Funkcia pre zapis grafickej tabulky symbolov do suboru
 void createFile(local_symtab_t *symbolTable)
@@ -36,7 +130,7 @@ void createFile(local_symtab_t *symbolTable)
     fprintf(dotFile, "digraph G {\n");
 
     // Generování kódu Graphviz
-    generateGraphvizCode(symbolTable, dotFile);
+    generateLocalSymtable(symbolTable, dotFile);
 
     // Konec souboru s kódem Graphviz
     fprintf(dotFile, "}\n");
@@ -81,7 +175,15 @@ void scan(token_t *token)
         // KEYWORDS
         else if (token->type == TOK_KW_DOUBLE) 
         {
-            printf("[ KW : Double ]\n");
+            printf("[ KW : Double , type includes nil ? : ");
+            if (token->attribute.includesNil == true)
+            {
+                printf("YES ]\n");
+            }
+            else
+            {
+                printf("NO ]\n");
+            }
         } 
         else if (token->type == TOK_KW_ELSE) 
         {
@@ -97,12 +199,24 @@ void scan(token_t *token)
         } 
         else if (token->type == TOK_KW_INT) 
         {
-            printf("[ KW : int ]\n");
+            printf("[ KW : int , type includes nil ? : ");
+            if (token->attribute.includesNil == true)
+            {
+                printf("YES ]\n");
+            }
+            else
+            {
+                printf("NO ]\n");
+            }
         } 
         else if (token->type == TOK_KW_LET) 
         {
             printf("[ KW : let ]\n");
-        } 
+        }
+        else if (token->type == TOK_KW_NIL)
+        {
+            printf("[ KW : nil ]\n");
+        }
         else if (token->type == TOK_UNDERSCORE) 
         {
             printf("[ UNDERSCORE ]\n");
@@ -113,7 +227,15 @@ void scan(token_t *token)
         } 
         else if (token->type == TOK_KW_STRING) 
         {
-            printf("[ KW : String ]\n");
+            printf("[ KW : String , type includes nil? : ");
+            if (token->attribute.includesNil == true)
+            {
+                printf("YES ]\n");
+            }
+            else
+            {
+                printf("NO ]\n");
+            }
         } 
         else if (token->type == TOK_KW_VAR) 
         {
@@ -216,14 +338,6 @@ void scan(token_t *token)
         {
             printf("[ COMMA ]\n");
         }
-        else if (token->type == TOK_SEMICLN) 
-        {
-            printf("[ SEMICOLON ]\n");
-        }
-        else if (token->type == TOK_DOT)
-        {
-            printf("[ DOT ]\n");
-        }
         else if (token->type == TOK_QUEST_MARK)
         {
             printf("[ QUESTION MARK (after type declaration) ]\n");
@@ -248,15 +362,16 @@ void scan(token_t *token)
     }
 }
 
-int main() {
-    token_t token;
 
-    local_symtab_t* symbolTable;
+int main() {
+    //token_t token;
+
+    /*local_symtab_t* symbolTable;
     local_init(&symbolTable);
 
-    // scan(&token, symbolTable);    
+    scan(&token);    */
     
-    while (1)
+    /*while (1)
     {
         token = getNextToken();
         if (token.type == TOK_IDENTIFIER)
@@ -274,11 +389,77 @@ int main() {
     int symtabBalance = balanceL(symbolTable);
 
     printf("Vyska tabulky symbolov: %d\n", symtabHeight);
-    printf("Vyvazenost : %d\n\t{-1, 0, 1} -> vyvazena\n", symtabBalance);
+    printf("Vyvazenost : %d\n\t{-1, 0, 1} -> vyvazena\n", symtabBalance);*/
 
-    printSymbolTable(symbolTable);
+    /*printSymbolTable(symbolTable);
     createFile(symbolTable);
-    local_dispose(&symbolTable);
+    local_dispose(&symbolTable);*/
+
+    //ast_node_t *myTree = NULL;
+    ast_items_t items;
+    //ast_node_t *rootNode;
+    
+    items_init(&items);
+
+    /*ast_node_t *leftLeaf;
+    ast_node_t *rightLeaf;
+    ast_node_t *additionNode;
+    leftLeaf = make_leaf("2");
+    rightLeaf = make_leaf("3");
+    additionNode = make_tree("+", leftLeaf, rightLeaf);*/
+
+    token_t token;
+    token_t previous_token;
+    initToken(&previous_token);
+    ast_node_t *rootNode = NULL;
+    ast_node_t *currentNode = NULL;
+    ast_init(rootNode);
+
+
+    // S -> id = e
+    // Ei -> Ej + Ek
+    // Ei -> Ej * Ek
+    // Ei -> id
+    // INPUT : 5 + B + C + D - X
+    token = getNextToken();
+    if (token.type == TOK_IDENTIFIER || token.type == TOK_INT || token.type == TOK_DOUBLE || token.type == TOK_STRING) 
+    {
+        ast_node_t *leftNode = make_leaf(token);
+        currentNode = leftNode;
+    }
+    while (1) 
+    {
+        token = getNextToken();
+
+        if (token.type == TOK_PLUS || token.type == TOK_MUL || token.type == TOK_DIV ||
+            token.type == TOK_LESSER_OR_EQUAL || token.type == TOK_MINUS) 
+        {
+            previous_token = token;
+            token = getNextToken();
+
+            if (token.type == TOK_IDENTIFIER) {
+                ast_node_t *rightNode = make_leaf(token);
+                ast_node_t *additionNode = make_tree(previous_token, currentNode, rightNode);
+                currentNode = additionNode;
+            }
+        }
+        else if (token.type == TOK_EOF) 
+        {
+            break;
+        }
+    }
+
+        // Kořenový uzel bude poslední vytvořený uzel
+    rootNode = currentNode;
+    
+    freeToken(&token);
+
+    createFileAST(rootNode);
+
+    // Prejdenie AST v postorder a pridanie uzlov do items
+    ast_postorder(rootNode, &items);
+
+    //ast_dispose(rootNode);
 
     return 0;
 }
