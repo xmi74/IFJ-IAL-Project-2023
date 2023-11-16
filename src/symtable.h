@@ -57,6 +57,7 @@ typedef struct global_symtab
     int height;                 // Vyska stromu
     int depth;                  // Hlbka zanorenia
     bool defined;               // Funkcia - deklarovana ci len definovana
+    int param_count;            // Pocet parametru funkce
     func_param_t *params;       // Parametre funkcie
     struct global_symtab *left; // Lavy potomok
     struct global_symtab *right;// Pravy potomok
@@ -113,7 +114,7 @@ void global_init(global_symtab_t **global_table);
 global_symtab_t *global_search(global_symtab_t *global_table, string_t *key);
 
 // Vlozenie symbolu do globalnej tabulky
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, func_param_t *params);
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, int param_count, func_param_t *params);
 
 // Uvolnenie pamati globalnej tabulky
 void global_dispose(global_symtab_t **global_table);

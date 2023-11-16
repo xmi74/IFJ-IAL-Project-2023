@@ -132,9 +132,7 @@ int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, 
     {
         global_symtab_t *func = global_search(global_table, &token_id.attribute.str);
         getTokenAssert(TOK_L_BRCKT);
-        //int param_count = sizeof(func->params)/sizeof(func->params[0]); // TODO: a
-        // TODO - vyresit nejak parametry
-        for (int i = 0; i < param_count; i++)
+        for (int i = 0; i < global_table->param_count; i++)
         {
             if(func->params[i].type == TOK_NOTHING) // _
             {
@@ -386,11 +384,11 @@ int find_functions(global_symtab_t *global_table)
             if (current_token.type == TOK_ARROW)
             {
                 getTokenAssertArr((token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
-                global_table = global_insert(global_table, &func_name.attribute.str, current_token.type, params);
+                global_table = global_insert(global_table, &func_name.attribute.str, current_token.type, param_cntr, params);
             }
             else
             {
-                global_table = global_insert(global_table, &func_name.attribute.str, TOK_NOTHING, params); // void funkce
+                global_table = global_insert(global_table, &func_name.attribute.str, TOK_NOTHING, param_cntr, params); // void funkce
                 continue;
             }
             
