@@ -34,7 +34,6 @@ int getTokenIndex(token_t token)
         return 12; // '('
     case TOK_R_BRCKT:
         return 13; // ')'
-    case TOK_EXPRESSION:
     case TOK_IDENTIFIER:
     case TOK_STRING:
     case TOK_INT:
