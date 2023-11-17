@@ -1,3 +1,15 @@
+/**
+ * IFJ-IAL Projekt 2023
+ *
+ * @file expr.c
+ * @brief Bottom-up analyza vyrazov
+ *
+ * @author Igor Mikula (xmikul74)
+ * @author Marko Olesak (xolesa00)
+ * @author Jan Findra (xfindr01)
+ * @author Tomas Arlt (xarltt00)
+ */
+
 #include "stack.c"
 
 #define PRECEDENCETSIZE 16
@@ -156,6 +168,7 @@ void reduceArithmetic(Stack *stack)
 
 bool reduceLogical(Stack *stack)
 {
+    // TODO : String?, Int?, Double? - neda sa odvodit typ
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operand1 = stack->elements[stack->size - 1];
@@ -222,8 +235,6 @@ bool applyRule(Stack *stack)
     }
     else
     {
-        // Nebolo pouzite ziadne pravidlo
-        // Stack_Print(stack);
         printf("[EXPR] ERROR: Unknown rule\n");
         return false;
     }
@@ -243,7 +254,6 @@ void reduceParenthesis(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operand1;
-    // expr.type = TOK_EXPRESSION;
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -257,15 +267,17 @@ bool checkExpression()
 
     // Spodok stacku je $E (EOF)
     token_t stackBottom;
+    stackBottom.terminal = true;
     stackBottom.type = TOK_EOF;
 
     Stack_Push(&stack, &stackBottom);
 
     token_t token = getNextToken();
+    token.terminal = true;
 
     while (token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
-        // Stack_Print(&stack);
+        Stack_Print(&stack);
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
@@ -307,7 +319,7 @@ bool checkExpression()
         }
     }
 
-    // Stack_Print(&stack);
+    Stack_Print(&stack);
     //  Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
