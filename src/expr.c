@@ -10,6 +10,7 @@
  * @author Tomas Arlt (xarltt00)
  */
 
+#include "expr.h"
 #include "stack.c"
 
 #define PRECEDENCETSIZE 16
@@ -82,34 +83,6 @@ bool dataTypeEqual(token_t token1, token_t token2)
     }
 }
 
-enum
-{
-    L, // <
-    R, // >
-    E, // =
-    U, // Undefined
-};
-
-int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
-    /*! *  /  +  -  == != <  > <=  >= ?? (  )  i  $ */
-    {U, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // !
-    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // *
-    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // /
-    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // +
-    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // -
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // ==
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // !=
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
-    {L, L, L, L, L, L, L, L, L, L, L, U, L, R, L, R}, // ??
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
-    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
-    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, U}, // $ (EOF)
-};
-
 // RULES:
 // 1: E → !E
 // 2: E → E*E
@@ -150,7 +123,7 @@ void reduceArithmetic(Stack *stack)
 
     token_t operation = stack->elements[stack->size - 2];
 
-    while (stackTop.type != TOK_LESSER)
+    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
     {
         Stack_Pop(stack);
         Stack_Top(stack, &stackTop);
@@ -159,7 +132,7 @@ void reduceArithmetic(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
+    expr.tree = (void*) make_tree(operation, operand1.tree, operand2.tree);
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -181,7 +154,7 @@ bool reduceLogical(Stack *stack)
         return false;
     }
 
-    while (stackTop.type != TOK_LESSER)
+    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
     {
         Stack_Pop(stack);
         Stack_Top(stack, &stackTop);
@@ -190,7 +163,7 @@ bool reduceLogical(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
+    expr.tree = (void*) make_tree(operation, operand1.tree, operand2.tree);
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -242,7 +215,7 @@ void reduceParenthesis(Stack *stack)
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operand1 = stack->elements[stack->size - 2]; // E
-    while (stackTop.type != TOK_LESSER)
+    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
     {
         Stack_Pop(stack);
         Stack_Top(stack, &stackTop);
@@ -287,7 +260,7 @@ bool checkExpression()
             if (isIdentifier(token))
             {
                 token.terminal = false;
-                token.tree = make_leaf(token);
+                token.tree = (void *) make_leaf(token);
             }
             else
             {
