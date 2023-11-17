@@ -47,7 +47,6 @@ typedef enum typ
     TOK_INT,          // INT_LITERAL X
     TOK_DOUBLE,       // DOUBLE_LITERAL X
     TOK_STRING_START, // "
-    TOK_EXPRESSION,   // VYRAZ
 
     TOK_STRING, // STRING_LITERAL X
 
@@ -101,6 +100,7 @@ typedef struct
     token_attribute_t attribute;
     token_type_t type;
     void *tree;
+    bool terminal;
 } token_t;
 
 // Nacitanie znaku zo vstupu

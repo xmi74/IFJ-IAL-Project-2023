@@ -16,8 +16,8 @@ int getTokenIndex(token_t token)
         return 3; // '+'
     case TOK_MINUS:
         return 4; // '-'
-    case TOK_EQUAL:
-        return 5; // '='
+    case TOK_ASSIGN:
+        return 5; // '=='
     case TOK_NOT_EQUAL:
         return 6; // '!='
     case TOK_LESSER:
@@ -134,6 +134,11 @@ void reduceArithmetic(Stack *stack)
 {
     token_t stackTop;
     Stack_Top(stack, &stackTop);
+    token_t operand1 = stack->elements[stack->size - 1];
+    token_t operand2 = stack->elements[stack->size - 3];
+
+    token_t operation = stack->elements[stack->size - 2];
+
     while (stackTop.type != TOK_LESSER)
     {
         Stack_Pop(stack);
@@ -142,8 +147,10 @@ void reduceArithmetic(Stack *stack)
 
     Stack_Pop(stack);
 
-    token_t expr;
-    expr.type = TOK_EXPRESSION;
+    token_t expr = operation;
+    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
+    // expr.type = TOK_EXPRESSION;
+    expr.terminal = false;
 
     Stack_Push(stack, &expr);
 }
@@ -152,62 +159,44 @@ bool reduceLogical(Stack *stack)
 {
     token_t stackTop;
     Stack_Top(stack, &stackTop);
-    if (stackTop.type == TOK_EXPRESSION)
+    token_t operand1 = stack->elements[stack->size - 1];
+    token_t operand2 = stack->elements[stack->size - 3];
+
+    token_t operation = stack->elements[stack->size - 2];
+
+    if (dataTypeEqual(operand1, operand2) == false)
     {
-        token_t operand1 = stack->elements[stack->size - 1];
-        token_t operand2 = stack->elements[stack->size - 3];
-
-        if (dataTypeEqual(operand1, operand2) == false)
-        {
-            printf("[EXPR] ERROR: Incompatible data types\n");
-            return false;
-        }
-
-        while (stackTop.type != TOK_LESSER)
-        {
-            Stack_Pop(stack);
-            Stack_Top(stack, &stackTop);
-        }
-
-        Stack_Pop(stack);
-
-        token_t expr;
-        expr.type = TOK_EXPRESSION;
-
-        Stack_Push(stack, &expr);
-        return true;
+        printf("[EXPR] ERROR: Incompatible data types\n");
+        return false;
     }
+
+    while (stackTop.type != TOK_LESSER)
+    {
+        Stack_Pop(stack);
+        Stack_Top(stack, &stackTop);
+    }
+
+    Stack_Pop(stack);
+
+    token_t expr = operation;
+    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
+    // expr.type = TOK_EXPRESSION;
+    expr.terminal = false;
+
+    Stack_Push(stack, &expr);
+    return true;
 }
 
 bool applyRule(Stack *stack)
 {
-    // Stack_Print(stack);
+    Stack_Print(stack);
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operation = stack->elements[stack->size - 2];
     operation.type = stack->elements[stack->size - 2].type;
 
-    // 4. E->i
-    if (isIdentifier(stackTop))
-    {
-        token_t prevPopped;
-        while (stackTop.type != TOK_LESSER)
-        {
-            prevPopped = stackTop;
-            Stack_Pop(stack);
-            Stack_Top(stack, &stackTop);
-        }
-
-        Stack_Pop(stack);
-
-        if (isIdentifier(prevPopped))
-        {
-            prevPopped.type = TOK_EXPRESSION;
-            Stack_Push(stack, &prevPopped);
-        }
-        return true;
-    }
-    else if (stackTop.type == TOK_EXPRESSION) //|| isIdentifier(stackTop))
+    // if (stackTop.type == TOK_EXPRESSION) //|| isIdentifier(stackTop))
+    if (stackTop.terminal == false)
     {
         // Aritmeticka redukcia
         if (operation.type == TOK_MUL || operation.type == TOK_DIV || operation.type == TOK_PLUS || operation.type == TOK_MINUS)
@@ -216,7 +205,7 @@ bool applyRule(Stack *stack)
             return true;
         }
         // Logicka redukcia
-        else if (operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL || operation.type == TOK_LESSER || operation.type == TOK_GREATER || operation.type == TOK_LESSER_OR_EQUAL || operation.type == TOK_GREATER_OR_EQUAL)
+        else if (operation.type == TOK_ASSIGN || operation.type == TOK_NOT_EQUAL || operation.type == TOK_LESSER || operation.type == TOK_GREATER || operation.type == TOK_LESSER_OR_EQUAL || operation.type == TOK_GREATER_OR_EQUAL)
         {
             // Nastala chyba pri redukcii
             if (reduceLogical(stack) != true)
@@ -235,7 +224,7 @@ bool applyRule(Stack *stack)
     else
     {
         // Nebolo pouzite ziadne pravidlo
-        Stack_Print(stack);
+        // Stack_Print(stack);
         printf("[EXPR] ERROR: Unknown rule\n");
         return false;
     }
@@ -245,6 +234,7 @@ void reduceParenthesis(Stack *stack)
 {
     token_t stackTop;
     Stack_Top(stack, &stackTop);
+    token_t operand1 = stack->elements[stack->size - 2]; // E
     while (stackTop.type != TOK_LESSER)
     {
         Stack_Pop(stack);
@@ -253,8 +243,9 @@ void reduceParenthesis(Stack *stack)
 
     Stack_Pop(stack);
 
-    token_t expr;
-    expr.type = TOK_EXPRESSION;
+    token_t expr = operand1;
+    // expr.type = TOK_EXPRESSION;
+    expr.terminal = false;
 
     Stack_Push(stack, &expr);
 }
@@ -273,20 +264,20 @@ bool checkExpression()
 
     token_t token = getNextToken();
 
-    while (token.type != TOK_EOF)
+    while (token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
-        Stack_Print(&stack);
+        // Stack_Print(&stack);
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
-        printf("[EXPR] Precedence: %d, token: %s staktop: %s\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
-
+        printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
         // Load stack
         if (result == L)
         {
             if (isIdentifier(token))
             {
-                token.type = TOK_EXPRESSION;
+                token.terminal = false;
+                token.tree = make_leaf(token);
             }
             else
             {
@@ -317,8 +308,8 @@ bool checkExpression()
         }
     }
 
-    Stack_Print(&stack);
-    // Pokusaj sa redukovat vysledok az pokym stack != '$E'
+    // Stack_Print(&stack);
+    //  Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
         if (applyRule(&stack) == false)
@@ -329,7 +320,7 @@ bool checkExpression()
         }
     }
 
-    Stack_Print(&stack);
+    // Stack_Print(&stack);
     Stack_Dispose(&stack);
     printf("[EXPR] OK\n");
     return true;

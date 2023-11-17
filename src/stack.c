@@ -163,7 +163,8 @@ token_t *Stack_GetTopTerminal(Stack *stack)
     for (int i = stack->size - 1; i >= 0; i--)
     {
         currToken = &stack->elements[i];
-        if (currToken->type != TOK_EXPRESSION)
+        // if (currToken->type != TOK_EXPRESSION)
+        if (currToken->terminal)
         {
             return currToken;
         }
@@ -192,7 +193,8 @@ void Stack_InsertLesser(Stack *stack)
     for (int i = stack->size - 1; i >= 0; i--)
     {
         currToken = stack->elements[i];
-        if (currToken.type != TOK_EXPRESSION)
+        // if (currToken.type != TOK_EXPRESSION)
+        if (currToken.terminal)
         {
             currIndex = i;
             break;
