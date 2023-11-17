@@ -106,6 +106,7 @@ void assignIdentifier(token_t *token, string_t identifier)
 token_t getNextToken()
 {
     token_t token;
+    token.terminal = true;
     int c;
 
     initToken(&token);

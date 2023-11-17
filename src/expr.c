@@ -117,7 +117,7 @@ int precedenceTable[PRECEDENCETSIZE][PRECEDENCETSIZE] = {
 // 4: E → E+E
 // 5: E → E-E
 // 6: E → E==E
-// 7: E → E!=E
+// 7: E → E!=E XXX
 // 8: E → E<E
 // 9: E → E>E
 // 10: E → E<=E
@@ -160,7 +160,6 @@ void reduceArithmetic(Stack *stack)
 
     token_t expr = operation;
     expr.tree = make_tree(operation, operand1.tree, operand2.tree);
-    // expr.type = TOK_EXPRESSION;
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -192,7 +191,6 @@ bool reduceLogical(Stack *stack)
 
     token_t expr = operation;
     expr.tree = make_tree(operation, operand1.tree, operand2.tree);
-    // expr.type = TOK_EXPRESSION;
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -201,13 +199,12 @@ bool reduceLogical(Stack *stack)
 
 bool applyRule(Stack *stack)
 {
-    Stack_Print(stack);
+    // Stack_Print(stack);
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operation = stack->elements[stack->size - 2];
     operation.type = stack->elements[stack->size - 2].type;
 
-    // if (stackTop.type == TOK_EXPRESSION) //|| isIdentifier(stackTop))
     if (stackTop.terminal == false)
     {
         // Aritmeticka redukcia
@@ -273,15 +270,17 @@ bool checkExpression()
     Stack_Push(&stack, &stackBottom);
 
     token_t token = getNextToken();
-    token.terminal = true;
 
     while (token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
-        Stack_Print(&stack);
+        // Stack_Print(&stack);
+
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
+
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
-        printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
+        // printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
+
         // Load stack
         if (result == L)
         {
@@ -296,6 +295,7 @@ bool checkExpression()
             }
             Stack_Push(&stack, &token);
             token = getNextToken();
+
             continue;
         }
         // Redukuj stack
@@ -309,6 +309,7 @@ bool checkExpression()
         {
             Stack_Push(&stack, &token);
             token = getNextToken();
+
             reduceParenthesis(&stack);
         }
         else
@@ -319,7 +320,7 @@ bool checkExpression()
         }
     }
 
-    Stack_Print(&stack);
+    // Stack_Print(&stack);
     //  Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
