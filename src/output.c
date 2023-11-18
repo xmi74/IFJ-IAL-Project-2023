@@ -12,32 +12,41 @@
 
 #include "output.h"
 
-char *new_line(char *string){
-    char *newLine = malloc(strlen(string) + 1);
-    strcpy(newLine, string);
+string_t *new_line(char *string){
+    string_t *newLine = malloc(sizeof(string_t));
+    dstringInit(newLine);
+    int index = 0;
+    while (string[index] != '\0'){
+        dstringAppend(newLine, string[index++]);
+    }
+    dstringAppend(newLine, string[index]);
     return newLine;
 }
 
-void init_output(output_t *output){
-    output->capacity = 0;
-    output->size = 0;
-    output->file = NULL;
+void output_init(output_t **output){
+    *output = malloc(sizeof(output_t));
+    (*output)->capacity = 0;
+    (*output)->size = 0;
+    (*output)->file = NULL;
 }
 
-void insert_line(output_t *output, char *line){
+void output_insert_line(output_t *output, string_t *line){
     output->size++;
     if (output->capacity < output->size){
-        output->file = realloc(output->file, sizeof(char*) * output->size);
+        output->file = realloc(output->file, sizeof(string_t*) * output->size);
         output->capacity++;
     }
-    char *newLine = new_line(line);
-    output->file[output->size - 1] = newLine;
+    output->file[output->size - 1] = line;
 }
 
-void print_output(output_t *output){
-    while (output->size-- > 0){
-        fprintf(stdout, "%s\n", output->file[output->size]);
-        free(output->file[output->size]);
+void output_print(output_t *output){
+    int index = 0;
+    while (index < output->size){
+        fprintf(stdout, "%s\n", output->file[index]->data);
+        dstringFree(output->file[index]);
+        free(output->file[index]);
+        index++;
     }
     free(output->file);
+    free(output);
 }

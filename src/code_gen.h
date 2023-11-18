@@ -15,5 +15,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "scanner.h"
+#include "output.h"
+
+// zacanie generovania
+output_t gen_start();
+
+void gen_var(output_t *output, token_t *token, int nest_level);
 
 #endif

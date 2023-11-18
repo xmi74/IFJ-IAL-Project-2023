@@ -16,24 +16,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "dynamic_string.h"
 
 
 typedef struct output{
     int size;
     int capacity;
-    char **file;
+    string_t **file;
 } output_t;
 
 //create new line
-char *new_line(char *string);
+string_t *new_line(char *string);
 
 // inicializacia zoznamu stringov
-void init_output(output_t *output);
+void output_init(output_t **output);
 
 // vlozenie riadka do "suboru"
-void insert_line(output_t *output, char *line);
+void output_insert_line(output_t *output, string_t *line);
 
 // vytlacenie "subor"
-void print_output(output_t *output);
+void output_print(output_t *output);
 
 #endif
