@@ -47,6 +47,8 @@ typedef enum typ
     TOK_INT,              // INT_LITERAL X
     TOK_DOUBLE,           // DOUBLE_LITERAL X
     TOK_STRING_START,     // "
+    TOK_EXPRESSION,       // VYRAZ
+
     TOK_STRING,           // STRING_LITERAL X
     
     TOK_MUL,              // * EX
@@ -81,8 +83,6 @@ typedef enum typ
     TOK_BLOCK_COM_START,  // /* X 
     TOK_BLOCK_COM_END,    // */  X
     TOK_EOL,
-    
-    TOK_EXPRESSION
 } token_type_t;
 
 // Atribut tokenu
