@@ -19,8 +19,14 @@
 #include "output.h"
 
 // zacanie generovania
-output_t gen_start();
+output_t *gen_start();
 
-void gen_var(output_t *output, token_t *token, int nest_level);
+void gen_end(output_t *output);
+
+void gen_value(output_t *output, token_t *token, bool function);
+
+void gen_func(output_t *output, token_t *token);
+
+void gen_func_end(output_t *output);
 
 #endif

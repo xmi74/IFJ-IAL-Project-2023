@@ -23,8 +23,18 @@ string_t *new_line(char *string){
     return newLine;
 }
 
+void append_line(string_t *str1, char* str2){
+    str1->data[str1->length - 1] = str2[0];
+    int index = 1;
+    while (str2[index] != '\0'){
+        dstringAppend(str1, str2[index++]);
+    }
+    dstringAppend(str1, str2[index]);
+}
+
 void output_init(output_t **output){
-    *output = malloc(sizeof(output_t));
+    (*output) = malloc(sizeof(output_t));
+    (*output)->count = 0;
     (*output)->capacity = 0;
     (*output)->size = 0;
     (*output)->file = NULL;

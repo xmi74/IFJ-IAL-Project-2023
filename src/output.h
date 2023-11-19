@@ -15,11 +15,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "dynamic_string.h"
 
 
 typedef struct output{
+    int count;
     int size;
     int capacity;
     string_t **file;
@@ -27,6 +27,9 @@ typedef struct output{
 
 //create new line
 string_t *new_line(char *string);
+
+//create append line
+void append_line(string_t *str1, char* str2);
 
 // inicializacia zoznamu stringov
 void output_init(output_t **output);
