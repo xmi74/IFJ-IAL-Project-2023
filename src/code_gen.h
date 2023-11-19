@@ -23,7 +23,9 @@ output_t *gen_start();
 
 void gen_end(output_t *output);
 
-void gen_value(output_t *output, token_t *token, bool function);
+void gen_value(output_t *output, token_t *token);
+
+void gen_var(output_t *output, token_t *token, bool function);
 
 void gen_func(output_t *output, token_t *token);
 

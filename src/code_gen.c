@@ -28,7 +28,7 @@ void gen_end(output_t *output){
     output_print(output);
 }
 
-void gen_value(output_t *output, token_t *token, bool function){
+void gen_value(output_t *output, token_t *token){
     string_t *line0;
     switch (token->type) {
         case TOK_INT: {
@@ -38,6 +38,7 @@ void gen_value(output_t *output, token_t *token, bool function){
             append_line(line0, str);
             break;
         }
+        
         case TOK_DOUBLE: {
             line0 = new_line("PUSHS float@");
             char str[32];
@@ -45,9 +46,42 @@ void gen_value(output_t *output, token_t *token, bool function){
             append_line(line0, str);
             break;
         }
+
+        case TOK_STRING: {
+            line0 = new_line("PUSHS string@");
+            
+            for (size_t index = 0; index < token->attribute.str.length; index++){
+                char c = token->attribute.str.data[index];
+                char str[5];
+                if ((c >= 0 && c <= 32) || (c == 35) || (c == 92)){
+                    sprintf(str, "%03d", c);
+                    append_line(line0, "\\");
+                    append_line(line0, str);
+                }
+                else{
+                    str[0] = c;
+                    str[1] = '\0';
+                    append_line(line0, str);
+                }
+            }
+            break;
+        }
         default:
             returnError(INTERN_ERR);
     }
+    output_insert_line(output, line0);
+}
+
+void gen_var(output_t *output, token_t *token, bool function){
+    string_t *line0 = new_line("DEFVAR ");
+    if (function){
+        append_line(line0, "LF@");
+    }
+    else{
+        append_line(line0, "GF@");
+    }
+
+    append_line(line0, token->attribute.str.data);
     output_insert_line(output, line0);
 }
 
