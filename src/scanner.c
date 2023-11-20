@@ -19,25 +19,6 @@
 
 #include "scanner.h"
 
-/* TODO
-    • Prevod float -> double    HOTOVO
-    • Pridanie exponentu v double   HOTOVO
-    • TOK_MINUS sa neda nacitat bez medzery, TOK_PLUS ano   HOTOVO
-    • TOK_MUL nacitavanie   HOTOVO
-    • TOK_EQUAL nacitavanie   HOTOVO
-    • Ako je to s medzerami? musia ci nemusia byt? napr. 2+3    je mozne implementovat aj bez medzier - HOTOVO
-    • Nenacitava / teda (TOK_DIV) !!!   HOTOVO
-    • Kontrola vnorenych blokovych komentarov   ak nie je dostatok symbolov ukoncenia blok. kom.,potom error - HOTOVO
-    • Kontrola kedy vzdy moze nastat error  HOTOVO
-        -- Ked nacitavam neznamy znak
-        -- Ked nacitam samotny ?
-        -- Ked nie je dostatok ukonceni blok. komentaru
-        -- Neocakavana escape sekvencia, pri hexadecimalnych - zly zapis escape sekvencie
-
-    • Kontrola funkcnosti escape sekvencie
-    • Viacriadkovy string """
-*/
-
 // Nacitanie znaku zo vstupu
 int getNextChar()
 {
@@ -64,7 +45,6 @@ void freeToken(token_t *token)
     dstringFree(&(token->attribute.str));
 }
 
-// Funkcia rozhodne ci ide o identifikator alebo klucove slovo
 void assignIdentifier(token_t *token, string_t identifier)
 {
     if (strcmp(identifier.data, "Double") == 0)
@@ -159,89 +139,81 @@ token_t getNextToken()
                 token.attribute.includesNil = false;
             }
         }
-    } 
-    else if (isdigit(c)) 
+    }
+    else if (isdigit(c)) // INT/DOUBLE   uklada hodnoty aj do token.attribute.str.data
     {
         char buffer[100];
         int i = 0;
         buffer[i++] = c;
-        while ((c = getNextChar()) != EOF && (isdigit(c) || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-')) 
+        while ((c = getNextChar()) != EOF && (isdigit(c) || c == '.'))
         {
             buffer[i++] = c;
         }
-
         buffer[i] = '\0';
         ungetChar(c);
 
-        if (strchr(buffer, '.') != NULL || strchr(buffer, 'e') != NULL || strchr(buffer, 'E') != NULL) 
+        if (strchr(buffer, '.') != NULL)
         {
             token.type = TOK_DOUBLE;
-            token.attribute.doubleValue = strtod(buffer, NULL);
-        } 
-        else 
+            token.attribute.doubleValue = atof(buffer); // strtod ! ! !
+        }
+        else
         {
             token.type = TOK_INT;
             token.attribute.intValue = atoi(buffer);
         }
     }
-    else if (c == '*')  // tu sa spracovava koniec blokoveho komentaru ?
+    else if (c == '*')
     {
-        token.type = TOK_MUL;
         c = getNextChar();
         if (c == '/') // */
         {
             token.type = TOK_BLOCK_COM_END;
         }
-        else                       // *
+        else if (isspace(c)) // *
         {
-            ungetChar(c);           
-        }   
+            token.type = TOK_MUL;
+        }
+        else // ERROR
+        {
+            ungetChar(c);
+            fprintf(stderr, "Pri nacitavani *\n");
+            returnError(SCANNER_ERR);
+            // GLOBAL_ERROR_VALUE = SCANNER_ERR;
+        }
     }
-    else if (c == '/')  // tu sa spracovava zaciatok blokoveho komentaru
+    else if (c == '/')
     {
-        token.type = TOK_DIV;
         c = getNextChar();
-        if (c == '*') // Blokový komentár /* ... */
+        if (c == '*') // /*
         {
             token.type = TOK_BLOCK_COM_START;
-            int nestedCommentLevel = 1;
-
             while ((c = getNextChar()) != EOF)
             {
-                if (c == '/' && (c = getNextChar()) == '*')
+                if (c == '*' && (c = getNextChar()) == '/')
                 {
-                    nestedCommentLevel++;
+                    ungetChar('/');
+                    ungetChar('*');
+                    break;
                 }
-                else if (c == '*' && (c = getNextChar()) == '/')
-                {
-                    nestedCommentLevel--;
-                    if (nestedCommentLevel == 0)
-                    {
-                        ungetChar('/');
-                        ungetChar('*');
-                        break;
-                    }
-                }
-            }
-
-            if (nestedCommentLevel > 0)
-            {
-                // Chyba: Neočakávaný koniec súboru v blokovom komentári
-                fprintf(stderr, "Chybaju [ %d ] ukoncenia blokovych komentarov\n", nestedCommentLevel);
-                returnError(SCANNER_ERR);
             }
         }
-        else if (c == '/') // Riadkový komentár // ...
+        else if (c == '/') // //
         {
             token.type = TOK_COMMENT;
             while ((c = getNextChar()) != EOF && c != '\n')
             {
-                // Sme v komentári, teda nepotrebujeme načítavať znaky až do konca riadku
+                // Sme v komentari, teda nepotrebujeme nacitavat znaky az do konca riadku
             }
+        }
+        else if (isspace(c)) // /
+        {
+            token.type = TOK_DIV;
         }
         else
         {
-            ungetChar(c); // Vrátiť nečítaný znak späť do vstupu
+            ungetChar(c); // ERROR
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == EOF)
@@ -250,16 +222,21 @@ token_t getNextToken()
         token.type = TOK_PLUS; // +
     else if (c == '-')
     {
-        token.type = TOK_MINUS;                 
         c = getNextChar();
         if (c == '>') // ->
         {
             token.type = TOK_ARROW;
         }
+        else if (isspace(c)) // -
+        {
+            token.type = TOK_MINUS;
+        }
         else
         {
-            ungetChar(c);
-        } 
+            ungetChar(c); // ERROR
+            returnError(SCANNER_ERR);
+            // GLOBAL_ERROR_VALUE = 1;
+        }
     }
     else if (c == '}')
         token.type = TOK_R_CRL_BRCKT; // }
@@ -271,58 +248,81 @@ token_t getNextToken()
         token.type = TOK_L_BRCKT; // (
     else if (c == '!')            // !
     {
-        token.type = TOK_NOT;
         c = getNextChar();
         if (c == '=') // !=
         {
             token.type = TOK_NOT_EQUAL;
-        } 
-        else 
+        }
+        else if (isspace(c)) // !
         {
-            ungetChar(c);
+            token.type = TOK_NOT;
+        }
+        else
+        {
+            ungetChar(c); // ERROR
+            returnError(SCANNER_ERR);
+            // GLOBAL_ERROR_VALUE = 1;
         }
     }
     else if (c == '<')
     {
-        token.type = TOK_LESSER;
         c = getNextChar();
         if (c == '=') // <=
         {
-            token.type = TOK_LESSER_OR_EQUAL;       
-        } 
-        else 
+            token.type = TOK_LESSER_OR_EQUAL;
+        }
+        else if (isspace(c)) // <
         {
-            ungetChar(c);                          
+            token.type = TOK_LESSER;
+        }
+        else
+        {
+            ungetChar(c); // ERROR
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == '>')
     {
-        token.type = TOK_GREATER;               // >
         c = getNextChar();
         if (c == '=')
         {
             token.type = TOK_GREATER_OR_EQUAL; // >=
         }
+        else if (isspace(c))
+        {
+            token.type = TOK_GREATER; // >
+        }
         else
         {
-            ungetChar(c);                           // ERROR
+            // ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
         }
     }
     else if (c == '=')
     {
-        token.type = TOK_EQUAL;                 // =
         c = getNextChar();
         if (c == '=')
         {
             token.type = TOK_ASSIGN; // ==
         }
+        else if (isspace(c))
+        {
+            token.type = TOK_EQUAL; // =
+        }
         else
         {
-            ungetChar(c);                           // ERROR
+            // ungetChar(c);                           // ERROR
+            returnError(SCANNER_ERR);
         }
     }
-    else if (c == ':') token.type = TOK_COLON;      // ,       
-    else if (c == ',') token.type = TOK_COMMA;      // ,
+    else if (c == ':')
+        token.type = TOK_COLON; // ,
+    else if (c == ',')
+        token.type = TOK_COMMA; // ,
+    else if (c == ';')
+        token.type = TOK_SEMICLN; // ;
+    else if (c == '.')
+        token.type = TOK_DOT; // .
     else if (c == '?')
     {
         c = getNextChar();
@@ -330,25 +330,21 @@ token_t getNextToken()
         {
             token.type = TOK_DOUBLE_QUEST_MARK; // ??
         }
+        else if (isspace(c))
+        {
+            // token.type = TOK_QUEST_MARK;            // ? ZMAZENIE, SAMOTNY QUEST_MARK NEEXISTUJE
+            fprintf(stderr, "Spracovanie ?\n");
+            returnError(SCANNER_ERR);
+        }
         else
         {
-            fprintf(stderr, "Nemozno nacitat samotny ?\n");
+            ungetChar(c); // ERROR
             returnError(SCANNER_ERR);
         }
     }
     else if (c == '"') // STRING_LITERAL (mozno bude treba dalsie upravy)
     {
         c = getNextChar();
-        /*if (c == '"' && (c = getNextChar()) == '"')   // Viacriadkovy string
-        {
-            while ((c = getNextChar()) != EOF)
-            {
-                if (c == '"' && (c = getNextChar()) == '"' && (c = getNextChar()) == '"')
-                {
-                    break;
-                }
-            }
-        }*/
 
         string_t string;
         dstringInit(&string);
@@ -356,28 +352,28 @@ token_t getNextToken()
 
         while ((c = getNextChar()) != EOF && c != '"')
         {
-            if (c == '\\')              // Escape sekvencia // Mozno vhodne vytvorit funkciu a zapisat ju aj do viacriadkoveho stringu
+            if (c == '\\') // Escape sekvencia
             {
                 c = getNextChar();
                 switch (c)
                 {
-                    case 'n':       // '\n'
-                        c = '\n';
-                        break;
-                    case 'r':       // '\r'
-                        c = '\r';
-                        break;
-                    case 't':       // '\t'
-                        c = '\t';
-                        break;
-                    case '\\':      // '\\'
-                        c = '\\';
-                        break;
-                    case '\"':
-                        c = '\"';
-                        break;
-                    case 'u':       // HEXADECIMAL
-                        if ((c = getNextChar()) == '{')
+                case 'n': // '\n'
+                    c = '\n';
+                    break;
+                case 'r': // '\r'
+                    c = '\r';
+                    break;
+                case 't': // '\t'
+                    c = '\t';
+                    break;
+                case '\\': // '\\'
+                    c = '\\';
+                    break;
+                case 'u': // HEXADECIMAL
+                    if ((c = getNextChar()) == '{')
+                    {
+                        int value = 0;
+                        while ((c = getNextChar()) != '}')
                         {
                             if (isxdigit(c)) // kod z https://copyprogramming.com/howto/how-to-convert-hex-to-ascii-in-c-with-and-without-using-sprintf
                             {
@@ -385,7 +381,7 @@ token_t getNextToken()
                                 {
                                     value = (16 * value) + (c - '0');
                                 }
-                                else    // /u{nehexadecimal
+                                else
                                 {
                                     value = (16 * value) + (tolower(c) - 'a' + 10);
                                 }
@@ -396,16 +392,11 @@ token_t getNextToken()
                                 break;
                             }
                         }
-                        else
-                        {
-                            fprintf(stderr, "\nOcakavany znak za escape sekvenciou \\u [ } ], ale je [ %c ]\n", c);
-                            returnError(SCANNER_ERR);    
-                        }
-                        break;
-                    default:
-                        fprintf(stderr, "\nZnaky retazcoveho literalu [ \\%c ] nenabudaju ziadnu platnu escape sekvenciu\n", c);
-                        returnError(SCANNER_ERR);
-                        break;
+                        c = value;
+                    }
+                    break;
+                default:
+                    break;
                 }
             }
             dstringAppend(&string, c);
@@ -427,7 +418,7 @@ token_t getNextToken()
     }
     else
     {
-        fprintf(stderr, "\nNacitanie neznameho symbolu: %c\n", c);
+        fprintf(stderr, "Nacitanie neznameho tokenu\n");
         returnError(SCANNER_ERR);
     }
 
