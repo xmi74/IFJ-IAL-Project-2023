@@ -18,8 +18,6 @@ const char *getTokenTypeName(token_type_t tokenType)
         return "TOK_STRING_START";
     case TOK_STRING:
         return "TOK_STRING";
-    case TOK_EXPRESSION:
-        return "TOK_EXPRESSION";
     case TOK_MUL:
         return "TOK_MUL";
     case TOK_DIV:
@@ -62,8 +60,8 @@ const char *getTokenTypeName(token_type_t tokenType)
         return "TOK_SEMICLN";
     case TOK_DOT:
         return "TOK_DOT";
-    case TOK_QUESTION:
-        return "TOK_QUESTION";
+    case TOK_DOUBLE_QUEST_MARK:
+        return "TOK_DOUBLE_QUEST_MARK";
     case TOK_COMMENT:
         return "TOK_COMMENT";
     case TOK_BLOCK_COM_START:
