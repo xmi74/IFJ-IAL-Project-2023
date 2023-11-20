@@ -50,7 +50,7 @@ void gen_end(string_t *output){
 void gen_value(string_t *output, token_t *token){
     switch (token->type) {
         case TOK_INT: {
-            append_line(output, "PUSHS int@\n");
+            append_line(output, "PUSHS int@");
             char str[16];
             sprintf(str, "%d\n", token->attribute.intValue);
             append_line(output, str);
@@ -58,7 +58,7 @@ void gen_value(string_t *output, token_t *token){
         }
         
         case TOK_DOUBLE: {
-            append_line(output, "PUSHS float@\n");
+            append_line(output, "PUSHS float@");
             char str[32];
             sprintf(str, "%a\n", token->attribute.doubleValue);
             append_line(output, str);
@@ -66,7 +66,7 @@ void gen_value(string_t *output, token_t *token){
         }
 
         case TOK_STRING: {
-            append_line(output, "PUSHS string@\n");
+            append_line(output, "PUSHS string@");
             
             for (size_t index = 0; index < token->attribute.str.length; index++){
                 char c = token->attribute.str.data[index];
@@ -114,6 +114,16 @@ void gen_func(string_t *output, token_t *token){
 void gen_func_end(string_t *output){
     append_line(output, "POPFRAME\n"
                         "RETURN\n");
+}
+
+void gen_expres(string_t *output, ast_node_t *tree){
+    ast_items_t *items = malloc(sizeof(ast_items_t));
+    items_init(items);
+    ast_postorder(tree, items);
+    int index = 0;
+    while (index < items->size){
+        gen_value(output, &(items->nodes[index]->token));
+    }
 }
 
 void gen_read_str(string_t *output){
