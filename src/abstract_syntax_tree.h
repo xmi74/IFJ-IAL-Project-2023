@@ -1,22 +1,22 @@
 /**
  * IFJ-IAL Projekt 2023
- * 
+ *
  * @file error.h
  * @brief Abstrakcny syntakticky strom
- * 
+ *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
  * @author Tomas Arlt (xarltt00)
-*/
-
-#ifndef ABSTRACT_SYNTAX_TREE_H
-#define ABSTRACT_SYNTAX_TREE_H
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "scanner.h"
-#include "error.c"
+#include "error.h"
+
+#ifndef ABSTRACT_SYNTAX_TREE_H
+#define ABSTRACT_SYNTAX_TREE_H
 
 typedef struct ast_node
 {
@@ -31,7 +31,6 @@ typedef struct ast_items
     int capacity;
     int size;
 } ast_items_t;
-
 
 void ast_init(ast_node_t *tree);
 ast_node_t *make_leaf(token_t token);
