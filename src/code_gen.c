@@ -122,7 +122,30 @@ void gen_expres(string_t *output, ast_node_t *tree){
     ast_postorder(tree, items);
     int index = 0;
     while (index < items->size){
-        gen_value(output, &(items->nodes[index]->token));
+        switch (items->nodes[index]->token.type){
+            case TOK_INT:
+            case TOK_DOUBLE:
+            case TOK_STRING:{
+                gen_value(output, &(items->nodes[index]->token));
+                break;
+            }
+            case TOK_MUL:{
+                append_line(output, "MULS\n");
+                break;
+            }
+            case TOK_DIV:{
+                append_line(output, "DIVS\n");
+                break;
+            }
+            case TOK_PLUS:{
+                append_line(output, "ADDS\n");
+                break;
+            }
+            case TOK_MINUS:{
+                append_line(output, "SUBS\n");
+                break;
+            }
+        }
     }
 }
 
