@@ -10,8 +10,6 @@
  * @author Tomas Artl (xarltt00)
  */
 
-// TODO : error handling, viac testov ?
-
 #include "stack.h"
 #include "debug/printTokenType.c"
 
@@ -36,7 +34,7 @@ void Stack_Init(Stack *stack)
     // Kontrola, ci sa alokacia podarila
     if (stack->elements == NULL)
     {
-        // Chyba
+        // ERROR
         return;
     }
 }
@@ -150,9 +148,9 @@ void Stack_Print(Stack *stack)
 {
     printf("------ Stack ------\n");
     printf("Size: %ld, capacity : %ld\n", stack->size, stack->capacity);
-    for (int i = 0; i < stack->size; i++)
+    for (size_t i = 0; i < stack->size; i++)
     {
-        printf("ID : %d => Type: %s, terminal : %s\n", i, getTokenTypeName(stack->elements[i].type), stack->elements[i].terminal ? "true" : "false");
+        printf("ID : %ld => Type: %s, terminal : %s\n", i, getTokenTypeName(stack->elements[i].type), stack->elements[i].terminal ? "true" : "false");
     }
     printf("-------------------\n");
 }

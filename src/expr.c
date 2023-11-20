@@ -11,8 +11,13 @@
  */
 
 #include "expr.h"
-#include "stack.c"
 
+/**
+ * @brief Pomocna funkcia pre zistenie indexu tokenu v precedencnej tabulke.
+ *
+ * @param token Token, ktoreho index sa ma zistit.
+ * @return Index tokenu v precedencnej tabulke.
+ */
 int getTokenIndex(token_t token)
 {
     switch (token.type)
@@ -57,6 +62,12 @@ int getTokenIndex(token_t token)
     }
 }
 
+/**
+ * @brief Funkcia zistuje ci su dva tokenu rovnakeho datoveho typu.
+ * @param token1 Prvy token.
+ * @param token2 Druhy token.
+ * @return True ak su datove typy rovnake, inak false.
+ */
 bool dataTypeEqual(token_t token1, token_t token2)
 {
     if (token1.type == TOK_INT && token2.type == TOK_INT)
@@ -81,7 +92,7 @@ bool dataTypeEqual(token_t token1, token_t token2)
 // 4: E → E+E
 // 5: E → E-E
 // 6: E → E==E
-// 7: E → E!=E XXX
+// 7: E → E!=E
 // 8: E → E<E
 // 9: E → E>E
 // 10: E → E<=E
@@ -90,6 +101,11 @@ bool dataTypeEqual(token_t token1, token_t token2)
 // 13: E → (E)
 // 14: E → i
 
+/**
+ * @brief pomocna funckia pre zistenie ci je token identifikator
+ * @param token token ktory sa ma skontrolovat
+ * @return true ak je identifikator, inak false
+ */
 bool isIdentifier(token_t token)
 {
     switch (token.type)
@@ -104,6 +120,12 @@ bool isIdentifier(token_t token)
     }
 }
 
+/**
+ * @brief Funkcia na zistenie typu tokenu z tabulky symbolov
+ * @param token token ktoreho typ sa ma zistit
+ * @param table tabulka symbolov
+ * @return typ tokenu
+ */
 token_type_t getTokenType(token_t token, local_symtab_t *table)
 {
     local_symtab_t *search;
@@ -119,14 +141,21 @@ token_type_t getTokenType(token_t token, local_symtab_t *table)
     }
 }
 
-// Funckia na redukciu aritmetickych vyrazov
+/**
+ * @brief Funkcia na redukciu aritmetickych vyrazov
+ *
+ * Funkcia tiez tvori uzle stromu
+ *
+ * @param stack zasobnik
+ * @return void
+ */
 void reduceArithmetic(Stack *stack)
 {
     // TODO : Mozno aj tu treba najst datovy typ pre generator?
     token_t stackTop;
     Stack_Top(stack, &stackTop);
-    token_t operand1 = stack->elements[stack->size - 1];
-    token_t operand2 = stack->elements[stack->size - 3];
+    token_t operand2 = stack->elements[stack->size - 1];
+    token_t operand1 = stack->elements[stack->size - 3];
 
     token_t operation = stack->elements[stack->size - 2];
 
@@ -145,15 +174,22 @@ void reduceArithmetic(Stack *stack)
     Stack_Push(stack, &expr);
 }
 
+/**
+ * @brief Funkcia na redukciu logickych vyrazov
+ * Funckia tiez tvori uzle stromu
+ * @param stack zasobnik
+ * @param table tabulka symbolov
+ * @return true ak sa podarila redukcia, resp. datove typy sa rovnaju, inak false
+ */
 bool reduceLogical(Stack *stack, local_symtab_t *table)
 {
     // TODO : String?, Int?, Double? - neda sa odvodit typ
     token_t stackTop;
     Stack_Top(stack, &stackTop);
 
-    token_t operand1 = stack->elements[stack->size - 1];
+    token_t operand2 = stack->elements[stack->size - 1];
     token_t operation = stack->elements[stack->size - 2];
-    token_t operand2 = stack->elements[stack->size - 3];
+    token_t operand1 = stack->elements[stack->size - 3];
 
     // printf("[EXPR] Identifier : operand1: %s, operand2: %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     // Jeden z operandov je identifikator, potrebujeme zistit jeho datovy typ
@@ -173,8 +209,8 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
             operand2.type = getTokenType(operand2, table);
             if (operand2.type == TOK_EOF)
             {
-                // ERROR 7
                 printf("[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
+                exit(TYPE_COMPATIBILITY_ERR); // ERROR 7, neda sa odvodit typ z tabulky symbolov
                 return false;
             }
         }
@@ -183,6 +219,7 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
     if (dataTypeEqual(operand1, operand2) == false)
     {
         printf("[EXPR] ERROR: Incompatible data types\n");
+        exit(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
         return false;
     }
 
@@ -202,6 +239,12 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
     return true;
 }
 
+/**
+ * @brief Funkcia na aplikaciu pravidiel
+ * @param stack zasobnik
+ * @param table tabulka symbolov
+ * @return true ak sa aplikacia pravidla podarila, ak pravidlo neexistuje alebo nastala chyba pri redukcii, tak false
+ */
 bool applyRule(Stack *stack, local_symtab_t *table)
 {
     // Stack_Print(stack);
@@ -242,6 +285,11 @@ bool applyRule(Stack *stack, local_symtab_t *table)
     }
 }
 
+/**
+ * @brief Funkcia na redukciu zatvoriek
+ * @param stack zasobnik
+ * @return void
+ */
 void reduceParenthesis(Stack *stack)
 {
     token_t stackTop;
@@ -261,7 +309,12 @@ void reduceParenthesis(Stack *stack)
     Stack_Push(stack, &expr);
 }
 
-// Kontrolovanie dat typov ? Napr. pri == musia byt rovnake inak chyba...
+/**
+ * @brief Funkcia na analyzu vyrazov
+ * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu
+ * @param table tabulka symbolov
+ * @return true ak sa analyza podarila, inak false
+ */
 bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
 {
     Stack stack;
@@ -276,7 +329,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
 
     token_t token = getNextToken();
 
-    while (token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
+    while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
         // Stack_Print(&stack);
 
@@ -338,6 +391,8 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
     }
 
     // Stack_Print(&stack);
+
+    // VOLANIE GENERATORU
     Stack_Dispose(&stack);
     printf("[EXPR] OK\n");
     return true;

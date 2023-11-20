@@ -40,9 +40,9 @@ void returnError(int GLOBAL_ERROR_VALUE)
             fprintf(stderr, "ERROR: Navratova hodnota funkcie\n");
             exit(FUNCTION_RETURN_ERROR);
             break;
-        case COMPATIBILITY_ERR:
+        case TYPE_COMPATIBILITY_ERR:
             fprintf(stderr, "ERROR: Kompatibilita\n");
-            exit(COMPATIBILITY_ERR);
+            exit(TYPE_COMPATIBILITY_ERR);
             break;
         case TYPE_DEDUCTION_ERR:
             fprintf(stderr, "ERROR: Dedukcia typov\n");
