@@ -12,95 +12,140 @@
 
 #include "code_gen.h"
 
-output_t *gen_start(){
-    output_t *output;
-    output_init(&output);
-    string_t *line = new_line(".IFJcode2023");
-    output_insert_line(output, line);
-    string_t *line2 = new_line("JUMP main");
-    output_insert_line(output, line2);
+string_t *new_line(char *string){
+    string_t *newLine = malloc(sizeof(string_t));
+    dstringInit(newLine);
+    int index = 0;
+    while (string[index] != '\0'){
+        dstringAppend(newLine, string[index++]);
+    }
+    dstringAppend(newLine, string[index]);
+    return newLine;
+}
+
+void append_line(string_t *str1, char* str2){
+    str1->data[str1->length - 1] = str2[0];
+    int index = 1;
+    while (str2[index] != '\0'){
+        dstringAppend(str1, str2[index++]);
+    }
+    dstringAppend(str1, str2[index]);
+}
+
+string_t *gen_start(){
+    string_t *output = new_line(".IFJcode2023\n");
+    append_line(output, "JUMP main\n");
+    gen_read_str(output);
+    gen_read_int(output);
+    gen_read_doub(output);
     return(output);
 }
 
-void gen_end(output_t *output){
-    string_t *line = new_line("EXIT int@1");
-    output_insert_line(output, line);
-    output_print(output);
+void gen_end(string_t *output){
+    append_line(output, "EXIT int@\n");
+    fprintf(stdout, "%s", output->data);
+    dstringFree(output);
 }
 
-void gen_value(output_t *output, token_t *token){
-    string_t *line0;
+void gen_value(string_t *output, token_t *token){
     switch (token->type) {
         case TOK_INT: {
-            line0 = new_line("PUSHS int@");
+            append_line(output, "PUSHS int@\n");
             char str[16];
-            sprintf(str, "%d", token->attribute.intValue);
-            append_line(line0, str);
+            sprintf(str, "%d\n", token->attribute.intValue);
+            append_line(output, str);
             break;
         }
         
         case TOK_DOUBLE: {
-            line0 = new_line("PUSHS float@");
+            append_line(output, "PUSHS float@\n");
             char str[32];
-            sprintf(str, "%a", token->attribute.doubleValue);
-            append_line(line0, str);
+            sprintf(str, "%a\n", token->attribute.doubleValue);
+            append_line(output, str);
             break;
         }
 
         case TOK_STRING: {
-            line0 = new_line("PUSHS string@");
+            append_line(output, "PUSHS string@\n");
             
             for (size_t index = 0; index < token->attribute.str.length; index++){
                 char c = token->attribute.str.data[index];
                 char str[5];
                 if ((c >= 0 && c <= 32) || (c == 35) || (c == 92)){
                     sprintf(str, "%03d", c);
-                    append_line(line0, "\\");
-                    append_line(line0, str);
+                    append_line(output, "\\");
+                    append_line(output, str);
                 }
                 else{
                     str[0] = c;
                     str[1] = '\0';
-                    append_line(line0, str);
+                    append_line(output, str);
                 }
             }
+            append_line(output, "\n");
             break;
         }
         default:
             returnError(INTERN_ERR);
     }
-    output_insert_line(output, line0);
 }
 
-void gen_var(output_t *output, token_t *token, bool function){
-    string_t *line0 = new_line("DEFVAR ");
+void gen_var(string_t *output, token_t *token, bool function){
+    append_line(output, "DEFVAR ");
     if (function){
-        append_line(line0, "LF@");
+        append_line(output, "LF@");
     }
     else{
-        append_line(line0, "GF@");
+        append_line(output, "GF@");
     }
 
-    append_line(line0, token->attribute.str.data);
-    output_insert_line(output, line0);
+    append_line(output, token->attribute.str.data);
+    append_line(output, "\n");
 }
 
-void gen_func(output_t *output, token_t *token){
-    string_t *line0 = new_line("LABEL ");
-    append_line(line0, token->attribute.str.data);
-    output_insert_line(output, line0);
-    string_t *line1 = new_line("CREATEFRAME");
-    output_insert_line(output, line1);
-    string_t *line2 = new_line("PUSHFRAME");
-    output_insert_line(output, line2);
-    string_t *line3 = new_line("DEFVAR LF@tmp1");
-    output_insert_line(output, line3);
+void gen_func(string_t *output, token_t *token){
+    append_line(output, "LABEL ");
+    append_line(output, token->attribute.str.data);
+    append_line(output, "\nCREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@tmp1\n");
 }
 
-void gen_func_end(output_t *output){
-    string_t *line0 = new_line("POPFRAME");
-    output_insert_line(output, line0);
-    string_t *line1 = new_line("RETURN");
-    output_insert_line(output, line1);
+void gen_func_end(string_t *output){
+    append_line(output, "POPFRAME\n"
+                        "RETURN\n");
+}
 
+void gen_read_str(string_t *output){
+    append_line(output, "# buildin functions\n"
+                "LABEL readString\n"
+                "CREATEFRAME\n"
+                "PUSHFRAME\n"
+                "LF@str\n"
+                "READ LF@str string\n"
+                "PUSHS LF@str\n"
+                "POPFRAME\n"
+                "RETURN\n");
+}
+
+void gen_read_int(string_t *output){
+    append_line(output, "LABEL readInt\n"
+                "CREATEFRAME\n"
+                "PUSHFRAME\n"
+                "LF@inte\n"
+                "READ LF@inte int\n"
+                "PUSHS LF@inte\n"
+                "POPFRAME\n"
+                "RETURN\n");
+}
+
+void gen_read_doub(string_t *output){
+    append_line(output, "LABEL readDoub\n"
+                "CREATEFRAME\n"
+                "PUSHFRAME\n"
+                "LF@doub\n"
+                "READ LF@doub float\n"
+                "PUSHS LF@doub\n"
+                "POPFRAME\n"
+                "RETURN\n");
 }

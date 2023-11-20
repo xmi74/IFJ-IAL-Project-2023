@@ -16,19 +16,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "scanner.h"
-#include "output.h"
+#include "abstract_syntax_tree.h"
+
+//create new line
+string_t *new_line(char *string);
+
+//create append line
+void append_line(string_t *str1, char* str2);
 
 // zacanie generovania
-output_t *gen_start();
+string_t *gen_start();
 
-void gen_end(output_t *output);
+void gen_end(string_t *output);
 
-void gen_value(output_t *output, token_t *token);
+void gen_value(string_t *output, token_t *token);
 
-void gen_var(output_t *output, token_t *token, bool function);
+void gen_var(string_t *output, token_t *token, bool function);
 
-void gen_func(output_t *output, token_t *token);
+void gen_func(string_t *output, token_t *token);
 
-void gen_func_end(output_t *output);
+void gen_func_end(string_t *output);
+
+void gen_expr(string_t *output, ast_node_t *tree);
+
+void gen_read_str(string_t *output);
+
+void gen_read_int(string_t *output);
+
+void gen_read_doub(string_t *output);
 
 #endif
