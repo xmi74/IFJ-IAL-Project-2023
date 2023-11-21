@@ -71,6 +71,10 @@ void generateAST(FILE *dotFile, ast_node_t *tree)
         {
             fprintf(dotFile, "  node%p [label=\"STRING\"];\n", (void *)tree);    
         }
+        else if(tree->token.type == TOK_NOT)
+        {
+            fprintf(dotFile, "  node%p [label=\"!\"];\n", (void *)tree);    
+        }
         
         if (tree->left != NULL) {
             fprintf(dotFile, "  node%p -> node%p [label=\"left\"];\n", (void *)tree, (void *)(tree->left));
@@ -262,6 +266,10 @@ void scan(token_t *token)
         {
             printf("[ DIVISION ]\n");
         }
+        else if (token->type == TOK_MUL)
+        {
+            printf("[ MULTIPLY ]\n");
+        }
         else if (token->type == TOK_BLOCK_COM_START)
         {
             printf("[ BLOCK COMMENT START SIGN ]\n");
@@ -364,12 +372,12 @@ void scan(token_t *token)
 
 
 int main() {
-    //token_t token;
+    token_t token;
 
     /*local_symtab_t* symbolTable;
-    local_init(&symbolTable);
+    local_init(&symbolTable); */
 
-    scan(&token);    */
+    scan(&token);    
     
     /*while (1)
     {
@@ -396,10 +404,10 @@ int main() {
     local_dispose(&symbolTable);*/
 
     //ast_node_t *myTree = NULL;
-    ast_items_t items;
+    /*ast_items_t items;
     //ast_node_t *rootNode;
     
-    items_init(&items);
+    items_init(&items);*/
 
     /*ast_node_t *leftLeaf;
     ast_node_t *rightLeaf;
@@ -408,7 +416,7 @@ int main() {
     rightLeaf = make_leaf("3");
     additionNode = make_tree("+", leftLeaf, rightLeaf);*/
 
-    token_t token;
+    /*token_t token;
     token_t previous_token;
     initToken(&previous_token);
     ast_node_t *rootNode = NULL;
@@ -457,7 +465,7 @@ int main() {
     createFileAST(rootNode);
 
     // Prejdenie AST v postorder a pridanie uzlov do items
-    ast_postorder(rootNode, &items);
+    ast_postorder(rootNode, &items);*/
 
     //ast_dispose(rootNode);
 
