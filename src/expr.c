@@ -107,7 +107,7 @@ bool dataTypeEqual(token_t token1, token_t token2)
  * @param token token ktory sa ma skontrolovat
  * @return true ak je identifikator, inak false
  */
-bool isIdentifier(token_t token)
+bool tokenIsIdentifier(token_t token)
 {
     switch (token.type)
     {
@@ -349,7 +349,7 @@ void reduceParenthesis(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
-bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
+bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
 {
     Stack stack;
     Stack_Init(&stack);
@@ -383,7 +383,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
                 Stack_Top(&stack, &stackTrueTop);
 
                 // Ak je operand postfixoveho 'NOT' nieco ine ako identifikator, ')' alebo terminal, tak je to chyba (neterminal je expression)
-                if (!isIdentifier(stackTrueTop) && stackTrueTop.type != TOK_R_BRCKT && stackTrueTop.terminal != false) // TODO : Mozno nemoze nastat R_BRCKT
+                if (!tokenIsIdentifier(stackTrueTop) && stackTrueTop.type != TOK_R_BRCKT && stackTrueTop.terminal != false) // TODO : Mozno nemoze nastat R_BRCKT
                 {
                     printf("Stack top: %s, terminal: %s\n", getTokenTypeName(stackTrueTop.type), stackTrueTop.terminal ? "true" : "false");
                     printf("[EXPR] ERROR: Prefix 'NOT' operand\n");
@@ -392,7 +392,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
             }
 
             // Ak je identifikator aplikuj pravidlo E → i
-            if (isIdentifier(token))
+            if (tokenIsIdentifier(token))
             {
                 token.terminal = false;
                 token.tree = (void *)make_leaf(token);
@@ -422,9 +422,9 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
             if (stackTop->type == TOK_EOF)
                 return true;
 
+            // Inak redukuj zatvorky
             Stack_Push(&stack, &token);
             token = getNextToken();
-
             reduceParenthesis(&stack);
         }
         else // Undefined
@@ -436,7 +436,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
     }
 
     // Stack_Print(&stack);
-    //  Pokusaj sa redukovat vysledok az pokym stack != '$E'
+    // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
         if (applyRule(&stack, table) == false)
