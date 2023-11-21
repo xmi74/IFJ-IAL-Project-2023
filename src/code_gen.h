@@ -45,4 +45,20 @@ void gen_read_int(string_t *output);
 
 void gen_read_doub(string_t *output);
 
+void gen_eq(string_t *output);
+
+void gen_neq(string_t *output);
+
+void gen_lesser(string_t *output);
+
+void gen_lesser_or_eq(string_t *output);
+
+void gen_greater(string_t *output);
+
+void gen_greater_or_eq(string_t *output);
+
+void gen_questionm(string_t *output);
+
+void gen_concat(string_t *output);
+
 #endif
