@@ -40,6 +40,8 @@ token_t getToken();
 
 token_t getTokenAssert(token_type_t type);
 
+int call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
+
 int handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
 int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
@@ -48,8 +50,8 @@ int handle_func_def(token_t token, global_symtab_t *global_table, local_symtab_w
 
 void read_subblock(token_t token);
 
-int find_functions(global_symtab_t *global_table);
+void find_functions(global_symtab_t **global_table);
 
-int parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
+token_t parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
 
 int parse();

@@ -276,7 +276,7 @@ global_symtab_t *global_search(global_symtab_t *global_table, string_t *key)
 }
 
 
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, int param_count, func_param_t *params)
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params)
 {
     if (global_table == NULL)
     {        
@@ -284,6 +284,7 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         dstringInit(&(global_table->key));
         dstringCopy(&(global_table->key), key);
         global_table->type = type;
+        global_table->is_func = is_func;
         global_table->param_count = param_count;
         global_table->params = params;
         global_table->left = NULL;
@@ -299,11 +300,11 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         }
         else if (cmp < 0)
         {            
-            global_table->left = global_insert(global_table->left, key, type, param_count, params);
+            global_table->left = global_insert(global_table->left, key, type, is_func, param_count, params);
         }
         else
         {            
-            global_table->right = global_insert(global_table->right, key, type, param_count, params);
+            global_table->right = global_insert(global_table->right, key, type, is_func, param_count, params);
         }
 
         // Vyskove vyvazenie
