@@ -58,7 +58,7 @@ string_t *gen_start(){
 }
 
 void gen_end(string_t *output){
-    append_line(output, "EXIT int@\n");
+    append_line(output, "EXIT int@0\n");
     fprintf(stdout, "%s", output->data);
     dstringFree(output);
 }
@@ -302,7 +302,7 @@ void gen_greater(string_t *output){
                         "POPS GF@tmp0\n"
                         "POPS GF@tmp1\n"
                         "PUSHS GF@tmp1\n"
-                        "PUSH GF@tmp0\n"
+                        "PUSHS GF@tmp0\n"
                         "CALL lesser\n"
                         "RETURN\n");
 }
@@ -313,7 +313,7 @@ void gen_greater_or_eq(string_t *output){
                         "POPS GF@tmp0\n"
                         "POPS GF@tmp1\n"
                         "PUSHS GF@tmp1\n"
-                        "PUSH GF@tmp0\n"
+                        "PUSHS GF@tmp0\n"
                         "CALL lesser_or_equal\n"
                         "RETURN\n");
 }
@@ -333,10 +333,7 @@ void gen_questionm(string_t *output){
                         "LABEL remove_nil\n"
                         "POPS GF@tmp0\n"
                         "POPS GF@tmp1\n"
-                        "JUMPIFEQ first_nil GF@tmp0 int@nil\n"
-                        "JUMPIFEQ first_nil GF@tmp0 string@nil\n"
-                        "JUMPIFEQ first_nil GF@tmp0 float@nil\n"
-                        "JUMPIFEQ first_nil GF@tmp0 bool@nil\n"
+                        "JUMPIFEQ first_nil GF@tmp0 nil@nil\n"
                         "PUSHS GF@tmp0\n"
                         "RETURN\n"
                         "LABEL first_nil\n"
