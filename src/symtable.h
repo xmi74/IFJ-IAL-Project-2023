@@ -43,14 +43,23 @@ typedef struct local_symtab_w_par_ptr
     struct local_symtab_w_par_ptr *parent;
 } local_symtab_w_par_ptr_t;
 
+typedef struct func_param
+{
+    string_t name;
+    string_t identifier;
+    token_type_t type;
+} func_param_t;
+
 typedef struct global_symtab
 {
     string_t key;
     type_t type;                // Typ funkcie/globalnej premennej
     int height;                 // Vyska stromu
     int depth;                  // Hlbka zanorenia
+    bool is_func;               // Je funkce?
     bool defined;               // Funkcia - deklarovana ci len definovana
-    string_t params;            // Parametre funkcie
+    int param_count;            // Pocet parametru funkce
+    func_param_t *params;       // Parametre funkcie
     struct global_symtab *left; // Lavy potomok
     struct global_symtab *right;// Pravy potomok
 } global_symtab_t;
@@ -72,8 +81,14 @@ local_symtab_t* rotateLeftL(local_symtab_t *criticalNode);   // Rotacia lokalnej
 // Inicializacia lokalnej tabulky
 void local_init(local_symtab_t **local_table);
 
+// Inicializace lokalni tabulky s ukazatelem na predka
+void local_init_w_par_ptr_t(local_symtab_w_par_ptr_t *local_table);
+
 // Vyhladanie symbolu (na zaklade kluca - key) v lokalnej tabulke
 local_symtab_t *local_search(local_symtab_t *local_table, string_t *key);
+
+// Vyhledavani symbolu v lokalni tabulce a v jejich predcich
+local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, string_t *key);
 
 // Vlozenie symbolu do lokalnej tabulky
 local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type);
@@ -100,7 +115,7 @@ void global_init(global_symtab_t **global_table);
 global_symtab_t *global_search(global_symtab_t *global_table, string_t *key);
 
 // Vlozenie symbolu do globalnej tabulky
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, string_t params);
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params);
 
 // Uvolnenie pamati globalnej tabulky
 void global_dispose(global_symtab_t **global_table);
