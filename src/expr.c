@@ -169,7 +169,7 @@ void reduceArithmetic(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree = (void *)make_tree(expr, operand1.tree, operand2.tree);
+    expr.tree = make_tree(expr, operand1.tree, operand2.tree);
     // printf("Tree operands: %s, %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     expr.terminal = false;
 
@@ -234,7 +234,7 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree = (void *)make_tree(operation, operand1.tree, operand2.tree);
+    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
     printf("Tree operands: %s, %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     expr.terminal = false;
 
@@ -258,7 +258,7 @@ void reduceNot(Stack *stack)
 
     token_t expr = operation;
     expr.terminal = false;
-    expr.tree = (void *)make_tree(operation, operand1.tree, NULL);
+    expr.tree = make_tree(operation, operand1.tree, NULL);
     // printf("Tree operands: %s\n", getTokenTypeName(operand1.type));
     Stack_Push(stack, &expr);
 }
@@ -395,7 +395,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna
             if (tokenIsIdentifier(token))
             {
                 token.terminal = false;
-                token.tree = (void *)make_leaf(token);
+                token.tree = make_leaf(token);
             }
             else
             {

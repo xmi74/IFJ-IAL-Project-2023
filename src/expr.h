@@ -12,6 +12,8 @@
 
 #include "stack.h"
 #include "symtable.h"
+#include "error.h"
+#include "abstract_syntax_tree.h"
 
 #ifndef EXPR_H
 #define EXPR_H

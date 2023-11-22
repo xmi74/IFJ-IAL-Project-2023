@@ -99,7 +99,7 @@ typedef struct
 {
     token_attribute_t attribute;
     token_type_t type;
-    void *tree;
+    struct ast_node *tree;
     bool terminal;
 } token_t;
 
