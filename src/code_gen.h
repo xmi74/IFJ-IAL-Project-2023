@@ -18,13 +18,10 @@
 #include "scanner.h"
 #include "abstract_syntax_tree.h"
 
-//create new line
 string_t *new_line(char *string);
 
-//create append line
 void append_line(string_t *str1, char* str2);
 
-// zacanie generovania
 string_t *gen_start();
 
 void gen_end(string_t *output);

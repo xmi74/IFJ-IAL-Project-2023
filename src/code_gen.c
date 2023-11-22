@@ -12,6 +12,12 @@
 
 #include "code_gen.h"
 
+/**
+ * @brief Funkcia na vytvorenie dynamickeho stringu
+ * 
+ * @param string Staticky string, ktory ma byt vlozeny do dynamickeho stringu
+ * @return Ukazatel na dynamicky string
+*/
 string_t *new_line(char *string){
     string_t *newLine = malloc(sizeof(string_t));
     dstringInit(newLine);
@@ -23,6 +29,12 @@ string_t *new_line(char *string){
     return newLine;
 }
 
+/**
+ * @brief Funkcia na pridanie stringu do dynamickeho stringu
+ * 
+ * @param str1 Dynamicky string, do ktoreho sa bude pridavat
+ * @param str2 Staticky string, ktory sa prida
+*/
 void append_line(string_t *str1, char* str2){
     str1->data[str1->length - 1] = str2[0];
     int index = 1;
@@ -32,6 +44,11 @@ void append_line(string_t *str1, char* str2){
     dstringAppend(str1, str2[index]);
 }
 
+/**
+ * @brief Funkcia na vytvorenie zaciatku generovaneho outputu
+ * 
+ * @return Ukazatel na dynamicky string, v ktorom je output
+*/
 string_t *gen_start(){
     string_t *output = new_line(".IFJcode23\n");
     append_line(output, "DEFVAR GF@tmp0\n"
@@ -61,6 +78,11 @@ string_t *gen_start(){
     return(output);
 }
 
+/**
+ * @brief Funkcia na vytvorenie konca generovaneho outputu
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_end(string_t *output){
     append_line(output, "EXIT int@0\n");
     append_line(output, "LABEL error\n"
@@ -69,6 +91,12 @@ void gen_end(string_t *output){
     dstringFree(output);
 }
 
+/**
+ * @brief Funkcia na nacitanie hodnoty
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param token Token, ktoreho hodnota sa ma nacitat
+*/
 void gen_value(string_t *output, token_t *token){
     switch (token->type) {
         case TOK_INT: {
@@ -112,6 +140,13 @@ void gen_value(string_t *output, token_t *token){
     }
 }
 
+/**
+ * @brief Funkcia na vytvorenie premennej
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param token Token, ktoreho meno udava nazov premennej
+ * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
+*/
 void gen_var(string_t *output, token_t *token, bool function){
     append_line(output, "DEFVAR ");
     if (function){
@@ -125,6 +160,12 @@ void gen_var(string_t *output, token_t *token, bool function){
     append_line(output, "\n");
 }
 
+/**
+ * @brief Funkcia na vygenerovanie zaciatku definicie funkcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param token Token obsahujuci nazov funkcie
+*/
 void gen_func(string_t *output, token_t *token){
     append_line(output, "LABEL ");
     append_line(output, token->attribute.str.data);
@@ -133,11 +174,22 @@ void gen_func(string_t *output, token_t *token){
                         "DEFVAR LF@tmp1\n");
 }
 
+/**
+ * @brief Funckia na vygenerovanie konca definicie funkcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_func_end(string_t *output){
     append_line(output, "POPFRAME\n"
                         "RETURN\n");
 }
 
+/**
+ * @brief Funckia na spracovanie expression-u
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param tree Ukazatel na AST strom obsahujuci spracovany expression
+*/
 void gen_expr(string_t *output, ast_node_t *tree){
     ast_items_t *items = malloc(sizeof(ast_items_t));
     items_init(items);
@@ -211,7 +263,12 @@ void gen_expr(string_t *output, ast_node_t *tree){
     }
 }
 
-
+/**
+ * @brief Funkcia na genrocanie zaciatku if konstrukcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param counter Pocitadlo konstrukcii
+*/
 void gen_if(string_t *output, int counter){
     append_line(output, "# body of if\n"
                         "POPS GF@tmp0\n"
@@ -222,6 +279,12 @@ void gen_if(string_t *output, int counter){
     append_line(output, "GF@tmp0 bool@true\n");
 }
 
+/**
+ * @brief Funkcia na vygenerovanie else
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param counter Pocitadlo konstrukcii
+*/
 void gen_else(string_t *output, int counter){
     append_line(output, "JUMP if_end");
     char str[16];
@@ -233,6 +296,12 @@ void gen_else(string_t *output, int counter){
     append_line(output, str);
 }
 
+/**
+ * @brief Funkcia na generovania konca if-else konstrukcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param counter Pocitadlo konstrukcii
+*/
 void gen_if_end(string_t *output, int counter){
     append_line(output, "LABEL if_end");
     char str[16];
@@ -240,6 +309,11 @@ void gen_if_end(string_t *output, int counter){
     append_line(output, str);
 }
 
+/**
+ * @brief Funckia na genrovanie zaciatku while konstrukcie
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param counter Pocitadlo konstrukcii
+*/
 void gen_while(string_t *output, int counter){
     append_line(output, "LABEL while");
     char str[16];
@@ -247,6 +321,12 @@ void gen_while(string_t *output, int counter){
     append_line(output, str);
 }
 
+/**
+ * @brief Funkcia na genrovanie tela while konstrukcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param counter Pocitadlo konstrukcii
+*/
 void gen_while_body(string_t *output, int counter){
     append_line(output, "POPS GF@tmp0\n"
                         "JUMPIFNEQ while_end");
@@ -256,6 +336,12 @@ void gen_while_body(string_t *output, int counter){
     append_line(output, "GF@tmp0 bool@true\n");
 }
 
+/**
+ * @brief Funckia na generovanie konca while konstrukcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param counter Pocitadlo konstrukcii
+*/
 void gen_while_end(string_t *output, int counter){
     append_line(output, "LABEL while_end");
     char str[16];
@@ -265,6 +351,11 @@ void gen_while_end(string_t *output, int counter){
 
 // builtin functions
 
+/**
+ * @brief Funkcia na citanie stringu zo stdin
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_read_str(string_t *output){
     append_line(output, "# func readString\n"
                 "LABEL readString\n"
@@ -277,6 +368,11 @@ void gen_read_str(string_t *output){
                 "RETURN\n");
 }
 
+/**
+ * @brief Funckia na citanie integer-u zo stdin
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_read_int(string_t *output){
     append_line(output, "# func readINT\n"
                 "LABEL readInt\n"
@@ -289,6 +385,11 @@ void gen_read_int(string_t *output){
                 "RETURN\n");
 }
 
+/**
+ * @brief Funkcia na citanie double-u zo stdin
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_read_doub(string_t *output){
     append_line(output, "# func readFloat\n"
                 "LABEL readDoub\n"
@@ -301,6 +402,12 @@ void gen_read_doub(string_t *output){
                 "RETURN\n");
 }
 
+/**
+ * @brief Funkcia na zadanie poctu argumentov, ktore sa maju vypisat
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param numberOfArguments Pocet argumentov, ktore sa maju vytlacit
+*/
 void gen_write_num_of_arg(string_t *output, int numberOfArguments){
     append_line(output, "PUSHS int@");
     char str[16];
@@ -308,6 +415,11 @@ void gen_write_num_of_arg(string_t *output, int numberOfArguments){
     append_line(output, str);
 }
 
+/**
+ * @brief Funkcia na vytlacenie argumentu/ov na stdout
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_write(string_t *output){
     append_line(output, "# func write\n"
                         "LABEL write\n"
@@ -327,6 +439,11 @@ void gen_write(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Funkcia na transformaciu int na double
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_int2double(string_t *output){
     append_line(output, "# func Int2Double\n"
                         "LABEL int2float\n"
@@ -334,6 +451,11 @@ void gen_int2double(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Funckia na trnasformaciu double na int
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_double2int(string_t *output){
     append_line(output, "# func Double2Int\n"
                         "LABEL float2int\n"
@@ -341,6 +463,11 @@ void gen_double2int(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Funkcia na ziskanie dlzky string-u
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_length(string_t *output){
     append_line(output, "# func length\n"
                         "LABEL length\n"
@@ -355,10 +482,20 @@ void gen_length(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Funkcia na vytvorenie substringu
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_substring(string_t *output){
     //todo
 }
 
+/**
+ * @brief Funkcia na ziskanie ordinalnej hodnoty prveho znaku v stringu
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_ord(string_t *output){
     append_line(output, "# func ord\n"
                         "LABEL ord\n"
@@ -372,12 +509,22 @@ void gen_ord(string_t *output){
                         //ako ziskam ordinalnu hondotu?
 }
 
+/**
+ * @brief Funkcia na ziskanie prveho znaku v stringu
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_chr(string_t *output){
     // ako?
 }
 
 // pomocne funkcie
 
+/**
+ * @brief Pomocna funkcia na zistenie rovnosti
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_eq(string_t *output){
     append_line(output, "# function equal\n"
                         "LABEL equals\n"
@@ -392,6 +539,11 @@ void gen_eq(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Pomocna funkcia na zistenie nerovnosti
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_neq(string_t *output){
     append_line(output, "# function not equal\n"
                         "LABEL nequals\n"
@@ -406,6 +558,11 @@ void gen_neq(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Pomocna funkcia na zistenie, ci je lavy operand mensi ako pravy
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_lesser(string_t *output){
     append_line(output, "# function lesser\n"
                         "LABEL lesser\n"
@@ -416,6 +573,11 @@ void gen_lesser(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Poomocna funkcia na zistenie, ci je lavy operand mensi alebo rovny ako pravy
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_lesser_or_eq(string_t *output){
     append_line(output, "# function lesser or equal\n"
                         "LABEL lesser_or_equal\n"
@@ -429,6 +591,11 @@ void gen_lesser_or_eq(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Pomocna funkcia na zistenie, ci je lavy operand vacsi ako pravy
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_greater(string_t *output){
     append_line(output, "# function greater\n"
                         "LABEL greater\n"
@@ -440,6 +607,11 @@ void gen_greater(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Pomocna funkcia na zistenie, ci je lavy operand vacsi alebo rovny ako pravy
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_greater_or_eq(string_t *output){
     append_line(output, "# function greater or equal\n"
                         "LABEL greater_or_equal\n"
@@ -451,6 +623,11 @@ void gen_greater_or_eq(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Pomocna funkcia na konkatenaciu
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_concat(string_t *output){
     append_line(output, "# concatenation\n"
                         "LABEL concat\n"
@@ -461,6 +638,11 @@ void gen_concat(string_t *output){
                         "RETURN\n");
 }
 
+/**
+ * @brief Pomocna funkcia na odstranenie nil
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void gen_questionm(string_t *output){
     append_line(output, "# function remove nil\n"
                         "LABEL remove_nil\n"
@@ -479,7 +661,11 @@ void gen_questionm(string_t *output){
                         "RETURN\n");
 }
 
-// not sure if necessary
+/**
+ * @brief Pomocna funkcia na pripravu hodnot pre dalsie spracovanie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void prepare_values(string_t *output){
     append_line(output, "# prepare values\n"
                         "LABEL prepare\n"
