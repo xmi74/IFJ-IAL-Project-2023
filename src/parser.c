@@ -87,12 +87,12 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
         returnError(VARIABLE_DEFINITION_ERR);
     }
 
-    token_t current_token = getTokenAssertArr(2, (token_type_t[]){TOK_EQUAL, TOK_COLON});
+    token_t current_token = getTokenAssertArr(2, (token_type_t[]){TOK_ASSIGN, TOK_COLON});
 
     if (current_token.type == TOK_COLON)
     {
         var_type = getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
-        getTokenAssert(TOK_EQUAL);
+        getTokenAssert(TOK_ASSIGN);
     }
 
     current_token = getToken();
@@ -101,7 +101,8 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
     if (func == NULL || func->is_func == false) // pokud neni funkce
     {   
-        // TODO - bottom-up
+        ungetToken();
+        checkExpression(local_table->table);
     }
     else
     {
@@ -152,7 +153,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         getTokenAssert(TOK_R_BRCKT);
         // TODO: codegen
     }
-    else if (current_token.type == TOK_EQUAL)
+    else if (current_token.type == TOK_ASSIGN)
     {
         // assign
     }
@@ -370,7 +371,7 @@ void read_subblock(token_t token)
     token_t current_token = getToken();
     while (current_token.type != block_end.type)
     {
-        if (current_token.type == TOK_EOF || current_token.type == TOK_COMMENT) // TEST
+        if (current_token.type == TOK_EOF)
         {
             returnError(SYNTAX_ERR);
         }
@@ -406,7 +407,7 @@ void find_functions(global_symtab_t **global_table)
     token_t current_token;
     current_token = getToken();
 
-    while (current_token.type != TOK_EOF && current_token.type != TOK_COMMENT) { // TEST
+    while (current_token.type != TOK_EOF) {
         if (current_token.type == TOK_COMMENT)
         {
             ;

@@ -12,6 +12,35 @@
 
 #include "expr.h"
 
+
+enum
+{
+    L, // <
+    R, // >
+    E, // =
+    U, // Undefined
+};
+
+int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
+    /*! *  /  +  -  == != <  > <=  >= ?? (  )  i  $ */
+    {U, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // !
+    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // *
+    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // /
+    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // +
+    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // -
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // ==
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // !=
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
+    {L, L, L, L, L, L, L, L, L, L, L, U, L, R, L, R}, // ??
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF)
+};
+
 /**
  * @brief Pomocna funkcia pre zistenie indexu tokenu v precedencnej tabulke.
  *
@@ -392,7 +421,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna
 
     Stack_Push(&stack, &stackBottom);
 
-    token_t token = getNextToken();
+    token_t token = getToken();
 
     while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
@@ -440,7 +469,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna
                 Stack_InsertLesser(&stack);
             }
             Stack_Push(&stack, &token);
-            token = getNextToken();
+            token = getToken();
 
             continue;
         }
@@ -463,7 +492,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna
 
             // Inak redukuj zatvorky
             Stack_Push(&stack, &token);
-            token = getNextToken();
+            token = getToken();
             reduceParenthesis(&stack);
         }
         else // Undefined
