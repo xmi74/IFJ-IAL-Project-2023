@@ -39,11 +39,39 @@ void gen_func_end(string_t *output);
 
 void gen_expr(string_t *output, ast_node_t *tree);
 
+void gen_if(string_t *output, int counter);
+
+void gen_else(string_t *output, int counter);
+
+void gen_if_end(string_t *output, int counter);
+
+void gen_while(string_t *output, int counter);
+
+void gen_while_body(string_t *output, int counter);
+
+void gen_while_end(string_t *output, int counter);
+
 void gen_read_str(string_t *output);
 
 void gen_read_int(string_t *output);
 
 void gen_read_doub(string_t *output);
+
+void gen_write_num_of_arg(string_t *output, int numberOfArguments);
+
+void gen_write(string_t *output);
+
+void gen_int2double(string_t *output);
+
+void gen_double2int(string_t *output);
+
+void gen_length(string_t *output);
+
+void gen_substring(string_t *output);
+
+void gen_ord(string_t *output);
+
+void gen_chr(string_t *output);
 
 void gen_eq(string_t *output);
 
