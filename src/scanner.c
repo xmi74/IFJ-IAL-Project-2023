@@ -298,20 +298,20 @@ token_t getNextToken()
         }
         else
         {
-            ungetChar(c);                           // ERROR
+            ungetChar(c);                           
         }
     }
     else if (c == '=')
     {
-        token.type = TOK_EQUAL;                 // =
+        token.type = TOK_ASSIGN;                 // =
         c = getNextChar();
         if (c == '=')
         {
-            token.type = TOK_ASSIGN;                // ==
+            token.type = TOK_EQUAL;                // ==
         }
         else
         {
-            ungetChar(c);                           // ERROR
+            ungetChar(c);                           
         }
     }
     else if (c == ':') token.type = TOK_COLON;      // ,       
