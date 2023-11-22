@@ -58,6 +58,7 @@ string_t *gen_start(){
                         "DEFVAR GF@type0\n"
                         "DEFVAR GF@type1\n");
     append_line(output, "JUMP main\n");
+    // definitions of builtin functions
     gen_read_str(output);
     gen_read_int(output);
     gen_read_doub(output);
@@ -65,6 +66,10 @@ string_t *gen_start(){
     gen_int2double(output);
     gen_double2int(output);
     gen_length(output);
+    gen_substring(output);
+    gen_ord(output);
+    gen_chr(output);
+    // definitons of auxilliary functions
     gen_eq(output);
     gen_neq(output);
     gen_lesser(output);
@@ -73,7 +78,6 @@ string_t *gen_start(){
     gen_greater_or_eq(output);
     gen_questionm(output);
     gen_concat(output);
-    // remove than
     append_line(output, "LABEL main\n");
     return(output);
 }
@@ -161,27 +165,52 @@ void gen_var(string_t *output, token_t *token, bool function){
 }
 
 /**
+ * @brief Funckia na priradenie hodnoty premennnej
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param token Token, ktoreho meno udava nazov premennej
+ * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
+*/
+void gen_assign(string_t *output, token_t *token, bool function){
+    append_line(output, "POPS ");
+    if (function){
+        append_line(output, "LF@");
+    }
+    else{
+        append_line(output, "GF@");
+    }
+    append_line(output, token->attribute.str.data);
+    append_line(output, "\n");
+}
+
+/**
  * @brief Funkcia na vygenerovanie zaciatku definicie funkcie
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
  * @param token Token obsahujuci nazov funkcie
 */
 void gen_func(string_t *output, token_t *token){
+    append_line(output, "JUMP ");
+    append_line(output, token->attribute.str.data);
+    append_line(output, "_end\n");
     append_line(output, "LABEL ");
     append_line(output, token->attribute.str.data);
     append_line(output, "\nCREATEFRAME\n"
-                        "PUSHFRAME\n"
-                        "DEFVAR LF@tmp1\n");
+                        "PUSHFRAME\n");
 }
 
 /**
  * @brief Funckia na vygenerovanie konca definicie funkcie
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param token Token obsahujuci nazov funckie
 */
-void gen_func_end(string_t *output){
+void gen_func_end(string_t *output, token_t *token){
     append_line(output, "POPFRAME\n"
-                        "RETURN\n");
+                        "RETURN\n"
+                        "LABEL ");
+    append_line(output, token->attribute.str.data);
+    append_line(output, "_end\n");
 }
 
 /**
@@ -413,6 +442,7 @@ void gen_write_num_of_arg(string_t *output, int numberOfArguments){
     char str[16];
     sprintf(str, "%d\n", numberOfArguments);
     append_line(output, str);
+    append_line(output, "CALL write\n");
 }
 
 /**
@@ -483,12 +513,77 @@ void gen_length(string_t *output){
 }
 
 /**
+ * @brief Funckia na zadanie indexov pre vytvorenie substringu
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param i Index prveho znaku podretazca
+ * @param j Index znaku nasledujuceho za koncom podretazca
+*/
+void gen_substring_indexes(string_t *output, int i, int j){
+    append_line(output, "PUSHS int@");
+    char str[16];
+    sprintf(str, "%d\n", i);
+    append_line(output, str);
+    append_line(output, "PUSHS int@");
+    sprintf(str, "%d\n", j);
+    append_line(output, str);
+    append_line(output, "CALL substring\n");
+}
+
+/**
  * @brief Funkcia na vytvorenie substringu
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
 */
 void gen_substring(string_t *output){
-    //todo
+    append_line(output, "# func substring\n"
+                        "LABEL substring\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@i\n"
+                        "DEFVAR LF@j\n"
+                        "DEFVAR LF@str\n"
+                        "DEFVAR LF@len\n"
+                        "DEFVAR LF@res\n"
+                        "DEFVAR LF@substr\n"
+                        "DEFVAR LF@tmp\n"
+                        "POPS LF@j\n"
+                        "POPS LF@i\n"
+                        "POPS LF@str\n"
+                        "STRLEN LF@len LF@str\n"
+                        // i < 0
+                        "LT LF@res LF@i int@0\n"
+                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        // j < 0
+                        "LT LF@res LF@j int@0\n"
+                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        // i > j
+                        "GT LF@res LF@i LF@j\n"
+                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        // i >= len
+                        "GT LF@res LF@i LF@len\n"
+                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        "JUMPIFEQ substring_err LF@i LF@len\n"
+                        // j > len
+                        "GT LF@res LF@j LF@len\n"
+                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        "MOVE LF@substr string@nil\n"
+                        //cycle
+                        "LABEL substring_cycle\n"
+                        "SUB LF@res LF@j LF@i\n"
+                        "JUMPIFEQ substring_cycle_end LF@tmp int@1\n"
+                        "GETCHAR LF@tmp LF@str LF@i\n"
+                        "CONCAT LF@substr LF@substr LF@tmp\n"
+                        "ADD LF@i LF@i int@1\n"
+                        "JUMP substring_cycle\n"
+                        "LABEL substring_cycle_end\n"
+                        "PUSHS LF@substr\n"
+                        "JUMP substring_end\n"
+                        "LABEL substring_err\n"
+                        "PUSHS nil@nil\n"
+                        "LABEL substring_end\n"
+                        "POPFRAME\n"
+                        "RETURN\n");
 }
 
 /**
@@ -504,9 +599,10 @@ void gen_ord(string_t *output){
                         "DEFVAR LF@tmp0\n"
                         "DEFVAR LF@tmp1\n"
                         "POPS LF@tmp0\n"
-                        "GETCHAR LF@tmp1 LF@tmp0 int@0\n"
-                        );
-                        //ako ziskam ordinalnu hondotu?
+                        "STRI2INT LF@tmp1 LF@tmp0 int@0\n"
+                        "PUSHS LF@tmp1\n"
+                        "POPFRAME\n"
+                        "RETURN\n");
 }
 
 /**
@@ -515,7 +611,17 @@ void gen_ord(string_t *output){
  * @param output Ukazatel na dynamicky string, v ktorom je output
 */
 void gen_chr(string_t *output){
-    // ako?
+    append_line(output, "# func chr\n"
+                        "LABEL chr\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@tmp0\n"
+                        "DEFVAR LF@tmp1\n"
+                        "POPS LF@tmp0\n"
+                        "INT2CHAR LF@tmp1 LF@tmp0\n"
+                        "POPS LF@tmp1\n"
+                        "POPFRAME\n"
+                        "RETURN\n");
 }
 
 // pomocne funkcie
