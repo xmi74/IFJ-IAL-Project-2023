@@ -10,7 +10,7 @@
  * @author Tomas Arlt (xarltt00)
 */
 
-#include "symtable.c"
+#include "symtable.h"
 #include <stdbool.h>
 
 // Struktura tabulky tokenu
