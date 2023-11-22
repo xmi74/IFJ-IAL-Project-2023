@@ -46,12 +46,12 @@ int handle_variable(token_t token_assigner, global_symtab_t *global_table, local
 
 int handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 
-int handle_func_def(token_t token, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
+int handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
 
 void read_subblock(token_t token);
 
 void find_functions(global_symtab_t **global_table);
 
-token_t parse_block(int nest_level, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
+token_t parse_block(int nest_level, token_type_t block_start, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
 
 int parse();
