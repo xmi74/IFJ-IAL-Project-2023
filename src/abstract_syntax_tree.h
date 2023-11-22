@@ -23,6 +23,8 @@ typedef struct ast_node
     token_t token;
     struct ast_node *left;
     struct ast_node *right;
+    token_type_t type;
+    bool literal;
 } ast_node_t;
 
 typedef struct ast_items

@@ -121,6 +121,7 @@ void assignIdentifier(token_t *token, string_t identifier)
     token->attribute.str = identifier;  // aj klucove slova budu obsahovat atribut
 }
 
+
 // Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
 token_t getNextToken() 
 {
@@ -129,8 +130,8 @@ token_t getNextToken()
 
     initToken(&token);
 
-    while (isspace(c = getNextChar())) {}
- 
+    while (isspace(c = getNextChar()) && c != '\n') {}
+
     if (isalpha(c) || c == '_')    // IDENTIFIER
     {
         string_t identifier;

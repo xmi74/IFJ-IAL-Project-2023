@@ -12,6 +12,8 @@
 
 #include "stack.h"
 #include "symtable.h"
+#include "error.h"
+#include "abstract_syntax_tree.h"
 
 #ifndef EXPR_H
 #define EXPR_H
@@ -58,6 +60,8 @@ bool isIdentifier(token_t token);
 void reduceArithmetic(Stack *stack);
 
 bool reduceLogical(Stack *stack, local_symtab_t *table);
+
+void reduceNot(Stack *stack);
 
 bool applyRule(Stack *stack, local_symtab_t *table);
 

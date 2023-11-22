@@ -10,12 +10,14 @@
  * @author Tomas Arlt (xarltt00)
  */
 
+
+#ifndef _SCANNER_H_
+#define _SCANNER_H_
+
 #include <stdbool.h>
 #include "dynamic_string.h"
 #include "error.h"
 
-#ifndef _SCANNER_H_
-#define _SCANNER_H_
 
 // Identifikator - znak podtrzitka '_' , zaciatok zadania
 // Escape Sekvencia
@@ -99,7 +101,7 @@ typedef struct
 {
     token_attribute_t attribute;
     token_type_t type;
-    void *tree;
+    struct ast_node *tree;
     bool terminal;
 } token_t;
 

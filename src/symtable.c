@@ -80,6 +80,12 @@ void local_init(local_symtab_t **local_table)
     (*local_table) = NULL;
 }
 
+void local_init_w_par_ptr_t(local_symtab_w_par_ptr_t *local_table)
+{
+    local_init(&(local_table->table));
+    local_table->parent = NULL;
+}
+
 local_symtab_t *local_search(local_symtab_t *local_table, string_t *key)
 {
     if (local_table != NULL)
@@ -270,7 +276,7 @@ global_symtab_t *global_search(global_symtab_t *global_table, string_t *key)
 }
 
 
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, string_t params)
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params)
 {
     if (global_table == NULL)
     {        
@@ -278,6 +284,8 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         dstringInit(&(global_table->key));
         dstringCopy(&(global_table->key), key);
         global_table->type = type;
+        global_table->is_func = is_func;
+        global_table->param_count = param_count;
         global_table->params = params;
         global_table->left = NULL;
         global_table->right = NULL;
@@ -292,11 +300,11 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         }
         else if (cmp < 0)
         {            
-            global_table->left = global_insert(global_table->left, key, type, params);
+            global_table->left = global_insert(global_table->left, key, type, is_func, param_count, params);
         }
         else
         {            
-            global_table->right = global_insert(global_table->right, key, type, params);
+            global_table->right = global_insert(global_table->right, key, type, is_func, param_count, params);
         }
 
         // Vyskove vyvazenie
