@@ -264,7 +264,7 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
 
     token_t expr = operation;
     expr.tree = make_tree(operation, operand1.tree, operand2.tree);
-    printf("Tree operands: %s, %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
+    // printf("Tree operands: %s, %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -402,7 +402,7 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna
         stackTop = Stack_GetTopTerminal(&stack);
 
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
-        printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
+        // printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
 
         // LOAD
         if (result == L)

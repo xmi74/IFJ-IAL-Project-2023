@@ -61,6 +61,8 @@ void reduceArithmetic(Stack *stack);
 
 bool reduceLogical(Stack *stack, local_symtab_t *table);
 
+void reduceNot(Stack *stack);
+
 bool applyRule(Stack *stack, local_symtab_t *table);
 
 void reduceParenthesis(Stack *stack);
