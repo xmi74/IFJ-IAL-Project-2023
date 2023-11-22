@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "scanner.h"
-#include "error.c"
+#include "error.h"
 
 typedef struct ast_node
 {

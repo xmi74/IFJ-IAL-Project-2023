@@ -12,7 +12,7 @@
 
 #include "token_table.h"
 
-token_table_t token_table;
+extern token_table_t token_table;
 
 void initTokenTable(token_table_t *table)
 {

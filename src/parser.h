@@ -11,7 +11,9 @@
 */
 
 #include <stdbool.h>
-#include "token_table.c"
+#include "token_table.h"
+
+void load_built_in_functions(global_symtab_t **global_table);
 
 void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 

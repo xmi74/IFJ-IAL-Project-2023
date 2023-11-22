@@ -12,7 +12,23 @@
 
 #include "parser.h"
 
+extern token_table_t token_table;
+
 #define MAX_NEST_LEVEL 1000
+
+void load_built_in_functions(global_symtab_t **global_table)
+{
+    //int param_cntr = 0;
+    //func_param_t *params = NULL;
+    //string_t* name;
+//
+//
+    //dstringInit(name);
+    //dstringAppend(name, "readString");
+    //param_cntr = 0;
+    //params = NULL;
+    //global_insert(*global_table, name, TOK_STRING, true, param_cntr, params);
+}
 
 void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
@@ -284,6 +300,15 @@ token_t parse_block(int nest_level, token_type_t block_start, global_symtab_t *g
         {
             getTokenAssert(TOK_BLOCK_COM_END);
         }
+        else if (current_token.type == TOK_KW_RETURN)
+        {
+            // TODO returns, read expr
+            while (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
+            {
+                current_token = getToken();
+            }
+            
+        }
         else if (current_token.type == TOK_L_CRL_BRCKT)
         {
             parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, &local_table);
@@ -449,15 +474,17 @@ void find_functions(global_symtab_t **global_table)
                         returnError(INTERN_ERR);
                     }
                 }
-                //else
-                //{
-                //    params = realloc(params, sizeof(func_param_t) * param_cntr + 1); // neni idealni, ale asi nebude tolik paramentru aby na tom zalezelo
-                //    if (params == 0)
-                //    {
-                //        // error
-                //        returnError(INTERN_ERR);
-                //    }
-                //}
+                else
+                {
+                    
+                    func_param_t* tmp = realloc(params, sizeof(func_param_t) * param_cntr + 1); // neni idealni, ale asi nebude tolik paramentru aby na tom zalezelo
+                    if (tmp == 0)
+                    {
+                        // error
+                        returnError(INTERN_ERR);
+                    }
+                    params = tmp;
+                }
 
                 params[param_cntr].name = name.attribute.str;
                 params[param_cntr].identifier = id.attribute.str;
@@ -471,7 +498,6 @@ void find_functions(global_symtab_t **global_table)
                 }
 
                 param_cntr++;
-                //current_token = getToken();
             }
 
             if (param_cntr == 0)
@@ -482,7 +508,7 @@ void find_functions(global_symtab_t **global_table)
             current_token = getToken();
             if (current_token.type == TOK_ARROW)
             {
-                getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
+                getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING}); // TODO: toto crashne pokud má funkce >1 parametr
                 *global_table = global_insert(*global_table, &func_name.attribute.str, current_token.type, true, param_cntr, params);
             }
             else
@@ -503,6 +529,7 @@ int parse()
 {
     global_symtab_t *global_table;
     global_init(&global_table);
+    load_built_in_functions(&global_table);
     initTokenTable(&token_table);
     find_functions(&global_table);
     token_table.insert = false;

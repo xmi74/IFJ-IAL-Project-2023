@@ -10,11 +10,11 @@
  * @author Tomas Arlt (xarltt00)
 */
 
-#include "symtable.c"
+#include "symtable.h"
 #include <stdbool.h>
 
 // Struktura tabulky tokenu
-typedef struct
+typedef struct tkn_tbl
 {
     token_t *tokens;
     int size;
@@ -38,3 +38,7 @@ token_t getTableToken(token_table_t *table);
 token_t getToken();
 
 token_t getTokenAssert(token_type_t type);
+
+token_t getTokenAssertArr(int tok_amount, token_type_t *type);
+
+void ungetToken();

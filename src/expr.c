@@ -1,4 +1,4 @@
-#include "stack.c"
+#include "stack.h"
 
 #define PRECEDENCETSIZE 16
 
