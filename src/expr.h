@@ -12,6 +12,8 @@
 
 #include "stack.h"
 #include "symtable.h"
+#include "error.h"
+#include "abstract_syntax_tree.h"
 
 #ifndef EXPR_H
 #define EXPR_H
@@ -43,7 +45,7 @@ int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
     {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
     {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
     {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, U}, // $ (EOF)
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF)
 };
 
 // Protype function header file

@@ -32,7 +32,7 @@ int getTokenIndex(token_t token)
         return 3; // '+'
     case TOK_MINUS:
         return 4; // '-'
-    case TOK_ASSIGN:
+    case TOK_EQUAL:
         return 5; // '=='
     case TOK_NOT_EQUAL:
         return 6; // '!='
@@ -70,6 +70,7 @@ int getTokenIndex(token_t token)
  */
 bool dataTypeEqual(token_t token1, token_t token2)
 {
+    // TODO : 4.5 != 5.0 * 4.4
     if (token1.type == TOK_INT && token2.type == TOK_INT)
     {
         return true;
@@ -80,6 +81,9 @@ bool dataTypeEqual(token_t token1, token_t token2)
     }
     else if (token1.type == TOK_STRING && token2.type == TOK_STRING)
     {
+        return true;
+    // Kontrola typov podla AST stromu, resp. tokeny nemusia byt terminaly
+    } else if (token1.tree->type == token2.tree->type) {
         return true;
     }
     return false;
@@ -106,7 +110,7 @@ bool dataTypeEqual(token_t token1, token_t token2)
  * @param token token ktory sa ma skontrolovat
  * @return true ak je identifikator, inak false
  */
-bool isIdentifier(token_t token)
+bool tokenIsIdentifier(token_t token)
 {
     switch (token.type)
     {
@@ -151,13 +155,34 @@ token_type_t getTokenType(token_t token, local_symtab_t *table)
  */
 void reduceArithmetic(Stack *stack)
 {
-    // TODO : Mozno aj tu treba najst datovy typ pre generator?
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operand2 = stack->elements[stack->size - 1];
     token_t operand1 = stack->elements[stack->size - 3];
 
     token_t operation = stack->elements[stack->size - 2];
+
+    // Mozno nie je potreba, druha podmienka by mala stacit
+    if (operand1.tree->literal == false && operand2.tree->literal == false && dataTypeEqual(operand1, operand2) == false) {
+        returnError(TYPE_COMPATIBILITY_ERR);
+    }
+    // INTEGER nie je literal a druhy operand je double -> ERROR
+    if (operand1.tree->literal == false || operand2.tree->literal == false) {
+        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE)) {
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
+    }
+
+    // Kontrola konkatenacie stringov
+    if (operand1.type == TOK_STRING && operand2.type == TOK_STRING) {
+        if (operation.type != TOK_PLUS) {
+            returnError(SYNTAX_ERR); // TODO : KONTROLA? napr. 5 * "string"
+        }
+    } else if (operand1.type == TOK_STRING || operand2.type == TOK_STRING) {
+        returnError(SYNTAX_ERR); // TODO : Kontrola napr. 5 + "string"
+    }
+
+
 
     while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
     {
@@ -168,7 +193,9 @@ void reduceArithmetic(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree = (void *)make_tree(operation, operand1.tree, operand2.tree);
+    // Vytvorenie stromu s uchovanim datoveho typu po operacii
+    expr.tree = make_tree(expr, operand1.tree, operand2.tree);
+    // printf("Tree operands: %s, %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -193,24 +220,28 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
 
     // printf("[EXPR] Identifier : operand1: %s, operand2: %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     // Jeden z operandov je identifikator, potrebujeme zistit jeho datovy typ
+    // TODO : Odstranit mozno
     if (operand1.type == TOK_IDENTIFIER || operand2.type == TOK_IDENTIFIER)
     {
         if (operand1.type == TOK_IDENTIFIER)
         {
             operand1.type = getTokenType(operand1, table);
+            operand1.tree->literal = false;
             if (operand1.type == TOK_EOF)
             {
                 printf("[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
+                returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
                 return false;
             }
         }
         else
         {
             operand2.type = getTokenType(operand2, table);
+            operand1.tree->literal = false;
             if (operand2.type == TOK_EOF)
             {
                 printf("[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
-                exit(TYPE_COMPATIBILITY_ERR); // ERROR 7, neda sa odvodit typ z tabulky symbolov
+                returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
                 return false;
             }
         }
@@ -219,7 +250,7 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
     if (dataTypeEqual(operand1, operand2) == false)
     {
         printf("[EXPR] ERROR: Incompatible data types\n");
-        exit(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
+        returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
         return false;
     }
 
@@ -232,11 +263,33 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree = (void *)make_tree(operation, operand1.tree, operand2.tree);
+    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
+    printf("Tree operands: %s, %s\n", getTokenTypeName(operand1.type), getTokenTypeName(operand2.type));
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
     return true;
+}
+
+void reduceNot(Stack *stack)
+{
+    token_t stackTop;
+    Stack_Top(stack, &stackTop);
+    token_t operand1 = stack->elements[stack->size - 2];  // E
+    token_t operation = stack->elements[stack->size - 1]; // !
+    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
+    {
+        Stack_Pop(stack);
+        Stack_Top(stack, &stackTop);
+    }
+
+    Stack_Pop(stack);
+
+    token_t expr = operation;
+    expr.terminal = false;
+    expr.tree = make_tree(operation, operand1.tree, NULL);
+    // printf("Tree operands: %s\n", getTokenTypeName(operand1.type));
+    Stack_Push(stack, &expr);
 }
 
 /**
@@ -247,7 +300,7 @@ bool reduceLogical(Stack *stack, local_symtab_t *table)
  */
 bool applyRule(Stack *stack, local_symtab_t *table)
 {
-    // Stack_Print(stack);
+    Stack_Print(stack);
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operation = stack->elements[stack->size - 2];
@@ -262,7 +315,7 @@ bool applyRule(Stack *stack, local_symtab_t *table)
             return true;
         }
         // Logicka redukcia
-        else if (operation.type == TOK_ASSIGN || operation.type == TOK_NOT_EQUAL || operation.type == TOK_LESSER || operation.type == TOK_GREATER || operation.type == TOK_LESSER_OR_EQUAL || operation.type == TOK_GREATER_OR_EQUAL)
+        else if (operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL || operation.type == TOK_LESSER || operation.type == TOK_GREATER || operation.type == TOK_LESSER_OR_EQUAL || operation.type == TOK_GREATER_OR_EQUAL)
         {
             // Nastala chyba pri redukcii
             if (reduceLogical(stack, table) != true)
@@ -272,14 +325,26 @@ bool applyRule(Stack *stack, local_symtab_t *table)
             }
             return true;
         }
+        else if (operation.type == TOK_NOT)
+        {
+            reduceNot(stack);
+            return true;
+        }
         else
         {
-            printf("[EXPR] ERROR: Unknown operation\n");
+            returnError(SYNTAX_ERR);
+            printf("[EXPR] ERROR: Unknown rule -> (operation)\n");
             return false;
         }
     }
+    else if (stackTop.type == TOK_NOT)
+    {
+        reduceNot(stack);
+        return true;
+    }
     else
     {
+        returnError(SYNTAX_ERR);
         printf("[EXPR] ERROR: Unknown rule\n");
         return false;
     }
@@ -315,7 +380,7 @@ void reduceParenthesis(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
-bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
+bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
 {
     Stack stack;
     Stack_Init(&stack);
@@ -337,15 +402,38 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
         stackTop = Stack_GetTopTerminal(&stack);
 
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
-        // printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
+        printf("[EXPR] Precedence: %d, token: [%s] | stacktop: [%s]\n", result, getTokenTypeName(token.type), getTokenTypeName(stackTop->type));
 
-        // Load stack
+        // LOAD
         if (result == L)
         {
-            if (isIdentifier(token))
+            // Kontrola prefixoveho NOT '!'
+            if (token.type == TOK_NOT)
+            {
+                token_t stackTrueTop;
+                Stack_Top(&stack, &stackTrueTop);
+
+                // Ak je operand postfixoveho 'NOT' nieco ine ako identifikator, ')' alebo terminal, tak je to chyba (neterminal je expression)
+                if (!tokenIsIdentifier(stackTrueTop) && stackTrueTop.type != TOK_R_BRCKT && stackTrueTop.terminal != false) // TODO : Mozno nemoze nastat R_BRCKT
+                {
+                    // printf("Stack top: %s, terminal: %s\n", getTokenTypeName(stackTrueTop.type), stackTrueTop.terminal ? "true" : "false");
+                    returnError(SYNTAX_ERR);
+                    printf("[EXPR] ERROR: Prefix 'NOT' operand\n");
+                    return false;
+                }
+            }
+
+            // Ak je identifikator aplikuj pravidlo E → i
+            if (tokenIsIdentifier(token))
             {
                 token.terminal = false;
-                token.tree = (void *)make_leaf(token);
+                token.tree = make_leaf(token);
+                token.tree->type = token.type;
+                if (token.type == TOK_IDENTIFIER) {
+                    token.tree->literal = false;
+                } else {
+                    token.tree->literal = true;
+                }
             }
             else
             {
@@ -356,44 +444,55 @@ bool checkExpression(local_symtab_t *table) // TODO: Vyrovnavaci stack
 
             continue;
         }
-        // Redukuj stack
+        // REDUCE - pouzi pravidlo
         else if (result == R)
         {
-            applyRule(&stack, table);
-            // Stack_Push(&stack, &token);
-            // token = getNextToken();
+            if (applyRule(&stack, table) == false)
+            {
+                printf("[EXPR] FAIL\n");
+                Stack_Dispose(&stack);
+                return false; // TODO ERROR?
+            }
         }
         else if (result == E)
         {
+            // Koniec analyzy vyrazu, prebehol OK
+            if (stackTop->type == TOK_EOF)
+                break;
+            // return true;
+
+            // Inak redukuj zatvorky
             Stack_Push(&stack, &token);
             token = getNextToken();
-
             reduceParenthesis(&stack);
         }
-        else
+        else // Undefined
         {
-            // Errorovy stav ? alebo ok
-            printf("[EXPR] ERROR: EQUAL\n");
-            return true;
+            printf("[EXPR] ERROR: UNDEFINED PRECEDENCE\n");
+            Stack_Dispose(&stack);
+            return false; // ERROR?
         }
     }
 
     // Stack_Print(&stack);
-    //  Pokusaj sa redukovat vysledok az pokym stack != '$E'
+    // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
         if (applyRule(&stack, table) == false)
         {
             printf("[EXPR] FAIL\n");
             Stack_Dispose(&stack);
-            return false;
+            return false; // TODO
         }
     }
 
     // Stack_Print(&stack);
 
     // VOLANIE GENERATORU
-    Stack_Dispose(&stack);
+    token_t result;
+    Stack_Top(&stack, &result);
+    // createASTPicture(result.tree);
+    // printf("[EXPR] RESULT: %s\n", getTokenTypeName(result.type));
     printf("[EXPR] OK\n");
     return true;
 }

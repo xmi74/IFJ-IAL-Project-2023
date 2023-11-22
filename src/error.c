@@ -41,7 +41,7 @@ void returnError(int GLOBAL_ERROR_VALUE)
             exit(FUNCTION_RETURN_ERROR);
             break;
         case TYPE_COMPATIBILITY_ERR:
-            fprintf(stderr, "ERROR: Kompatibilita\n");
+            fprintf(stderr, "ERROR: Nekompatibilne datove typy\n");
             exit(TYPE_COMPATIBILITY_ERR);
             break;
         case TYPE_DEDUCTION_ERR:
