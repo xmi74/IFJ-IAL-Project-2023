@@ -62,7 +62,7 @@ const char *getTokenTypeName(token_type_t tokenType)
         return "TOK_SEMICLN";
     case TOK_DOT:
         return "TOK_DOT";
-    case TOK_QUESTION:
+    case TOK_QUEST_MARK:
         return "TOK_QUESTION";
     case TOK_COMMENT:
         return "TOK_COMMENT";

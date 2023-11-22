@@ -28,7 +28,7 @@ int getTokenIndex(token_t token)
         return 9; // '<='
     case TOK_GREATER_OR_EQUAL:
         return 10; // '>='
-    case TOK_QUESTION:
+    case TOK_QUEST_MARK:
         return 11; // '?'
     case TOK_L_BRCKT:
         return 12; // '('
