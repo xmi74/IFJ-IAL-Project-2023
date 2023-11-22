@@ -11,7 +11,7 @@
  */
 
 #include "stack.h"
-#include "symtable.h"
+#include "token_table.h"
 #include "error.h"
 #include "abstract_syntax_tree.h"
 
