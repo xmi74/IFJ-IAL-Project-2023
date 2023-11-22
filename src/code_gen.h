@@ -30,9 +30,11 @@ void gen_value(string_t *output, token_t *token);
 
 void gen_var(string_t *output, token_t *token, bool function);
 
+void gen_assign(string_t *output, token_t *token, bool function);
+
 void gen_func(string_t *output, token_t *token);
 
-void gen_func_end(string_t *output);
+void gen_func_end(string_t *output, token_t *token);
 
 void gen_expr(string_t *output, ast_node_t *tree);
 
@@ -63,6 +65,8 @@ void gen_int2double(string_t *output);
 void gen_double2int(string_t *output);
 
 void gen_length(string_t *output);
+
+void gen_substring_indexes(string_t *output, int i, int j);
 
 void gen_substring(string_t *output);
 
