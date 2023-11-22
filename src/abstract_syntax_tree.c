@@ -10,6 +10,7 @@
  * @author Tomas Arlt (xarltt00)
 */
 
+
 #include "abstract_syntax_tree.h"
 
 /**
@@ -38,10 +39,11 @@ ast_node_t *make_leaf(token_t token){
     if (newNode == NULL){
         returnError(99);
     }
-
     newNode->token = token;
     newNode->left = NULL;
     newNode->right = NULL;
+
+    return newNode;
 }
 
 /**
@@ -57,6 +59,8 @@ ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right){
     ast_node_t *fatherNode = make_leaf(fatherToken);
     fatherNode->left = left;
     fatherNode->right = right;
+
+    return fatherNode;
 }
 
 /**
@@ -65,15 +69,16 @@ ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right){
  * @param tree Ukazatel na koren stromu.
 */
 
-void ast_dispose(ast_node_t *tree){
-    if (tree != NULL){
+void ast_dispose(ast_node_t *tree) {
+    if (tree != NULL) {
         ast_dispose(tree->left);
         ast_dispose(tree->right);
+        freeToken(&(tree->token));  // uvolnenie aj pamati hodnoty
         free(tree);
     }
-
     tree = NULL;
 }
+
 
 /**
  * @brief Funkcia na inicializovanie pola uzlov AST pre postorder.
