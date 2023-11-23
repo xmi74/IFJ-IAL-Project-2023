@@ -21,7 +21,7 @@
 #define PRETABLESIZE 16
 
 // Protype function header file
-token_type_t getTokenType(token_t token, local_symtab_t *table, global_symtab_t *globalTable);
+token_type_t getTokenType(token_t token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 bool checkOperands(token_t operand1, token_t operand2);
 

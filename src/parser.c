@@ -39,6 +39,10 @@ void load_built_in_functions(global_symtab_t **global_table)
 
 void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
+    if (strcmp(func->key.data, "write"))
+    {
+        // TODO: write ma neomezeno parametru
+    }
     token_t current_token;
     getTokenAssert(TOK_L_BRCKT);
     for (int i = 0; i < func->param_count; i++)
@@ -132,12 +136,37 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
     if (current_token.type == TOK_L_BRCKT) // za id ihned '('
     {
         ungetToken();
-        call_func(global_search(global_table, &token_id.attribute.str), local_table, global_table);
+        global_symtab_t* func = global_search(global_table, &token_id.attribute.str);
+        if (func == NULL || func->is_func == false) // pokud neni funkce
+        {
+            // error - nedefinovana funkce
+            returnError(FUNCTION_DEFINITION_ERR);
+        }
+        call_func(func, local_table, global_table);
         // TODO: codegen
     }
     else if (current_token.type == TOK_ASSIGN)
     {
-        // assign
+        void* var = local_search_in_all(local_table, &token_id.attribute.str);
+        if (var == NULL)
+        {
+            var = global_search(global_table, &token_id.attribute.str);
+            if (var == NULL)
+            {
+                // error - nedefinovana promenna
+                returnError(VARIABLE_DEFINITION_ERR);
+            }
+        }
+        current_token = getToken();
+        if (global_search(global_table, &current_token.attribute.str) != NULL)
+        {
+            call_func(global_search(global_table, &current_token.attribute.str), local_table, global_table);
+        }
+        else
+        {
+            ungetToken();
+            checkExpression(local_table->table, global_table);
+        }
     }
     else
     {

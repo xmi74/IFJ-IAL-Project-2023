@@ -162,7 +162,7 @@ bool tokenIsIdentifier(token_t token)
  * @param table tabulka symbolov
  * @return typ tokenu
  */
-token_type_t getTokenType(token_t token, local_symtab_t *table, global_symtab_t *globalTable)
+token_type_t getTokenType(token_t token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     local_symtab_t *search;
     search = local_search_in_all(table, &token.attribute.str);
