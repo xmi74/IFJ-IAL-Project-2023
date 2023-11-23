@@ -108,12 +108,13 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
     current_token = getToken();
 
-    global_symtab_t* func = global_search(global_table, &current_token.attribute.str);
+    //global_symtab_t* func = global_search(global_table, &current_token.attribute.str);
+    global_symtab_t* func = global_search(global_table, &identifier.attribute.str);
 
     if (func == NULL || func->is_func == false) // pokud neni funkce
     {   
         ungetToken();
-        checkExpression(local_table->table, global_table);
+        checkExpression(local_table, global_table);
     }
     else
     {
@@ -165,7 +166,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         else
         {
             ungetToken();
-            checkExpression(local_table->table, global_table);
+            checkExpression(local_table, global_table);
         }
     }
     else
@@ -226,7 +227,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     token_t current_token = getToken();
-    checkExpression(local_table->table, global_table);
+    checkExpression(local_table, global_table);
 }
 
 void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)

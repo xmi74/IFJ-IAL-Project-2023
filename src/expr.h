@@ -43,6 +43,6 @@ bool applyRule(Stack *stack, local_symtab_t *table);
 
 void reduceParenthesis(Stack *stack);
 
-bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable);
+bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 #endif // EXPR_H
