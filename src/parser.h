@@ -28,6 +28,8 @@ void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_
 
 void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
+void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
+
 void read_subblock(token_t token);
 
 void find_functions(global_symtab_t **global_table);
