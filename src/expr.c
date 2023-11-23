@@ -226,7 +226,7 @@ void reduceArithmetic(Stack *stack)
     // INTEGER nie je literal a druhy operand je double -> ERROR
     if (operand1.tree->literal == false || operand2.tree->literal == false)
     {
-        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE))
+        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE)    )
         {
             returnError(TYPE_COMPATIBILITY_ERR);
         }
@@ -443,7 +443,7 @@ void reduceParenthesis(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
-bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
+bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
 {
     Stack stack;
     Stack_Init(&stack);
@@ -521,7 +521,7 @@ bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable) // TOD
         // REDUCE - pouzi pravidlo
         else if (result == R)
         {
-            if (applyRule(&stack, table) == false)
+            if (applyRule(&stack, table->table) == false)
             {
                 printf("[EXPR] FAIL\n");
                 Stack_Dispose(&stack);
@@ -552,7 +552,7 @@ bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable) // TOD
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
-        if (applyRule(&stack, table) == false)
+        if (applyRule(&stack, table->table) == false)
         {
             printf("[EXPR] FAIL\n");
             Stack_Dispose(&stack);
