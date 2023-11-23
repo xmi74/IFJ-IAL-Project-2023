@@ -214,6 +214,18 @@ void gen_func_end(string_t *output, token_t *token){
 }
 
 /**
+ * @brief Funckia na volanie funkcie
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param name Nazov volanej funkcie
+*/
+void gen_func_call(string_t *output, char *name){
+    append_line(output, "CALL ");
+    append_line(output, name);
+    append_line(output, "\n");
+}
+
+/**
  * @brief Funckia na spracovanie expression-u
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
@@ -421,7 +433,7 @@ void gen_read_int(string_t *output){
 */
 void gen_read_doub(string_t *output){
     append_line(output, "# func readFloat\n"
-                "LABEL readDoub\n"
+                "LABEL readDouble\n"
                 "CREATEFRAME\n"
                 "PUSHFRAME\n"
                 "DEFVAR LF@doub\n"
@@ -429,20 +441,6 @@ void gen_read_doub(string_t *output){
                 "PUSHS LF@doub\n"
                 "POPFRAME\n"
                 "RETURN\n");
-}
-
-/**
- * @brief Funkcia na zadanie poctu argumentov, ktore sa maju vypisat
- * 
- * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param numberOfArguments Pocet argumentov, ktore sa maju vytlacit
-*/
-void gen_write_num_of_arg(string_t *output, int numberOfArguments){
-    append_line(output, "PUSHS int@");
-    char str[16];
-    sprintf(str, "%d\n", numberOfArguments);
-    append_line(output, str);
-    append_line(output, "CALL write\n");
 }
 
 /**
@@ -455,16 +453,9 @@ void gen_write(string_t *output){
                         "LABEL write\n"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@num\n"
-                        "DEFVAR LF@arg\n"
-                        "POPS LF@num\n"
-                        "LABEL write_cyc\n"
-                        "JUMPIFEQ write_end LF@num int@0\n"
-                        "POPS LF@arg\n"
-                        "WRITE LF@arg\n"
-                        "SUB LF@num LF@num int@1\n"
-                        "JUMP write_cyc\n"
-                        "LABEL write_end\n"
+                        "DEFVAR LF@str\n"
+                        "POPS LF@str\n"
+                        "WRITE LF@str\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -510,24 +501,6 @@ void gen_length(string_t *output){
                         "POPS LF@tmp1\n"
                         "POPFRAME\n"
                         "RETURN\n");
-}
-
-/**
- * @brief Funckia na zadanie indexov pre vytvorenie substringu
- * 
- * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param i Index prveho znaku podretazca
- * @param j Index znaku nasledujuceho za koncom podretazca
-*/
-void gen_substring_indexes(string_t *output, int i, int j){
-    append_line(output, "PUSHS int@");
-    char str[16];
-    sprintf(str, "%d\n", i);
-    append_line(output, str);
-    append_line(output, "PUSHS int@");
-    sprintf(str, "%d\n", j);
-    append_line(output, str);
-    append_line(output, "CALL substring\n");
 }
 
 /**
