@@ -51,12 +51,6 @@ void append_line(string_t *str1, char* str2){
 */
 string_t *gen_start(){
     string_t *output = new_line(".IFJcode23\n");
-    append_line(output, "DEFVAR GF@tmp0\n"
-                        "DEFVAR GF@tmp1\n"
-                        "DEFVAR GF@tmp2\n"
-                        "DEFVAR GF@tmp3\n"
-                        "DEFVAR GF@type0\n"
-                        "DEFVAR GF@type1\n");
     append_line(output, "JUMP main\n");
     // definitions of builtin functions
     gen_read_str(output);
@@ -312,12 +306,15 @@ void gen_expr(string_t *output, ast_node_t *tree){
 */
 void gen_if(string_t *output, int counter){
     append_line(output, "# body of if\n"
-                        "POPS GF@tmp0\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@res\n"
+                        "POPS LF@res\n"
                         "JUMPIFNEQ else");
     char str[16];
     sprintf(str, "%d\n", counter);
     append_line(output, str);
-    append_line(output, "GF@tmp0 bool@true\n");
+    append_line(output, "LF@res bool@true\n");
 }
 
 /**
@@ -348,6 +345,7 @@ void gen_if_end(string_t *output, int counter){
     char str[16];
     sprintf(str, "%d\n", counter);
     append_line(output, str);
+    append_line(output, "POPFRAME\n");
 }
 
 /**
@@ -356,7 +354,9 @@ void gen_if_end(string_t *output, int counter){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_while(string_t *output, int counter){
-    append_line(output, "LABEL while");
+    append_line(output, "LABEL while"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n");
     char str[16];
     sprintf(str, "%d\n", counter);
     append_line(output, str);
@@ -369,12 +369,12 @@ void gen_while(string_t *output, int counter){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_while_body(string_t *output, int counter){
-    append_line(output, "POPS GF@tmp0\n"
+    append_line(output, "POPS LF@res\n"
                         "JUMPIFNEQ while_end");
     char str[16];
     sprintf(str, "%d", counter);
     append_line(output, str);
-    append_line(output, "GF@tmp0 bool@true\n");
+    append_line(output, "LF@res bool@true\n");
 }
 
 /**
@@ -388,6 +388,7 @@ void gen_while_end(string_t *output, int counter){
     char str[16];
     sprintf(str, "%d\n", counter);
     append_line(output, str);
+    append_line(output, "POPFRAME\n");
 }
 
 // builtin functions
@@ -467,7 +468,7 @@ void gen_write(string_t *output){
 */
 void gen_int2double(string_t *output){
     append_line(output, "# func Int2Double\n"
-                        "LABEL int2float\n"
+                        "LABEL Int2Double\n"
                         "INT2FLOATS\n"
                         "RETURN\n");
 }
@@ -479,7 +480,7 @@ void gen_int2double(string_t *output){
 */
 void gen_double2int(string_t *output){
     append_line(output, "# func Double2Int\n"
-                        "LABEL float2int\n"
+                        "LABEL Double2Int\n"
                         "FLOAT2INTS\n"
                         "RETURN\n");
 }
@@ -494,11 +495,11 @@ void gen_length(string_t *output){
                         "LABEL length\n"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@tmp0\n"
-                        "DEFVAR LF@tmp1\n"
-                        "POPS LF@tmp0\n"
-                        "STRLEN LF@tmp1 LF@tmp0\n"
-                        "POPS LF@tmp1\n"
+                        "DEFVAR LF@str\n"
+                        "DEFVAR LF@len\n"
+                        "POPS LF@str\n"
+                        "STRLEN LF@len LF@str\n"
+                        "PUSHS LF@len\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -569,11 +570,11 @@ void gen_ord(string_t *output){
                         "LABEL ord\n"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@tmp0\n"
-                        "DEFVAR LF@tmp1\n"
-                        "POPS LF@tmp0\n"
-                        "STRI2INT LF@tmp1 LF@tmp0 int@0\n"
-                        "PUSHS LF@tmp1\n"
+                        "DEFVAR LF@str\n"
+                        "DEFVAR LF@ordin\n"
+                        "POPS LF@str\n"
+                        "STRI2INT LF@ordin LF@str int@0\n"
+                        "PUSHS LF@ordin\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -588,11 +589,11 @@ void gen_chr(string_t *output){
                         "LABEL chr\n"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@tmp0\n"
-                        "DEFVAR LF@tmp1\n"
-                        "POPS LF@tmp0\n"
-                        "INT2CHAR LF@tmp1 LF@tmp0\n"
-                        "POPS LF@tmp1\n"
+                        "DEFVAR LF@ordin\n"
+                        "DEFVAR LF@ch\n"
+                        "POPS LF@ordin\n"
+                        "INT2CHAR LF@ch LF@ordin\n"
+                        "PUSHS LF@ch\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -607,14 +608,19 @@ void gen_chr(string_t *output){
 void gen_eq(string_t *output){
     append_line(output, "# function equal\n"
                         "LABEL equals\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "JUMPIFEQ eq_true GF@tmp0 GF@tmp1\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "JUMPIFEQ eq_true LF@op0 LF@op1\n"
                         "PUSHS bool@false\n"
                         "JUMP eq_end\n"
                         "LABEL eq_true\n"
                         "PUSHS bool@true\n"
                         "LABEL eq_end\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -626,14 +632,19 @@ void gen_eq(string_t *output){
 void gen_neq(string_t *output){
     append_line(output, "# function not equal\n"
                         "LABEL nequals\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "JUMPIFEQ neq_true GF@tmp0 GF@tmp1\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "JUMPIFEQ neq_true LF@op0 LF@op1\n"
                         "PUSHS bool@true\n"
                         "JUMP neq_end\n"
                         "LABEL neq_true\n"
                         "PUSHS bool@false\n"
                         "LABEL neq_end\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -645,10 +656,16 @@ void gen_neq(string_t *output){
 void gen_lesser(string_t *output){
     append_line(output, "# function lesser\n"
                         "LABEL lesser\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "LT GF@tmp2 GF@tmp0 GF@tmp1\n"
-                        "PUSHS GF@tmp2\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "DEFVAR LF@res\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "LT LF@res LF@op0 LF@op1\n"
+                        "PUSHS LF@res\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -660,13 +677,20 @@ void gen_lesser(string_t *output){
 void gen_lesser_or_eq(string_t *output){
     append_line(output, "# function lesser or equal\n"
                         "LABEL lesser_or_equal\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "LT GF@tmp2 GF@tmp0 GF@tmp1\n"
-                        "EQ GF@tmp3 GF@tmp0 GF@tmp1\n"
-                        "PUSHS GF@tmp2\n"
-                        "PUSHS GF@tmp3\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "DEFVAR LF@res0\n"
+                        "DEFVAR LF@res1\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "LT LF@res0 LF@op0 LF@op1\n"
+                        "EQ LF@res1 LF@op0 LF@op1\n"
+                        "PUSHS LF@res0\n"
+                        "PUSHS LF@res1\n"
                         "ORS\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -678,11 +702,16 @@ void gen_lesser_or_eq(string_t *output){
 void gen_greater(string_t *output){
     append_line(output, "# function greater\n"
                         "LABEL greater\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "PUSHS GF@tmp1\n"
-                        "PUSHS GF@tmp0\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "PUSHS LF@op1\n"
+                        "PUSHS LF@op0\n"
                         "CALL lesser\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -694,11 +723,16 @@ void gen_greater(string_t *output){
 void gen_greater_or_eq(string_t *output){
     append_line(output, "# function greater or equal\n"
                         "LABEL greater_or_equal\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "PUSHS GF@tmp1\n"
-                        "PUSHS GF@tmp0\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "PUSHS LF@op1\n"
+                        "PUSHS LF@op0\n"
                         "CALL lesser_or_equal\n"
+                        "PUSHFRAME\n"
                         "RETURN\n");
 }
 
@@ -710,10 +744,15 @@ void gen_greater_or_eq(string_t *output){
 void gen_concat(string_t *output){
     append_line(output, "# concatenation\n"
                         "LABEL concat\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "CONCAT GF@tmp2 GF@tmp0 GF@tmp1\n"
-                        "PUSHS GF@tmp2\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "DEFVAR LF@res\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "CONCAT LF@res LF@op0 LF@op1\n"
+                        "PUSHS LF@res\n"
                         "RETURN\n");
 }
 
@@ -725,18 +764,25 @@ void gen_concat(string_t *output){
 void gen_questionm(string_t *output){
     append_line(output, "# function remove nil\n"
                         "LABEL remove_nil\n"
-                        "POPS GF@tmp0\n"
-                        "POPS GF@tmp1\n"
-                        "JUMPIFEQ first_nil GF@tmp0 nil@nil\n"
-                        "PUSHS GF@tmp0\n"
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "DEFVAR LF@type0\n"
+                        "DEFVAR LF@type1\n"
+                        "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "JUMPIFEQ first_nil LF@op0 nil@nil\n"
+                        "PUSHS LF@op0\n"
+                        "POPFRAME\n"
                         "RETURN\n"
                         "LABEL first_nil\n"
-                        "TYPE GF@type0 GF@tmp0\n"
-                        "TYPE GF@type1 GF@tmp1\n"
-                        "JUMPIFEQ nil_same GF@type0 GF@type1\n"
-                        "JUMP error\n" // kde je error?
+                        "TYPE LF@type0 LF@op0\n"
+                        "TYPE LF@type1 LF@op1\n"
+                        "JUMPIFEQ nil_same LF@type0 LF@type1\n"
+                        "JUMP error\n"
                         "LABEL nil_same\n"
-                        "PUSHS GF@tmp1\n"
+                        "PUSHS LF@op1\n"
                         "RETURN\n");
 }
 
@@ -748,8 +794,12 @@ void gen_questionm(string_t *output){
 void prepare_values(string_t *output){
     append_line(output, "# prepare values\n"
                         "LABEL prepare\n"
-                        "POPS GF@tmp0\n"
-                        "TYPE GF@type0\n"
-                        "JUMPIFEQ prep_string GF@type0 string@string\n"
-                        "JUMPIFEQ prep_float GF@type0 string@string\n");
+                        "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@op0\n"
+                        "DEFVAR LF@op1\n"
+                        "POPS LF@op0\n"
+                        "POPS LF@op1\n"
+                        "POPFRAME\n"
+                        "RETURN\n");
 }
