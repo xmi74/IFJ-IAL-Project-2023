@@ -11,7 +11,7 @@
  */
 
 #include "stack.h"
-#include "symtable.h"
+#include "token_table.h"
 #include "error.h"
 #include "abstract_syntax_tree.h"
 #include "token_table.h"
@@ -22,6 +22,10 @@
 #define PRETABLESIZE 16
 
 // Protype function header file
+token_type_t getTokenType(token_t token, local_symtab_t *table, global_symtab_t *globalTable);
+
+bool checkOperands(token_t operand1, token_t operand2);
+
 int getTokenIndex(token_t token);
 
 int getPrecedence(int tokenIndex);
@@ -40,6 +44,6 @@ bool applyRule(Stack *stack, local_symtab_t *table);
 
 void reduceParenthesis(Stack *stack);
 
-bool checkExpression(local_symtab_t *table);
+bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable);
 
 #endif // EXPR_H
