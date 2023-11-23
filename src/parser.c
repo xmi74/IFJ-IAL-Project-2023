@@ -108,7 +108,8 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
     current_token = getToken();
 
-    global_symtab_t* func = global_search(global_table, &current_token.attribute.str);
+    //global_symtab_t* func = global_search(global_table, &current_token.attribute.str);
+    global_symtab_t* func = global_search(global_table, &identifier.attribute.str);
 
     if (func == NULL || func->is_func == false) // pokud neni funkce
     {   
