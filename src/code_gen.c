@@ -732,7 +732,7 @@ void gen_greater_or_eq(string_t *output){
                         "PUSHS LF@op1\n"
                         "PUSHS LF@op0\n"
                         "CALL lesser_or_equal\n"
-                        "PUSHFRAME\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -753,6 +753,7 @@ void gen_concat(string_t *output){
                         "POPS LF@op0\n"
                         "CONCAT LF@res LF@op0 LF@op1\n"
                         "PUSHS LF@res\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
@@ -783,6 +784,7 @@ void gen_questionm(string_t *output){
                         "JUMP error\n"
                         "LABEL nil_same\n"
                         "PUSHS LF@op1\n"
+                        "POPFRAME\n"
                         "RETURN\n");
 }
 
