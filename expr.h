@@ -35,11 +35,11 @@ bool isIdentifier(token_t token);
 
 void reduceArithmetic(Stack *stack);
 
-bool reduceLogical(Stack *stack, local_symtab_t *table);
+bool reduceLogical(Stack *stack);
 
 void reduceNot(Stack *stack);
 
-bool applyRule(Stack *stack, local_symtab_t *table);
+bool applyRule(Stack *stack);
 
 void reduceParenthesis(Stack *stack);
 
