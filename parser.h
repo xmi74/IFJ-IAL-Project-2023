@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include "symtable.h"
 #include "expr.h"
+#include "code_gen.h"
 
 void load_built_in_functions(global_symtab_t **global_table);
 

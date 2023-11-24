@@ -13,6 +13,8 @@
 #include "parser.h"
 
 extern token_table_t token_table;
+extern string_t *output;
+extern int counter;
 
 #define MAX_NEST_LEVEL 1000
 
@@ -76,8 +78,10 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
         {
             getTokenAssert(TOK_COMMA);
         }
+        gen_value(output, &current_token);
     }
     getTokenAssert(TOK_R_BRCKT);
+    gen_func_call(output, func->key.data);
 }
 
 void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table)
@@ -105,7 +109,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
         var_type = getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING});
         getTokenAssert(TOK_ASSIGN);
     }
-
+    gen_var(output, &identifier, true);
     current_token = getToken();
 
     //global_symtab_t* func = global_search(global_table, &current_token.attribute.str);
@@ -120,7 +124,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     {
         call_func(func, local_table, global_table);
     }
-
+    gen_assign(output, &identifier, true);
     //current_token = getTokenAssertArr(2, (token_type_t[]){TOK_EOF, TOK_EOL});
     current_token = getToken();
     if (current_token.type == TOK_EOF)
@@ -168,6 +172,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             ungetToken();
             checkExpression(local_table, global_table);
         }
+        gen_assign(output, &token_id, true);
     }
     else
     {
@@ -190,6 +195,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
         // error - neni funkce
         returnError(FUNCTION_DEFINITION_ERR);
     }
+    gen_func(output, &token);
     // spravnost definice se uz kontroluje v 1. pruchodu
     getTokenAssert(TOK_L_BRCKT);
     while (getToken().type != TOK_R_BRCKT)
@@ -222,6 +228,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     }
 
     parse_block(-1000, TOK_L_CRL_BRCKT, global_table, &local_table);
+    gen_func_end(output, &token);
 }
 
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
@@ -237,6 +244,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     if (current_token.type == TOK_L_BRCKT)
     {
         handle_cond(local_table, global_table);
+        gen_if(output, counter);
         getTokenAssert(TOK_R_BRCKT);
         getTokenAssert(TOK_L_CRL_BRCKT);
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table);
@@ -273,10 +281,14 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
 void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     token_t current_token = getTokenAssert(TOK_L_BRCKT);
+    gen_while(output, counter);
     handle_cond(local_table, global_table);
+    gen_while_body(output, counter);
     getTokenAssert(TOK_R_BRCKT);
     getTokenAssert(TOK_L_CRL_BRCKT);
     parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table);
+    gen_while_end(output, counter);
+    counter++;
 }
 
 token_t parse_block(int nest_level, token_type_t block_start, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up) // returnuje posledni token

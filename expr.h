@@ -14,6 +14,7 @@
 #include "token_table.h"
 #include "error.h"
 #include "abstract_syntax_tree.h"
+#include "code_gen.h"
 
 #ifndef EXPR_H
 #define EXPR_H
