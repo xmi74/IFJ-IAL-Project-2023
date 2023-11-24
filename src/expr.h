@@ -20,36 +20,8 @@
 
 #define PRETABLESIZE 16
 
-enum
-{
-    L, // <
-    R, // >
-    E, // =
-    U, // Undefined
-};
-
-int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
-    /*! *  /  +  -  == != <  > <=  >= ?? (  )  i  $ */
-    {U, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // !
-    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // *
-    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // /
-    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // +
-    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // -
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // ==
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // !=
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
-    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
-    {L, L, L, L, L, L, L, L, L, L, L, U, L, R, L, R}, // ??
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
-    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
-    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF)
-};
-
 // Protype function header file
-token_type_t getTokenType(token_t token, local_symtab_t *table, global_symtab_t *globalTable);
+token_type_t getTokenType(token_t token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 bool checkOperands(token_t operand1, token_t operand2);
 
@@ -71,6 +43,6 @@ bool applyRule(Stack *stack, local_symtab_t *table);
 
 void reduceParenthesis(Stack *stack);
 
-bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable);
+bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 #endif // EXPR_H

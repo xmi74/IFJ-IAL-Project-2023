@@ -11,7 +11,10 @@
 */
 
 #include <stdbool.h>
-#include "token_table.c"
+#include "symtable.h"
+#include "expr.h"
+
+void load_built_in_functions(global_symtab_t **global_table);
 
 void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
@@ -24,6 +27,8 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
 void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
+
+void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
 void read_subblock(token_t token);
 

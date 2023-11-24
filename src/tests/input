@@ -1,0 +1,9 @@
+func bar(with param : String) -> String {
+let r : String = foo(param)
+return r
+}
+func foo(_ par : String) -> String {
+let ret = bar(with: par)
+return ret
+}
+bar(with: "ahoj")

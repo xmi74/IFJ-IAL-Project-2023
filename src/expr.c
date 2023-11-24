@@ -12,6 +12,35 @@
 
 #include "expr.h"
 
+
+enum
+{
+    L, // <
+    R, // >
+    E, // =
+    U, // Undefined
+};
+
+int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
+    /*! *  /  +  -  == != <  > <=  >= ?? (  )  i  $ */
+    {U, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // !
+    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // *
+    {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // /
+    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // +
+    {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // -
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // ==
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // !=
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
+    {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
+    {L, L, L, L, L, L, L, L, L, L, L, U, L, R, L, R}, // ??
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF)
+};
+
 /**
  * @brief Pomocna funkcia pre zistenie indexu tokenu v precedencnej tabulke.
  *
@@ -133,7 +162,7 @@ bool tokenIsIdentifier(token_t token)
  * @param table tabulka symbolov
  * @return typ tokenu
  */
-token_type_t getTokenType(token_t token, local_symtab_t *table, global_symtab_t *globalTable)
+token_type_t getTokenType(token_t token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     local_symtab_t *search;
     search = local_search_in_all(table, &token.attribute.str);
@@ -197,7 +226,7 @@ void reduceArithmetic(Stack *stack)
     // INTEGER nie je literal a druhy operand je double -> ERROR
     if (operand1.tree->literal == false || operand2.tree->literal == false)
     {
-        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE))
+        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE)    )
         {
             fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
             returnError(TYPE_COMPATIBILITY_ERR);
@@ -383,7 +412,7 @@ void reduceParenthesis(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
-bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
+bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
 {
     Stack stack;
     Stack_Init(&stack);
@@ -473,7 +502,7 @@ bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable) // TOD
         // REDUCE - pouzi pravidlo
         else if (result == R)
         {
-            if (applyRule(&stack, table) == false)
+            if (applyRule(&stack, table->table) == false)
             {
                 fprintf(stderr, "[EXPR] FAIL\n");
                 Stack_Dispose(&stack);
@@ -503,7 +532,7 @@ bool checkExpression(local_symtab_t *table, global_symtab_t *globalTable) // TOD
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while (token.type == TOK_EOF && stack.size != 2)
     {
-        if (applyRule(&stack, table) == false)
+        if (applyRule(&stack, table->table) == false)
         {
             // Error sa vola v applyRule
         }
