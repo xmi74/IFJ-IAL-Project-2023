@@ -531,7 +531,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    ast_gen(result.tree);
+    // ast_gen(result.tree);
     ungetToken();
     return true;
 }
