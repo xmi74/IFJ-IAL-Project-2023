@@ -1,0 +1,69 @@
+---------- PROGRAM ---------
+1.	'<PROGRAM> → <SEQ> <PROGRAM>',                                   		# program moze obsahovat sekvenciu prikazov
+2.	'<PROGRAM> → func ID ( <PARAMS> <DEF_FUNC_2> EOL <PROGRAM>',            # alebo definicie funkcii
+3.	'<PROGRAM> → EOF',					                                    # alebo moze byt prazdny
+
+---------- DEFINICIA FUNKCIE ---------
+4.	'<PARAMS> → ) ',					                                    # parametre funkcie mozu byt prazdne
+5.	'<PARAMS> → <PARAMS_NAME> ID : <TYPE> <PARAMS_N>',		                # alebo obsahovat menoParametru, IDparametru, typ, a dalsi param.
+6.	'<PARAMS_NAME> → _',				                                    # meno moze byt _
+7.	'<PARAMS_NAME> → ID',				                                    # alebo meno , ktore sa nezhoduje s IDparametru
+8.	'<PARAMS_N> → )',           				                            # dalsi param. moze byt prazdny
+9.	'<PARAMS_N> → , <PARAMS>',				                                # alebo obsahovat , a znova syntax parametru
+10.	'<DEF_FUNC_2> → <FUNCTION_TYPE> { <SEQ_N> <RETURN_FUNC> }',	            # stavba definicie funkcie po ukonceni parametrov 
+11. '<FUNCTION_TYPE> → -> <TYPE>',                                          # bud chceme funkci priradit navratovy typ
+12. '<FUNCTION_TYPE> → ε',                                                  # alebo bude funkcia void
+13.	'<RETURN_FUNC> → return <EXPRESSION>',			                        # navrat z funkcie
+14.	'<RETURN_FUNC> → ε',       				                                # moze byt aj prazdny
+
+---------- SEKVENCIA PRIKAZOV ---------
+15.	'<SEQ> → let ID <ASSIGN_VARIABLE> EOL',  		                        # DEFINE VARIABLE (KONSTANSTA)      zmena
+16.	'<SEQ> → var ID <ASSIGN_VARIABLE> EOL',  	                            # DEFINE VARIABLE (PREMENNA)        zmena
+17.	'<SEQ> → ID <ASSIGN_OR_CALL_FUNC> EOL',                  		        # ASSIGN || CALL_FUNCTION
+18.	'<SEQ> → if <IF_EXPRESSION> { <SEQ> <SEQ_N> } <ELSE_STATEMENT> EOL',    # IF STATEMENT (moze obsahovat hocijaky pocet sekvencii prikazov)
+19.	'<SEQ> → while <EXPRESSION> { <SEQ> <SEQ_N> } EOL',                    	# LOOP (moze obsahovat hocijaky pocet sekvencii prikazov)
+
+20.	'<SEQ_N> → <SEQ> <SEQ_N>',				                                # pre pripad ze sme vo while, if, ci v definicii funkcie - potrebujeme zarucit, ze moze nasledovat niekolko sekvencii po sebe
+21.	'<SEQ_N> → ε',
+
+---------- DEFINICIA PREMENNEJ ---------
+22.	'<ASSIGN_VARIABLE> → : <TYPE> <ASSIGN_N>',                              # priradenie do premennej moze obsahovat typ a neskor volanie funkcie ci priradenie hodnoty, alebo len typ samotny
+23.	'<ASSIGN_VARIABLE> → = <CALL_F_OR_EXPRESSION>',   		                # ak premennej nepriradzujeme typ, musi obsahovat priradenie hodnoty ci volanie funkcie | <assign_n> novy neterm., <def_type_var> zmazany |
+24. '<ASSIGN_N> → = <CALL_F_OR_EXPRESSION>',                                
+25. '<ASSIGN_N> → ε',
+24.	'<CALL_F_OR_EXPRESSION> → <EXPRESSION>',            
+25.	'<CALL_F_OR_EXPRESSION> → <CALL_FUNC>',
+
+---------- PRIRADENIE / VOLANIE FUNKCIE ---------
+26.	'<ASSIGN_OR_CALL_FUNC> → = <ASSIGN_OR_CALL_FUNC_N>',               	    # stavba : ID = ...
+27.	'<ASSIGN_OR_CALL_FUNC> → ( <PARAMS_IN> ',                               # stavba : ID()
+28.	'<ASSIGN_OR_CALL_FUNC_N> → <EXPRESSION>',                               # stavba : ID = expression
+29.	'<ASSIGN_OR_CALL_FUNC_N> → <CALL_FUNC>',                                # stavba : ID = callFunc
+30.	'<CALL_FUNC> → ID ( <PARAMS_IN>',                                       # stavba : ID = callFunc(
+31.	'<PARAMS_IN> → )',                                                      # stavba : ID = callFunc()
+32.	'<PARAMS_IN> → ID <PARAMS_IN_NAME> <PARAMS_IN_N>',                      # stavba : ID = callFunc(with ...       [ with = pomocny nazov parametru ]
+33.	'<PARAMS_IN> → STRING_LITERAL <PARAMS_IN_N>',                           # stavba : ID = callFunc("hello")
+34.	'<PARAMS_IN> → INT_LITERAL <PARAMS_IN_N>',                              # stavba : ID = callFunc(2)
+35.	'<PARAMS_IN> → DOUBLE_LITERAL <PARAMS_IN_N>',                           # stavba : ID = callFunc(2.0)
+36.	'<PARAMS_IN> → nil <PARAMS_IN_N>',                                      # stavba : ID = callFunc(nil)
+37.	'<PARAMS_IN_NAME> → : <TERM>',                                          # stavba : ID = callFunc(with : a
+38.	'<PARAMS_IN_NAME> → ε',                                                 # stavba : ID = callFunc(a)             [ a = ID premennej ]
+39.	'<PARAMS_IN_N> → , <PARAMS_IN>',                                        # umoznenie zavolania dalsich parametrov
+40.	'<PARAMS_IN_N> → )',                                                    # alebo ukoncenie listu parametrov
+
+---------- IF/ELSE STATEMENT ---------
+41.	'<IF_EXPRESSION> → <EXPRESSION>',                                       # v if-e moze byt klasicky vyraz
+42.	'<IF_EXPRESSION> → let ID',                                             # alebo specialny vyraz let ID
+43.	'<ELSE_STATEMENT> → else { <SEQ> <SEQ_N> }',                            # else (moze obsahovat hocijaky pocet sekvencii prikazov)
+
+---------- TYP ---------
+44.	'<TYPE> → Int',
+45.	'<TYPE> → Double',
+46.	'<TYPE> → String',
+
+---------- TERM ---------
+47.	'<TERM> → ID',
+48.	'<TERM> → INT_LITERAL',
+49.	'<TERM> → DOUBLE_LITERAL',
+50.	'<TERM> → STRING_LITERAL',
+51.	'<TERM> → nil'
