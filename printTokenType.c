@@ -1,4 +1,4 @@
-#include "../scanner.h"
+#include "scanner.h"
 
 const char *getTokenTypeName(token_type_t tokenType)
 {

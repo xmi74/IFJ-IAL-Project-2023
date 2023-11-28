@@ -36,6 +36,8 @@ void gen_func(string_t *output, token_t *token);
 
 void gen_func_end(string_t *output, token_t *token);
 
+void gen_func_call(string_t *output, char *name);
+
 void gen_expr(string_t *output, ast_node_t *tree);
 
 void gen_if(string_t *output, int counter);
@@ -56,8 +58,6 @@ void gen_read_int(string_t *output);
 
 void gen_read_doub(string_t *output);
 
-void gen_write_num_of_arg(string_t *output, int numberOfArguments);
-
 void gen_write(string_t *output);
 
 void gen_int2double(string_t *output);
@@ -65,8 +65,6 @@ void gen_int2double(string_t *output);
 void gen_double2int(string_t *output);
 
 void gen_length(string_t *output);
-
-void gen_substring_indexes(string_t *output, int i, int j);
 
 void gen_substring(string_t *output);
 

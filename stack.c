@@ -11,7 +11,7 @@
  */
 
 #include "stack.h"
-#include "debug/printTokenType.c"
+#include "printTokenType.c"
 
 // Funkcia na inicializaciu zasobnika
 void Stack_Init(Stack *stack)
