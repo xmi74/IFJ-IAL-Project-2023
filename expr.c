@@ -438,7 +438,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             parenCount--;
         }
 
-        Stack_Print(&stack);
+        // Stack_Print(&stack);
         token.terminal = true;
 
         token_t *stackTop;
@@ -521,7 +521,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
         }
     }
 
-    Stack_Print(&stack);
+    // Stack_Print(&stack);
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
