@@ -9,3 +9,6 @@ all: $(EXEC)
 
 $(EXEC): $(FILES)
 	$(CC) $(CFLAGS) -o $@ $^ -lm
+
+test: $(EXEC)
+	@cd tests/ && ./test.sh
