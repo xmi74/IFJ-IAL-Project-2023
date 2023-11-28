@@ -101,7 +101,6 @@ int getTokenIndex(token_t token)
  */
 bool dataTypeEqual(token_t token1, token_t token2)
 {
-    // TODO : 4.5 != 5.0 * 4.4
     if (token1.type == TOK_INT && token2.type == TOK_INT)
     {
         return true;
@@ -113,10 +112,10 @@ bool dataTypeEqual(token_t token1, token_t token2)
     else if (token1.type == TOK_STRING && token2.type == TOK_STRING)
     {
         return true;
-        // Kontrola typov podla AST stromu, resp. tokeny nemusia byt terminaly
     }
     else if (token1.tree->type == token2.tree->type)
     {
+        // Kontrola typov podla AST stromu, resp. tokeny nemusia byt terminaly
         return true;
     }
     return false;
@@ -227,7 +226,7 @@ void reduceArithmetic(Stack *stack)
     // INTEGER nie je literal a druhy operand je double -> ERROR
     if (operand1.tree->literal == false || operand2.tree->literal == false)
     {
-        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE)    )
+        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE))
         {
             fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
             returnError(TYPE_COMPATIBILITY_ERR);
@@ -331,7 +330,7 @@ void reduceNot(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa aplikacia pravidla podarila, ak pravidlo neexistuje alebo nastala chyba pri redukcii, tak false
  */
-bool applyRule(Stack *stack)
+void applyRule(Stack *stack)
 {
     // Stack_Print(stack);
     token_t stackTop;
@@ -345,41 +344,37 @@ bool applyRule(Stack *stack)
         if (operation.type == TOK_MUL || operation.type == TOK_DIV || operation.type == TOK_PLUS || operation.type == TOK_MINUS)
         {
             reduceArithmetic(stack);
-            return true;
+            return;
         }
         // Logicka redukcia
         else if (operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL || operation.type == TOK_LESSER || operation.type == TOK_GREATER || operation.type == TOK_LESSER_OR_EQUAL || operation.type == TOK_GREATER_OR_EQUAL || operation.type == TOK_DOUBLE_QUEST_MARK)
         {
             // Nastala chyba pri redukcii
-            if (reduceLogical(stack) != true)
-            {
-                // Error sa vola v reduceLogical
-                return false;
-            }
-            return true;
+            reduceLogical(stack);
+            return;
         }
         else if (operation.type == TOK_NOT)
         {
             reduceNot(stack);
-            return true;
+            return;
         }
         else
         {
             fprintf(stderr, "[EXPR] ERROR: Unknown rule -> (operation)\n");
             returnError(SYNTAX_ERR);
-            return false;
+            return;
         }
     }
     else if (stackTop.type == TOK_NOT)
     {
         reduceNot(stack);
-        return true;
+        return;
     }
     else
     {
         fprintf(stderr, "[EXPR] ERROR: Unknown rule\n");
         returnError(SYNTAX_ERR);
-        return false;
+        return;
     }
 }
 
@@ -443,7 +438,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             parenCount--;
         }
 
-        // Stack_Print(&stack);
+        Stack_Print(&stack);
         token.terminal = true;
 
         token_t *stackTop;
@@ -474,7 +469,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             {
                 token.terminal = false;
                 token.tree = make_leaf(token);
-                token.tree->type = token.type;
+                // Ziskanie typu tokenu z tabulky symbolov
                 if (token.type == TOK_IDENTIFIER)
                 {
                     token.type = getTokenType(token, table, globalTable);
@@ -483,13 +478,13 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
                         fprintf(stderr, "[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
                         returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
                     }
-
                     token.tree->literal = false;
                 }
                 else
                 {
                     token.tree->literal = true;
                 }
+                token.tree->type = token.type;
             }
             else
             {
@@ -503,12 +498,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
         // REDUCE - pouzi pravidlo
         else if (result == R)
         {
-            if (applyRule(&stack) == false)
-            {
-                fprintf(stderr, "[EXPR] FAIL\n");
-                Stack_Dispose(&stack);
-                return false; // TODO ERROR?
-            }
+            applyRule(&stack);
         }
         else if (result == E)
         {
@@ -524,27 +514,24 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
         }
         else // Undefined
         {
-            fprintf(stderr, "[EXPR] ERROR: UNDEFINED PRECEDENCE\n");
+            fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...)\n");
             Stack_Dispose(&stack);
+            returnError(SYNTAX_ERR);
             return false; // ERROR?
         }
     }
 
+    Stack_Print(&stack);
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
-    while (token.type == TOK_EOF && stack.size != 2)
+    while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
-        if (applyRule(&stack) == false)
-        {
-            // Error sa vola v applyRule
-        }
+        applyRule(&stack);
     }
-
 
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    // VOLANIE GENERATORU AST STROM V result.tree
-    // fprintf(stderr, "[EXPR] OK\n");
+    ast_gen(result.tree);
     ungetToken();
     return true;
 }
