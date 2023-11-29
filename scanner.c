@@ -227,7 +227,7 @@ token_t getNextToken()
         int i = 0;
         buffer[i++] = c;
 
-        while ((c = getNextChar()) != EOF && !(isspace(c))) 
+        while ((c = getNextChar()) != EOF) 
         {
             /*  ------ SPRACOVANIE DOUBLE LITERALU S DESATINNOU CIARKOU ------ */
 
@@ -246,8 +246,10 @@ token_t getNextToken()
                         }
                         else                // ak nie je cislo, error
                         {
-                            fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
-                            returnError(SCANNER_ERR);
+                            //ungetChar(c);
+                            break;
+                            //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                            //returnError(SCANNER_ERR);
                         }
                     }
                 }
@@ -275,15 +277,19 @@ token_t getNextToken()
                         }
                         else                // ak nie je cislo, error
                         {
-                            fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
-                            returnError(SCANNER_ERR);
+                            ungetChar(c);
+                            break;
+                            //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                            //returnError(SCANNER_ERR);
                         }
                     }
                 }
                 else
                 {
-                    fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
-                    returnError(SCANNER_ERR);
+                    //ungetChar(c);
+                    break;
+                    //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                    //returnError(SCANNER_ERR);
                 }                
             }
 
@@ -295,6 +301,7 @@ token_t getNextToken()
             }
             else
             {
+                break;
                 fprintf(stderr, "SCANNER: Nepovoleny znak: [ %c ] pri zapise ciselneho literalu\n", c);
                 returnError(SCANNER_ERR);
             }
