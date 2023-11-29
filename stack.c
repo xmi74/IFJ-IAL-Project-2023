@@ -213,3 +213,15 @@ void Stack_InsertLesser(Stack *stack)
         return;
     }
 }
+
+void Stack_PopUntilLesser(Stack *stack)
+{
+    token_t stackTop;
+    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
+    {
+        Stack_Pop(stack);
+        Stack_Top(stack, &stackTop);
+    }
+
+    Stack_Pop(stack);
+}
