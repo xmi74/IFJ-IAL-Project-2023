@@ -246,14 +246,14 @@ token_t getNextToken()
                         }
                         else                // ak nie je cislo, error
                         {
-                            fprintf(stderr, "\nZapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                            fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
                             returnError(SCANNER_ERR);
                         }
                     }
                 }
                 else                    // ak za . nenasleduje cislo -> error
                 {
-                    fprintf(stderr, "Chyba pri zapise do double literalu ! za '.' musi nasledovat cislo\n");
+                    fprintf(stderr, "\nSCANNER: Chyba pri zapise do double literalu ! za '.' musi nasledovat cislo\n");
                     returnError(SCANNER_ERR);
                 }
             }             
@@ -275,14 +275,14 @@ token_t getNextToken()
                         }
                         else                // ak nie je cislo, error
                         {
-                            fprintf(stderr, "\nZapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                            fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
                             returnError(SCANNER_ERR);
                         }
                     }
                 }
                 else
                 {
-                    fprintf(stderr, "\nZapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                    fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
                     returnError(SCANNER_ERR);
                 }                
             }
@@ -295,7 +295,7 @@ token_t getNextToken()
             }
             else
             {
-                fprintf(stderr, "Nepovoleny znak: [ %c ] pri zapise ciselneho literalu\n", c);
+                fprintf(stderr, "SCANNER: Nepovoleny znak: [ %c ] pri zapise ciselneho literalu\n", c);
                 returnError(SCANNER_ERR);
             }
         }
@@ -325,7 +325,6 @@ token_t getNextToken()
         else                       // *
         {
             ungetChar(c);
-            returnError(SCANNER_ERR);       // nove errory
         }   
     }
     else if (c == '/')  // tu sa spracovava zaciatok blokoveho komentaru
@@ -373,7 +372,6 @@ token_t getNextToken()
         else
         {
             ungetChar(c); // Vrátiť nečítaný znak späť do vstupu
-            returnError(SCANNER_ERR);       // nove errory
         }
     }
     else if (c == EOF) token.type = TOK_EOF;        // EOF
@@ -388,8 +386,7 @@ token_t getNextToken()
         }
         else
         {
-            ungetChar(c);
-            returnError(SCANNER_ERR);       // nove errory
+            ungetChar(c);            
         } 
     }
     else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
