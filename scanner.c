@@ -191,7 +191,7 @@ token_t getNextToken()
 
     initToken(&token);
 
-    while (isspace(c = getNextChar())) {}
+    while (isspace(c = getNextChar())) { if (c == '\n') { ungetChar(c); break; }}
  
     /*  ------ SPRACOVANIE IDENTIFIER ------ */
     if (isalpha(c) || c == '_')    // IDENTIFIER
@@ -580,9 +580,6 @@ token_t getNextToken()
         token.type = TOK_STRING;
         token.attribute.str = string;   // neni potreba dstring copy ?
     }
-
-    /*  ------------------------------------ */
-
     else if (c == '\n')
     {
         token.type = TOK_EOL;                       // EOL
@@ -594,6 +591,7 @@ token_t getNextToken()
         }
         ungetChar(c);                               // ERROR
     }
+    /*  ------------------------------------ */
     else
     {
         fprintf(stderr, "\nSCANNER: Nacitanie neznameho symbolu: [ %c ]\n", c);
