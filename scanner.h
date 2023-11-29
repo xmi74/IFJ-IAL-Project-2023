@@ -27,63 +27,64 @@
 // Typ tokenu
 typedef enum typ
 {
-    TOK_NOTHING, // POCIATOCNY, PRAZDNY TOKEN
+    TOK_NOTHING,        // POCIATOCNY, PRAZDNY TOKEN
 
-    TOK_IDENTIFIER, // IDENTIFIKATOR X
+    TOK_IDENTIFIER,     // IDENTIFIKATOR 
 
     // KLUCOVE SLOVA
-    TOK_KW_DOUBLE, // Double X
-    TOK_KW_ELSE,   // else X
-    TOK_KW_FUNC,   // func X
-    TOK_KW_IF,     // if X
-    TOK_KW_INT,    // Int X
-    TOK_KW_LET,    // let X
-    TOK_KW_NIL,    // nil _ ??X??
-    TOK_KW_RETURN, // return X
-    TOK_KW_STRING, // String X
-    TOK_KW_VAR,    // var X
-    TOK_KW_WHILE,  // while X
+    TOK_KW_DOUBLE,
+    TOK_KW_ELSE,
+    TOK_KW_FUNC, 
+    TOK_KW_IF,   
+    TOK_KW_INT,   
+    TOK_KW_LET,   
+    TOK_KW_NIL,  
+    TOK_KW_RETURN, 
+    TOK_KW_STRING, 
+    TOK_KW_VAR,  
+    TOK_KW_WHILE, 
 
-    TOK_UNDERSCORE,   // _
-    TOK_EOF,          // END OF FILE  X
-    TOK_INT,          // INT_LITERAL X
-    TOK_DOUBLE,       // DOUBLE_LITERAL X
-    TOK_STRING_START, // "
+    TOK_UNDERSCORE,      // _
+    TOK_EOF,             // END OF FILE
+    TOK_INT,             // INT_LITERAL
+    TOK_DOUBLE,          // DOUBLE_LITERAL
 
-    TOK_STRING, // STRING_LITERAL X
+    TOK_STRING,
 
-    TOK_MUL,   // * EX
-    TOK_DIV,   // / EX
-    TOK_PLUS,  // + EX
-    TOK_MINUS, // - EX
+    TOK_MUL,             // * 
+    TOK_DIV,             // / 
+    TOK_PLUS,            // + 
+    TOK_MINUS,           // - 
 
-    TOK_R_CRL_BRCKT, // } X
-    TOK_L_CRL_BRCKT, // { X
-    TOK_R_BRCKT,     // ) X
-    TOK_L_BRCKT,     // ( X
-    TOK_ARROW,       // -> X
+    TOK_R_CRL_BRCKT,     // } 
+    TOK_L_CRL_BRCKT,     // { 
+    TOK_R_BRCKT,         // ) 
+    TOK_L_BRCKT,         // ( 
+    TOK_ARROW,           // -> 
 
-    TOK_NOT,              // ! EX
-    TOK_NOT_EQUAL,        // != EX
-    TOK_LESSER,           // < EX
-    TOK_LESSER_OR_EQUAL,  // <= EX
-    TOK_GREATER,          // > EX
-    TOK_GREATER_OR_EQUAL, // >= EX
-    TOK_EQUAL,            // = X
-    TOK_ASSIGN,           // == EX
+    TOK_NOT,             // ! 
+    TOK_NOT_EQUAL,       // != 
+    TOK_LESSER,          // < 
+    TOK_LESSER_OR_EQUAL, // <=
+    TOK_GREATER,         // > 
+    TOK_GREATER_OR_EQUAL, // >=
+    TOK_EQUAL,           // =
+    TOK_ASSIGN,          // ==
 
-    TOK_COLON,   // : X
-    TOK_COMMA,   // , X
-    TOK_SEMICLN, // ; NENI
-    TOK_DOT,     // . NENI
+    TOK_COLON,           // : 
+    TOK_COMMA,           // , 
+    TOK_SEMICLN,         // ;
+    TOK_DOT,             // . 
 
-    TOK_QUEST_MARK,        // ? X
-    TOK_DOUBLE_QUEST_MARK, // ?? EX
+    TOK_QUEST_MARK,      // ? 
+    TOK_DOUBLE_QUEST_MARK, // ?? 
 
-    TOK_COMMENT,         // // X
-    TOK_BLOCK_COM_START, // /* X
-    TOK_BLOCK_COM_END,   // */  X
-    TOK_EOL,
+    TOK_COMMENT,         // // 
+    TOK_BLOCK_COM_START, // /*
+    TOK_BLOCK_COM_END,   // */  
+    TOK_EOL,             // END OF LINE
+
+    TOK_STRING_START    // treba vyhodit
 } token_type_t;
 
 // Atribut tokenu
@@ -105,19 +106,42 @@ typedef struct
     bool terminal;
 } token_t;
 
-// Nacitanie znaku zo vstupu
+
+/**
+ * @brief Nacitanie znaku zo vstupu
+ * 
+ * @return Integer hodnota znaku nacitaneho zo vstupu
+*/
 int getNextChar();
 
-// Vratenie znaku spat do vstupu
+/**
+ * @brief Vratenie nacitaneho znaku naspat na vstup
+ * 
+ * @param c Nacitany znak
+*/
 void ungetChar(int c);
 
-// Inicializacia tokenu
+/**
+ * @brief Inicializacia tokenu
+ * 
+ * @param token Ukazatel na token
+*/
 void initToken(token_t *token);
 
 // Uvolnenie pamati tokenu
+/**
+ * @brief Uvolnenie pamati tokenu
+ * 
+ * @param token ukazatel na token
+*/
 void freeToken(token_t *token);
 
-// Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
+// 
+/**
+ * @brief Hlavna funkcia lexikalneho analyzatora, priradzuje tokenu typ a atribut
+ * 
+ * @return token s priradenim typom, pripadne aj atributom
+*/
 token_t getNextToken();
 
 #endif
