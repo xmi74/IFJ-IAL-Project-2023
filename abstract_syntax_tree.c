@@ -58,23 +58,24 @@ void checkTypes(ast_node_t *root)
     // skontroluj typy laveho a praveho podstromu, podla toho nastav typ otca
     if (root->left != NULL && root->right != NULL)
     {
-        // ak su typy rovnake, nastav typ otca na ten isty
+        // Ak su typy rovnake, nastav typ otca na ten isty
         if (root->left->type == root->right->type)
         {
             root->type = root->left->type;
         }
-        // INT musi byt literal
-        else if (root->left->type == TOK_DOUBLE && root->right->type == TOK_INT && root->right->token.type == TOK_INT)
+
+        // INT + Double, kde INT musi byt LITERAL!
+        else if (root->left->type == TOK_DOUBLE && (root->right->type == TOK_INT && root->right->token.type == TOK_INT))
         {
             root->type = TOK_DOUBLE;
         }
-        else if (root->left->token.type == TOK_INT && root->left->type == TOK_INT && root->right->type == TOK_DOUBLE)
+        else if ((root->left->token.type == TOK_INT && root->left->type == TOK_INT) && root->right->type == TOK_DOUBLE)
         {
             root->type = TOK_DOUBLE;
         }
         else
         {
-            root->type = TOK_EOF;
+            root->type = TOK_NOTHING; // chyba typov, nemalo by nastat, kontroluje sa uz v expr
         }
     }
 

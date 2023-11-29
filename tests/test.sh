@@ -23,6 +23,7 @@ execTest () {
 	if [ $returnCode -ne $4 ]; then
 		printf "\e[1m\e[31mFailed\e[0m Test %02d: $1:\n" $testNum
 		printf "\tWrong return code, expected $4, got $returnCode"
+		printf "\n"
 	elif [ -z "$(diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt $3)" ]; then
 		printf "\e[1m\e[32mPassed\e[0m Test %02d: $1\n" $testNum
 	else

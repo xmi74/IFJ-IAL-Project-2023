@@ -224,7 +224,23 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
         // error - neni funkce
         returnError(FUNCTION_DEFINITION_ERR);
     }
-    gen_func(output, &token);
+    
+    if (strcmp(found->key.data, "write")        == 0
+    ||  strcmp(found->key.data, "readString")   == 0
+    ||  strcmp(found->key.data, "readInt")      == 0
+    ||  strcmp(found->key.data, "readDouble")   == 0
+    ||  strcmp(found->key.data, "Int2Double")   == 0
+    ||  strcmp(found->key.data, "Double2Int")   == 0
+    ||  strcmp(found->key.data, "length")       == 0
+    ||  strcmp(found->key.data, "ord")          == 0
+    ||  strcmp(found->key.data, "chr")          == 0)
+    {
+        // toto nepassovat do generatoru - built-in funkce
+    }
+    else
+    {
+        gen_func(output, &token);
+    }
     // spravnost definice se uz kontroluje v 1. pruchodu
     getTokenAssert(TOK_L_BRCKT);
     while (getToken().type != TOK_R_BRCKT)

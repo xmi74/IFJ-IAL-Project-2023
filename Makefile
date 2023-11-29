@@ -12,3 +12,6 @@ $(EXEC): $(FILES)
 
 test: $(EXEC)
 	@cd tests/ && ./test.sh
+
+clean:
+	@rm -f $(EXEC) *.o *.out *.zip

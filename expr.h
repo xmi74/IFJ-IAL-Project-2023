@@ -40,7 +40,7 @@ bool reduceLogical(Stack *stack);
 
 void reduceNot(Stack *stack);
 
-bool applyRule(Stack *stack);
+void applyRule(Stack *stack);
 
 void reduceParenthesis(Stack *stack);
 
