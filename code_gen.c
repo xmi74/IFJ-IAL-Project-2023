@@ -120,8 +120,8 @@ void gen_value(string_t *output, token_t *token){
                 char c = token->attribute.str.data[index];
                 char str[5];
                 if ((c >= 0 && c <= 32) || (c == 35) || (c == 92)){
+                    append_line(output, "\\\\");
                     sprintf(str, "%03d", c);
-                    append_line(output, "\\");
                     append_line(output, str);
                 }
                 else{
