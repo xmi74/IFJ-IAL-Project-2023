@@ -20,22 +20,16 @@
 #include "scanner.h"
 
 /* TODO
-    • Prevod float -> double    HOTOVO
-    • Pridanie exponentu v double   HOTOVO
-    • TOK_MINUS sa neda nacitat bez medzery, TOK_PLUS ano   HOTOVO
-    • TOK_MUL nacitavanie   HOTOVO
-    • TOK_EQUAL nacitavanie   HOTOVO
-    • Ako je to s medzerami? musia ci nemusia byt? napr. 2+3    je mozne implementovat aj bez medzier - HOTOVO
-    • Nenacitava / teda (TOK_DIV) !!!   HOTOVO
-    • Kontrola vnorenych blokovych komentarov   ak nie je dostatok symbolov ukoncenia blok. kom.,potom error - HOTOVO
-    • Kontrola kedy vzdy moze nastat error  HOTOVO
-        -- Ked nacitavam neznamy znak
-        -- Ked nacitam samotny ?
-        -- Ked nie je dostatok ukonceni blok. komentaru
-        -- Neocakavana escape sekvencia, pri hexadecimalnych - zly zapis escape sekvencie
-
     • Kontrola funkcnosti escape sekvencie
     • Viacriadkovy string """
+    • Pridanie riadkov, na ktorych nastala chyba ?
+    • mozno iny zapis escape sekvencii - aby sa zapisovali ako cisla do retazcov
+
+    • Kde vsade mozu nastat chyby :
+        1) neznamy znak
+        2) v cisle - napr. 1e...
+        3) prevody identifikatory, klucove slova
+        4) v escape sekvenciach stringov
 */
 
 // Nacitanie znaku zo vstupu
@@ -61,6 +55,73 @@ void initToken(token_t *token)
 void freeToken(token_t *token) 
 {
     dstringFree(&(token->attribute.str));
+}
+
+void handleEscapeSequence(int *c)
+{
+    *c = getNextChar();
+    switch (*c)
+    {
+        case '0':       // '\0' podla swift dokumentacie
+            *c = '\0';
+            break;
+        case '\\':      // '\\'
+            *c = '\\';
+            break;
+        case 't':       // '\t'
+            *c = '\t';
+            break;
+        case 'n':       // '\n'
+            *c = '\n';
+            break;
+        case 'r':       // '\r'
+            *c = '\r';
+            break;        
+        case '\"':
+            *c = '\"';
+            break;
+        case '\'':      // '\'' podla swift dokumentacie
+            *c = '\'';
+            break;
+        case 'u':       // HEXADECIMAL
+            if ((*c = getNextChar()) == '{')
+            {
+                int value = 0;
+                while ((*c = getNextChar()) != '}')
+                {
+                    if (isxdigit(*c))
+                    {
+                        if (isdigit(*c)) 
+                        {
+                            value = (16 * value) + (*c - '0');
+                        }
+                        else
+                        {
+                            value = (16 * value) + (tolower(*c) - 'a' + 10);
+                        }   
+                    }
+                    else    // /u{nehexadecimal
+                    {
+                        value = *c;
+                        fprintf(stderr, "SCANNER: Escape sekvencia [ \\u ] nebola riadne ukoncena, ocakavana [ } ], problemovy znak: %c\n", value);
+                        returnError(SCANNER_ERR);
+                        break;
+                    }
+                }
+                *c = value;                                                            
+            }
+            else
+            {
+                fprintf(stderr, "\nSCANNER: Ocakavany znak za escape sekvenciou \\u [ } ], ale je [ %c ]\n", *c);
+                returnError(SCANNER_ERR);    
+            }
+            break;
+        default:
+            fprintf(stderr, "\nSCANNER: Znaky retazcoveho literalu [ \\%c ] nenabudaju ziadnu platnu escape sekvenciu\n", *c);
+            returnError(SCANNER_ERR);
+            break;
+    }
+
 }
 
 // Funkcia rozhodne ci ide o identifikator alebo klucove slovo
@@ -121,24 +182,25 @@ void assignIdentifier(token_t *token, string_t identifier)
     token->attribute.str = identifier;  // aj klucove slova budu obsahovat atribut
 }
 
-
 // Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
 token_t getNextToken() 
 {
+    //int lineNumber = 1; // Cislo riadku
     token_t token;
     int c;
 
     initToken(&token);
 
-    while (isspace(c = getNextChar()) && c != '\n') {}
-
+    while (isspace(c = getNextChar())) { if (c == '\n') { ungetChar(c); break; }}
+ 
+    /*  ------ SPRACOVANIE IDENTIFIER ------ */
     if (isalpha(c) || c == '_')    // IDENTIFIER
     {
         string_t identifier;
         dstringInit(&identifier);
         dstringAppend(&identifier, c);
 
-        while ((c = getNextChar()) != EOF && (isalnum(c) || c == '_')) 
+        while ((c = getNextChar()) != EOF && (isalnum(c) || c == '_'))  
         {
             dstringAppend(&identifier, c);
         }
@@ -146,7 +208,8 @@ token_t getNextToken()
         assignIdentifier(&token, identifier);
         if (token.type == TOK_KW_DOUBLE || token.type == TOK_KW_INT || token.type == TOK_KW_STRING)
         {
-            if ((c = getNextChar()) == '?')
+            c = getNextChar();
+            if (c == '?')
             {
                 token.attribute.includesNil = true;
             }
@@ -155,18 +218,93 @@ token_t getNextToken()
                 ungetChar(c);
                 token.attribute.includesNil = false;
             }
-        }
-        
+        }        
     } 
-    else if (isdigit(c)) 
+    /*  ------ SPRACOVANIE CISELNY LITERAL ------ */
+    else if (isdigit(c))    // ciselny literal musi byt oddeleny medzerou od dalsieho znaku
     {
         char buffer[100];
         int i = 0;
         buffer[i++] = c;
 
-        while ((c = getNextChar()) != EOF && (isdigit(c) || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-')) 
+        while ((c = getNextChar()) != EOF) 
         {
-            buffer[i++] = c;
+            /*  ------ SPRACOVANIE DOUBLE LITERALU S DESATINNOU CIARKOU ------ */
+
+            if (c == '.')   // ak dostanem bodku -> mozu nasledovat iba dalsie cisla
+            {
+                buffer[i++] = c;    // zapis . do bufferu
+                c = getNextChar();
+                if (isdigit(c))         // ak za . nasleduje cislo
+                {
+                    buffer[i++] = c;        
+                    while ((c = getNextChar()) != EOF && !(isspace(c)))
+                    {
+                        if (isdigit(c))     // ak je cislo, pripisuj dalej
+                        {
+                            buffer[i++] = c;
+                        }
+                        else                // ak nie je cislo, error
+                        {
+                            //ungetChar(c);
+                            break;
+                            //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                            //returnError(SCANNER_ERR);
+                        }
+                    }
+                }
+                else                    // ak za . nenasleduje cislo -> error
+                {
+                    fprintf(stderr, "\nSCANNER: Chyba pri zapise do double literalu ! za '.' musi nasledovat cislo\n");
+                    returnError(SCANNER_ERR);
+                }
+            }             
+
+            /*  ------ SPRACOVANIE DOUBLE LITERALU S EXPONENTOM ------ */
+
+            else if (c == 'e' || c == 'E')   // ak dostanem e/E   -> moze nasledovat +/- alebo iba dalsie cisla
+            {
+                buffer[i++] = c;     // zapis e/E do bufferu
+                c = getNextChar();
+                if (c == '+' || c == '-' || isdigit(c))     // za exponentom moze nasledovat +, - ci rovno kladne cislo
+                {
+                    buffer[i++] = c;    // zapis +/-/cislo do bufferu
+                    while ((c = getNextChar()) != EOF && !(isspace(c)))
+                    {
+                        if (isdigit(c))     // ak je cislo, pripisuj dalej
+                        {
+                            buffer[i++] = c;
+                        }
+                        else                // ak nie je cislo, error
+                        {
+                            ungetChar(c);
+                            break;
+                            //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                            //returnError(SCANNER_ERR);
+                        }
+                    }
+                }
+                else
+                {
+                    //ungetChar(c);
+                    break;
+                    //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
+                    //returnError(SCANNER_ERR);
+                }                
+            }
+
+            /*  ------ SPRACOVANIE INTEGERU CI DOUBLE PRED ZISKANIM EXPONENTU ALEBO DESATINNEJ CIARKY ------ */
+
+            else if (isdigit(c))
+            {
+                buffer[i++] = c;
+            }
+            else
+            {
+                break;
+                fprintf(stderr, "SCANNER: Nepovoleny znak: [ %c ] pri zapise ciselneho literalu\n", c);
+                returnError(SCANNER_ERR);
+            }
         }
 
         buffer[i] = '\0';
@@ -193,7 +331,7 @@ token_t getNextToken()
         }
         else                       // *
         {
-            ungetChar(c);           
+            ungetChar(c);
         }   
     }
     else if (c == '/')  // tu sa spracovava zaciatok blokoveho komentaru
@@ -226,7 +364,7 @@ token_t getNextToken()
             if (nestedCommentLevel > 0)
             {
                 // Chyba: Neočakávaný koniec súboru v blokovom komentári
-                fprintf(stderr, "Chybaju [ %d ] ukoncenia blokovych komentarov\n", nestedCommentLevel);
+                fprintf(stderr, "SCANNER: Chybaju [ %d ] ukoncenia blokovych komentarov\n", nestedCommentLevel);
                 returnError(SCANNER_ERR);
             }
         }
@@ -255,7 +393,7 @@ token_t getNextToken()
         }
         else
         {
-            ungetChar(c);
+            ungetChar(c);            
         } 
     }
     else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
@@ -298,7 +436,7 @@ token_t getNextToken()
         }
         else
         {
-            ungetChar(c);                           
+            ungetChar(c);                 
         }
     }
     else if (c == '=')
@@ -325,92 +463,122 @@ token_t getNextToken()
         }
         else
         {
-            fprintf(stderr, "Nemozno nacitat samotny ?\n");
+            fprintf(stderr, "\nSCANNER: Nemozno nacitat samotny [ ? ]\n");
             returnError(SCANNER_ERR);
         }
     }
-    else if (c == '"')                              // STRING_LITERAL (mozno bude treba dalsie upravy)
-    {
-        c = getNextChar();
-        /*if (c == '"' && (c = getNextChar()) == '"')   // Viacriadkovy string
-        {
-            while ((c = getNextChar()) != EOF)
-            {
-                if (c == '"' && (c = getNextChar()) == '"' && (c = getNextChar()) == '"')
-                {
-                    break;
-                }
-            }
-        }*/
 
+    /*  ------ SPRACOVANIE STRINGOV ------ */
+
+    else if (c == '"')                              // STRING_LITERAL
+    {
         string_t string;
         dstringInit(&string);
-        dstringAppend(&string, c);
+        c = getNextChar();        
 
-        while ((c = getNextChar()) != EOF && c != '"') 
+        if (c == '"')           // "" prazdny retazec
         {
-            if (c == '\\')              // Escape sekvencia // Mozno vhodne vytvorit funkciu a zapisat ju aj do viacriadkoveho stringu
+            c = getNextChar();
+            if (c == '"')       // """ viacradkovy retazec
             {
-                c = getNextChar();
-                switch (c)
+                bool stringFinished = false;
+                c = getNextChar();      
+                if (c == '\n')
                 {
-                    case 'n':       // '\n'
-                        c = '\n';
-                        break;
-                    case 'r':       // '\r'
-                        c = '\r';
-                        break;
-                    case 't':       // '\t'
-                        c = '\t';
-                        break;
-                    case '\\':      // '\\'
-                        c = '\\';
-                        break;
-                    case '\"':
-                        c = '\"';
-                        break;
-                    case 'u':       // HEXADECIMAL
-                        if ((c = getNextChar()) == '{')
+                    ;   // nerob nic
+                }
+                else
+                {
+                    fprintf(stderr, "SCANNER: Chybajuce odriadkovanie za inicializaciou [ \"\"\" ] viacriadkoveho retazca\n ");  // Je to error?
+                    returnError(SCANNER_ERR);
+                }
+                while ((c = getNextChar()) != EOF)  // Som vo viacriadkovom retazci, za prvym odriadkovanim a zacinam nacitavat znaky
+                {
+                    if (c == '\n')  // ak narazim na \n a za nim nasleduje "
+                    {
+                        int newLine = c;
+                        c = getNextChar();                                          
+                        if (c == '"')   // chceme ukoncit string alebo zapisat 1x "
                         {
-                            int value = 0;
-                            while ((c = getNextChar()) != '}')
+                            int firstQuotation = c;
+                            c = getNextChar();
+                            if (c == '"')       // chceme ukoncit string alebo zapisat 2x "
                             {
-                                if (isxdigit(c))    // kod z https://copyprogramming.com/howto/how-to-convert-hex-to-ascii-in-c-with-and-without-using-sprintf
-                                {
-                                    if (isdigit(c)) 
-                                    {
-                                        value = (16 * value) + (c - '0');
-                                    }
-                                    else
-                                    {
-                                        value = (16 * value) + (tolower(c) - 'a' + 10);
-                                    }   
-                                }
-                                else    // /u{nehexadecimal
-                                {
-                                    value = c;
+                                int SecondQuotation = c;
+                                c = getNextChar();
+                                if (c == '"')       // chceme ukoncit string
+                                {             
+                                    stringFinished = true;               
                                     break;
                                 }
+                                else
+                                {
+                                    dstringAppend(&string, newLine);
+                                    dstringAppend(&string, firstQuotation);    // zapis 1. "
+                                    dstringAppend(&string, SecondQuotation);    // zapis 1. "
+                                    dstringAppend(&string, c);      // zapis 2. "
+                                }
                             }
-                            c = value;                                                            
-                        }
-                        else
-                        {
-                            fprintf(stderr, "\nOcakavany znak za escape sekvenciou \\u [ } ], ale je [ %c ]\n", c);
-                            returnError(SCANNER_ERR);    
-                        }
-                        break;
-                    default:
-                        fprintf(stderr, "\nZnaky retazcoveho literalu [ \\%c ] nenabudaju ziadnu platnu escape sekvenciu\n", c);
-                        returnError(SCANNER_ERR);
-                        break;
+                            else
+                            {
+                                dstringAppend(&string, newLine);
+                                dstringAppend(&string, firstQuotation);
+                                dstringAppend(&string, c);                            
+                            }
+                        }                                        
+                    }
+                    else if (c == '\\')              // Escape sekvencia
+                    {
+                        handleEscapeSequence(&c);
+                        dstringAppend(&string, c);
+                    }
+                    else
+                    {
+                        dstringAppend(&string, c);
+                    }
+                    
                 }
+                if (stringFinished == false)
+                {
+                    fprintf(stderr, "SCANNER: Viacriadkovy string nebol riadne ukonceny (Chybajuce [ \" ] alebo odriadkovanie!\n");
+                    returnError(SCANNER_ERR);
+                }
+            }           // """ koniec viacriadkoveho retazca
+            else
+            {
+                int emptyStringChar = 0;
+                dstringAppend(&string, emptyStringChar); // a do retazca zapis prazdny retazec
+                ungetChar(c);               // vrat znak 
             }
-            dstringAppend(&string, c);
         }
+        else                    // " klasicky string
+        {            
+            dstringAppend(&string, c);
+            while ((c = getNextChar()) != EOF && c != '"') 
+            {
+                if (c == '\n')
+                {
+                    fprintf(stderr,"\nSCANNER: Nepovoleny zapis retazca na viac riadkov\nPre viacriadkovy retazec je potrebna inicializacia pomocou [ \"\"\" ]\n");
+                    returnError(SCANNER_ERR);
+                }
+                if (c == '\\')              
+                {
+                    handleEscapeSequence(&c);
+               
+                }
+                //printf("pridavam do stringu znak : [ %c ]\n", c);
+                dstringAppend(&string, c);
+            }
+            if (c != '"')
+            {
+                fprintf(stderr, "\nSCANNER: Retazec: [ %s ] nebol ukonceny\n", string.data);
+                returnError(SCANNER_ERR);
+            }
+        }
+        
         //ungetChar(c);
         token.type = TOK_STRING;
-        token.attribute.str = string;
+        token.attribute.str = string;   // neni potreba dstring copy ?
     }
     else if (c == '\n')
     {
@@ -423,11 +591,13 @@ token_t getNextToken()
         }
         ungetChar(c);                               // ERROR
     }
+    /*  ------------------------------------ */
     else
     {
-        fprintf(stderr, "\nNacitanie neznameho symbolu: %c\n", c);
+        fprintf(stderr, "\nSCANNER: Nacitanie neznameho symbolu: [ %c ]\n", c);
         returnError(SCANNER_ERR);
     }
 
     return token;
 }
+

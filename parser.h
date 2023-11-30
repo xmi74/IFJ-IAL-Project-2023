@@ -15,11 +15,11 @@
 #include "expr.h"
 #include "code_gen.h"
 
-void load_built_in_functions(global_symtab_t **global_table);
+void load_built_in_functions();
 
 void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
-void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
+void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level);
 
 void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table);
 

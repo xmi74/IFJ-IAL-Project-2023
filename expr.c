@@ -284,7 +284,7 @@ bool reduceLogical(Stack *stack)
     if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = != 3)
         if (dataTypeEqual(operand1, operand2) == false)
         {
-            fprintf(stderr, "[EXPR] ERROR: Incompatible data types\n");
+            fprintf(stderr, "[EXPR] ERROR: Incompatible data types in bool expression!\n");
             returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
         }
 
@@ -388,13 +388,8 @@ void reduceParenthesis(Stack *stack)
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operand1 = stack->elements[stack->size - 2]; // E
-    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
-    {
-        Stack_Pop(stack);
-        Stack_Top(stack, &stackTop);
-    }
 
-    Stack_Pop(stack);
+    Stack_PopUntilLesser(stack);
 
     token_t expr = operand1;
     expr.terminal = false;
@@ -408,7 +403,7 @@ void reduceParenthesis(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
-bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
+token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
 {
     Stack stack;
     Stack_Init(&stack);
@@ -423,28 +418,30 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     token_t token = getToken();
 
     int parenCount = 0;
+
     while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
-        // Koniec vyrazu v podmienke, napr. if,while a pod.
-        if (parenCount == 0 && token.type == TOK_R_BRCKT)
-            break;
-
-        if (token.type == TOK_L_BRCKT)
-        {
-            parenCount++;
-        }
-        else if (token.type == TOK_R_BRCKT)
-        {
-            parenCount--;
-        }
-
-        // Stack_Print(&stack);
+        Stack_Print(&stack);
         token.terminal = true;
 
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
 
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
+
+        // Koniec vyrazu v podmienke, napr. if,while a pod.
+        if (parenCount == 0 && token.type == TOK_R_BRCKT)
+            break;
+
+        // Kontrola poctu zatvoriek iba pri LOAD! `(` sa moze 2 krat odcitat, ked nastane REDUCE
+        if (token.type == TOK_L_BRCKT && result == L)
+        {
+            parenCount++;
+        }
+        else if (token.type == TOK_R_BRCKT && result == L)
+        {
+            parenCount--;
+        }
 
         // LOAD
         if (result == L)
@@ -460,7 +457,6 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
                 {
                     fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
                     returnError(SYNTAX_ERR);
-                    return false;
                 }
             }
 
@@ -505,7 +501,6 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             // Koniec analyzy vyrazu, prebehol OK
             if (stackTop->type == TOK_EOF)
                 break;
-            // return true;
 
             // Inak redukuj zatvorky
             Stack_Push(&stack, &token);
@@ -517,11 +512,10 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...)\n");
             Stack_Dispose(&stack);
             returnError(SYNTAX_ERR);
-            return false; // ERROR?
         }
     }
 
-    // Stack_Print(&stack);
+    Stack_Print(&stack);
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
@@ -532,6 +526,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
     // ast_gen(result.tree);
+    Stack_Dispose(&stack);
     ungetToken();
-    return true;
+    return result.tree->type;
 }
