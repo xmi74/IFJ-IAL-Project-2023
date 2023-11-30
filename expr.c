@@ -403,8 +403,24 @@ void reduceParenthesis(Stack *stack)
 }
 
 /**
- * @brief Funkcia na analyzu vyrazov
- * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu
+ * @brief Funkcia na zistenie ci je koniec vyrazu
+ * @param token aktualny token
+ * @param prevToken predchadzajuci token
+ * @return true ak je koniec vyrazu, inak false
+*/
+bool expressionEnd(token_t token, token_t prevToken)
+{
+    // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
+    if ((token.type == TOK_EOL && tokenIsIdentifier(prevToken)) || token.type == TOK_EOF || token.type == TOK_L_CRL_BRCKT)
+        return true;
+    // Napriklad vyraz na viacero riadkov, kde pred EOL je operator
+    return false;
+}
+
+/**
+ * @brief hlavna funkcia na analyzu vyrazov
+ * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu.
+ * Funkcia urcuje operaciu podla precedencnej tabulky, resp. ci sa ma vykonat LOAD, REDUCE a pod.
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
@@ -421,10 +437,27 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     Stack_Push(&stack, &stackBottom);
 
     token_t token = getToken();
+    token_t prevToken = token;
 
     int parenCount = 0;
-    while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
+
+    while (!expressionEnd(token, prevToken)) // TODO : BUDE MUSIET BYT ZMENENE
     {
+        // Preskocenie EOL pri viacriadkovom vyraze
+        if (token.type == TOK_EOL && !expressionEnd(token, prevToken))
+        {
+            token = getToken();
+            prevToken = token;
+        }
+
+        Stack_Print(&stack);
+        token.terminal = true;
+
+        token_t *stackTop;
+        stackTop = Stack_GetTopTerminal(&stack);
+
+        int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
+
         // Koniec vyrazu v podmienke, napr. if,while a pod.
         if (parenCount == 0 && token.type == TOK_R_BRCKT)
             break;
@@ -491,6 +524,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
                 Stack_InsertLesser(&stack);
             }
             Stack_Push(&stack, &token);
+            prevToken = token;
             token = getToken();
 
             continue;
@@ -509,6 +543,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
 
             // Inak redukuj zatvorky
             Stack_Push(&stack, &token);
+            prevToken = token;
             token = getToken();
             reduceParenthesis(&stack);
         }
@@ -521,10 +556,10 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
         }
     }
 
-    Stack_Print(&stack);
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
+        Stack_Print(&stack);
         applyRule(&stack);
     }
 
@@ -532,6 +567,8 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
     ast_gen(result.tree);
+    Stack_Dispose(&stack);
     ungetToken();
+    printf("[EXPR] OK\n");
     return true;
 }

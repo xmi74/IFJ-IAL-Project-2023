@@ -32,7 +32,7 @@ int getPrecedence(int tokenIndex);
 
 bool dataTypeEqual(token_t token1, token_t token2);
 
-bool isIdentifier(token_t token);
+bool tokenIsIdentifier(token_t token);
 
 void reduceArithmetic(Stack *stack);
 
