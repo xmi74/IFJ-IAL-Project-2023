@@ -403,7 +403,7 @@ void reduceParenthesis(Stack *stack)
  * @param table tabulka symbolov
  * @return true ak sa analyza podarila, inak false
  */
-bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
+token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
 {
     Stack stack;
     Stack_Init(&stack);
@@ -421,7 +421,7 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
 
     while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
-        // Stack_Print(&stack);
+        Stack_Print(&stack);
         token.terminal = true;
 
         token_t *stackTop;
@@ -457,7 +457,6 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
                 {
                     fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
                     returnError(SYNTAX_ERR);
-                    return false;
                 }
             }
 
@@ -502,7 +501,6 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             // Koniec analyzy vyrazu, prebehol OK
             if (stackTop->type == TOK_EOF)
                 break;
-            // return true;
 
             // Inak redukuj zatvorky
             Stack_Push(&stack, &token);
@@ -514,11 +512,10 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...)\n");
             Stack_Dispose(&stack);
             returnError(SYNTAX_ERR);
-            return false; // ERROR?
         }
     }
 
-    // Stack_Print(&stack);
+    Stack_Print(&stack);
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
@@ -531,5 +528,5 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     // ast_gen(result.tree);
     Stack_Dispose(&stack);
     ungetToken();
-    return true;
+    return result.tree->type;
 }
