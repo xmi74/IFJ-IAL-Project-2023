@@ -122,7 +122,7 @@ local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, strin
     return NULL;
 }
 
-local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type)
+local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type, bool includesNil, bool isConstant)
 {
     
     // Aktualizacna semantika vkladania prvku
@@ -133,6 +133,8 @@ local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_t
         dstringInit(&(local_table->key));
         dstringCopy(&(local_table->key), key);
         local_table->type = type;
+        local_table->includesNil = includesNil;
+        local_table->isConstant = isConstant;
         local_table->left = NULL;
         local_table->right = NULL;
         local_table->height = 1;
@@ -146,11 +148,11 @@ local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_t
         }
         else if (cmp < 0)
         {
-            local_table->left = local_insert(local_table->left, key, type);
+            local_table->left = local_insert(local_table->left, key, type, includesNil, isConstant);
         }
         else // if (cmp > 0)
         {            
-            local_table->right = local_insert(local_table->right, key, type);
+            local_table->right = local_insert(local_table->right, key, type, includesNil, isConstant);
         }
 
         // Vyskove vyvazenie
@@ -276,7 +278,7 @@ global_symtab_t *global_search(global_symtab_t *global_table, string_t *key)
 }
 
 
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params)
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params, bool includesNil, bool isConstant)
 {
     if (global_table == NULL)
     {        
@@ -284,6 +286,8 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         dstringInit(&(global_table->key));
         dstringCopy(&(global_table->key), key);
         global_table->type = type;
+        global_table->includesNil = includesNil;
+        global_table->isConstant = isConstant;
         global_table->is_func = is_func;
         global_table->param_count = param_count;
         global_table->params = params;
@@ -300,11 +304,11 @@ global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, typ
         }
         else if (cmp < 0)
         {            
-            global_table->left = global_insert(global_table->left, key, type, is_func, param_count, params);
+            global_table->left = global_insert(global_table->left, key, type, is_func, param_count, params, includesNil, isConstant);
         }
         else
         {            
-            global_table->right = global_insert(global_table->right, key, type, is_func, param_count, params);
+            global_table->right = global_insert(global_table->right, key, type, is_func, param_count, params, includesNil, isConstant);
         }
 
         // Vyskove vyvazenie
