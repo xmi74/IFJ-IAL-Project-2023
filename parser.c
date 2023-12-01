@@ -206,7 +206,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
             if (current_token.type != var_type.type && !(current_token.type == TOK_INT && var_type.type == TOK_DOUBLE)) // prirazeni int do double je legal
             {
                 // error - spatny typ
-                returnError(TYPE_COMPATIBILITY_ERR);
+                // returnError(TYPE_COMPATIBILITY_ERR);
             }
             gen_value(output, &current_token); // TODO: overit
         }

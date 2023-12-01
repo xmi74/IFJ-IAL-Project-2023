@@ -38,7 +38,7 @@ execTest () {
 		printf "\e[1m\e[32mPassed\e[0m Test %02d: %s\n" "$testNum" "$1"
 	else
 		printf "\e[1m\e[31mFailed\e[0m Test %02d: %s\n" "$testNum" "$1"
-		diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3" | colordiff
+		diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3"
 	fi
 	testNum=$((testNum+1))
 	rm -f tmp_output.txt tmp_output2.txt
