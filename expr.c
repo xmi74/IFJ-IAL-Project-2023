@@ -327,9 +327,9 @@ void reduceNot(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operation;
-    expr.tree->token.attribute.includesNil = false;
     expr.terminal = false;
     expr.tree = make_tree(operation, operand1.tree, NULL);
+    expr.tree->token.attribute.includesNil = false;
     Stack_Push(stack, &expr);
 }
 
