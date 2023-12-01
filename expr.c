@@ -158,23 +158,27 @@ bool tokenIsIdentifier(token_t token)
 
 /**
  * @brief Funkcia na zistenie typu tokenu z tabulky symbolov
+ * Funcia tiez nastavuje atribut includesNil
  * @param token token ktoreho typ sa ma zistit
  * @param table tabulka symbolov
  * @return typ tokenu
  */
-token_type_t getTokenType(token_t token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
+token_type_t getTokenType(token_t * token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
+    // TODO: PREROBIT PRE INCLUDESNIL MOZNO AJ INE ATRIBUTTY
     local_symtab_t *search;
-    search = local_search_in_all(table, &token.attribute.str);
+    search = local_search_in_all(table, &token->attribute.str);
     if (search == NULL)
     {
         global_symtab_t *globalSearch;
-        globalSearch = global_search(globalTable, &token.attribute.str);
+        globalSearch = global_search(globalTable, &token->attribute.str);
         if (globalSearch == NULL)
         {
             fprintf(stderr, "[EXPR] ERROR: Unknown identifier type\n");
             returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
         }
+        // Zachovanie atributu includesNil
+        token->attribute.includesNil = globalSearch->includesNil;
         switch (globalSearch->type)
         {
         case T_INT:
@@ -187,6 +191,8 @@ token_type_t getTokenType(token_t token, local_symtab_w_par_ptr_t *table, global
             return TOK_NOTHING;
         }
     }
+    // Zachovanie atributu includesNil
+    token->attribute.includesNil = search->includesNil;
     return search->type;
 }
 
@@ -194,8 +200,16 @@ bool checkOperands(token_t operand1, token_t operand2)
 {
     if (operand1.tree == NULL || operand2.tree == NULL || (operand1.type == TOK_LESSER && operand1.terminal == false) || (operand2.type == TOK_LESSER && operand2.terminal == false))
     {
+        fprintf(stderr, "[EXPR] ERROR: Incorrect syntax, eg. var a = * 5\n");
         returnError(SYNTAX_ERR); // NAPR. var a = * 5
     }
+
+    if (operand1.tree->token.attribute.includesNil == true || operand2.tree->token.attribute.includesNil == true)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!\n");
+        returnError(TYPE_DEDUCTION_ERR); // Z typu nil sa neda odvodit typ
+    }
+    // Operands okay
     return true;
 }
 
@@ -248,13 +262,7 @@ void reduceArithmetic(Stack *stack)
         returnError(TYPE_COMPATIBILITY_ERR); // TODO : Kontrola napr. 5 + "string"
     }
 
-    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
-    {
-        Stack_Pop(stack);
-        Stack_Top(stack, &stackTop);
-    }
-
-    Stack_Pop(stack);
+    Stack_PopUntilLesser(stack);
 
     token_t expr = operation;
     // Vytvorenie stromu s uchovanim datoveho typu po operacii
@@ -319,6 +327,7 @@ void reduceNot(Stack *stack)
     Stack_Pop(stack);
 
     token_t expr = operation;
+    expr.tree->token.attribute.includesNil = false;
     expr.terminal = false;
     expr.tree = make_tree(operation, operand1.tree, NULL);
     Stack_Push(stack, &expr);
@@ -468,8 +477,8 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                 // Ziskanie typu tokenu z tabulky symbolov
                 if (token.type == TOK_IDENTIFIER)
                 {
-                    token.type = getTokenType(token, table, globalTable);
-                    if (token.type == TOK_EOF)
+                    token.type = getTokenType(&token, table, globalTable);
+                    if (token.type == TOK_NOTHING) // nemalo by nastat, errory sa volaju vo funkcii
                     {
                         fprintf(stderr, "[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
                         returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
@@ -481,6 +490,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                     token.tree->literal = true;
                 }
                 token.tree->type = token.type;
+                token.tree->token.attribute.includesNil = token.attribute.includesNil;
             }
             else
             {
