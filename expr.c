@@ -430,7 +430,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
 
     while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
     {
-        Stack_Print(&stack);
+        // Stack_Print(&stack);
         token.terminal = true;
 
         token_t *stackTop;
@@ -525,7 +525,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         }
     }
 
-    Stack_Print(&stack);
+    // Stack_Print(&stack);
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
