@@ -76,6 +76,7 @@ void checkTypes(ast_node_t *root)
         else
         {
             root->type = TOK_NOTHING; // chyba typov, nemalo by nastat, kontroluje sa uz v expr
+returnError(TYPE_COMPATIBILITY_ERR);
         }
     }
 
@@ -90,6 +91,16 @@ void checkTypes(ast_node_t *root)
     else
     {
         root->type = TOK_EOF;
+    }
+
+    // Zachovanie informacie o literale
+    if (root->left->literal == true && root->right->literal == true)
+    {
+        root->literal = true;
+    }
+    else
+    {
+        root->literal = false;
     }
 }
 
