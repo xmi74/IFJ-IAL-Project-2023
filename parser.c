@@ -335,12 +335,23 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     // precti 2. token za =, pak se vrat na 1. token
 
     bool is_func = false;
-    if ((current_token.type == TOK_IDENTIFIER) && (global_search(global_table, &current_token.attribute.str) != NULL))
+
+    
+    if (current_token.type == TOK_IDENTIFIER)
     {
-        if(global_search(global_table, &current_token.attribute.str)->is_func == true)
-        {
-            is_func = true;
+        if(getToken().type == TOK_L_BRCKT)
+        {   
+            if((global_search(global_table, &current_token.attribute.str) != NULL) && (global_search(global_table, &current_token.attribute.str)->is_func == true))
+            {
+                is_func = true;
+            }
+            else
+            {
+                // error - neni funkce
+                returnError(FUNCTION_DEFINITION_ERR);
+            }
         }
+        ungetToken();
     }
 
     current_token = getToken();
@@ -524,14 +535,23 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         }
 
         bool is_func = false;
-        current_token = getTokenAssertArr(5, (token_type_t[]){TOK_KW_NIL, TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER});
-        if ((current_token.type == TOK_IDENTIFIER) && (global_search(global_table, &current_token.attribute.str) != NULL))
+        if (current_token.type == TOK_IDENTIFIER)
         {
-            if(global_search(global_table, &current_token.attribute.str)->is_func == true)
-            {
-                is_func = true;
+            if(getToken().type == TOK_L_BRCKT)
+            {   
+                if((global_search(global_table, &current_token.attribute.str) != NULL) && (global_search(global_table, &current_token.attribute.str)->is_func == true))
+                {
+                    is_func = true;
+                }
+                else
+                {
+                    // error - neni funkce
+                    returnError(FUNCTION_DEFINITION_ERR);
+                }
             }
+            ungetToken();
         }
+
         current_token = getToken();
         ungetToken();
         ungetToken();
@@ -580,9 +600,6 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 returnError(VARIABLE_DEFINITION_ERR);
             }
         }
-        
-
-
 
         if (nest_level == 0)
         {
