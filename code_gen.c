@@ -170,7 +170,10 @@ void gen_var(string_t *output, token_t *token){
         append_line(output, "DEFVAR LF@");
         append_line(output, token->attribute.str.data);
         append_line(output, "\n");
-        char *isDefined = strstr(localVariables->data, token->attribute.str.data);
+        char *isDefined = NULL;
+        if (localVariables != NULL){
+            isDefined = strstr(localVariables->data, token->attribute.str.data);
+        }
         if (isDefined == NULL){
             append_line(output, "DEFVAR TF@");
             append_line(output, token->attribute.str.data);
@@ -230,7 +233,8 @@ void gen_func(string_t *output, token_t *token){
     append_line(output, token->attribute.str.data);
     if (nestLevel == 1){
       append_line(output, "\nCREATEFRAME\n"
-                            "PUSHFRAME\n");
+                            "PUSHFRAME\n"
+                            "CREATEFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
@@ -381,7 +385,8 @@ void gen_if(string_t *output, int counter){
     append_line(output, "# body of if\n");
     if (nestLevel == 1){
       append_line(output, "CREATEFRAME\n"
-                            "PUSHFRAME\n");
+                            "PUSHFRAME\n"
+                            "CREATEFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
@@ -407,7 +412,8 @@ void gen_else(string_t *output, int counter){
     append_line(output, str);
     if (nestLevel == 1){
       append_line(output, "CREATEFRAME\n"
-                            "PUSHFRAME\n");
+                            "PUSHFRAME\n"
+                            "CREATEFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
@@ -443,7 +449,8 @@ void gen_while(string_t *output, int counter){
     nestLevel++;
     if (nestLevel == 1){
       append_line(output, "\nCREATEFRAME\n"
-                            "PUSHFRAME\n");
+                            "PUSHFRAME\n"
+                            "CREATEFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
