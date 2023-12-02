@@ -327,6 +327,10 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 append_line(output, "CALL equals\n");
                 break;
             }
+            case TOK_EQUAL:{
+                append_line(output, "CALL equals\n");
+                break;
+            }
             case TOK_NOT_EQUAL:{
                 append_line(output, "CALL nequals\n");
                 break;
