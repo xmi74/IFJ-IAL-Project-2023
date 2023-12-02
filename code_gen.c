@@ -277,22 +277,25 @@ void gen_func_call(string_t *output, char *name){
  * @param tree Ukazatel na AST strom obsahujuci spracovany expression
 */
 void gen_expr(string_t *output, ast_node_t *tree){
-    /*ast_items_t *items = malloc(sizeof(ast_items_t));
+    ast_items_t *items = malloc(sizeof(ast_items_t));
     items_init(items);
     ast_postorder(tree, items);
     int index = 0;
     bool isString = false;
     while (index < items->size){
         switch (items->nodes[index]->token.type){
+            case TOK_IDENTIFIER:{
+                gen_value(output, NULL, true, items->nodes[index]->token.attribute.str.data);
+            }
             case TOK_INT:
             case TOK_DOUBLE:{
                 isString = false;
-                gen_value(output, &(items->nodes[index]->token));
+                gen_value(output, &(items->nodes[index]->token), false, NULL);
                 break;
             }
             case TOK_STRING:{
                 isString = true;
-                gen_value(output, &(items->nodes[index]->token));
+                gen_value(output, &(items->nodes[index]->token), false, NULL);
                 break;
             }
             case TOK_MUL:{
@@ -349,7 +352,7 @@ void gen_expr(string_t *output, ast_node_t *tree){
             }
         }
         index++;
-    }*/
+    }
 }
 
 /**
