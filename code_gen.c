@@ -185,6 +185,9 @@ void gen_var(string_t *output, token_t *token){
         append_line(localVariables, token->attribute.str.data);
         append_line(localVariables, "\n");
     }
+
+    append_line(output, "PUSHS nil@nil\n");
+    gen_assign(output, token);
 }
 
 /**
@@ -286,6 +289,7 @@ void gen_expr(string_t *output, ast_node_t *tree){
         switch (items->nodes[index]->token.type){
             case TOK_IDENTIFIER:{
                 gen_value(output, NULL, true, items->nodes[index]->token.attribute.str.data);
+                break;
             }
             case TOK_INT:
             case TOK_DOUBLE:{
@@ -367,12 +371,12 @@ void gen_if(string_t *output, int counter){
                         "POPS GF@tmp_res\n"
                         "JUMPIFNEQ else");
     char str[16];
-    sprintf(str, "%d\n", counter);
+    sprintf(str, "%d", counter);
     append_line(output, str);
     append_line(output, " GF@tmp_res bool@true\n");
     append_line(output, "# body of if\n");
     if (nestLevel == 1){
-      append_line(output, "\nCREATEFRAME\n"
+      append_line(output, "CREATEFRAME\n"
                             "PUSHFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
@@ -398,7 +402,7 @@ void gen_else(string_t *output, int counter){
     sprintf(str, "%d\n", counter);
     append_line(output, str);
     if (nestLevel == 1){
-      append_line(output, "\nCREATEFRAME\n"
+      append_line(output, "CREATEFRAME\n"
                             "PUSHFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
@@ -894,4 +898,12 @@ void prepare_values(string_t *output){
                         "POPS LF@op1\n"
                         "POPFRAME\n"
                         "RETURN\n");
+}
+
+void gen_true(string_t *output){
+    append_line(output, "PUSHS bool@true\n");
+}
+
+void gen_false(string_t *output){
+    append_line(output, "PUSHS bool@false\n");
 }

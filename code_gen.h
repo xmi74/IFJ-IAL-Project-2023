@@ -88,4 +88,8 @@ void gen_questionm(string_t *output);
 
 void gen_concat(string_t *output);
 
+void gen_true(string_t *output);
+
+void gen_false(string_t *output);
+
 #endif
