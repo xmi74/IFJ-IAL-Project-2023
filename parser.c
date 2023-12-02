@@ -40,7 +40,7 @@ token_type_t type_t_to_token_type_t(type_t type)
     }
     else
     {
-        // TODO
+        // nemelo by nastat
         return TOK_NOTHING;
     }
 }
@@ -61,7 +61,7 @@ type_t token_type_t_to_type_t(token_type_t type)
     }
     else
     {
-        // TODO
+        // nemelo by nastat
         return T_NIL;
     }
 }
@@ -83,7 +83,7 @@ token_type_t kw_to_token_type(token_type_t kw)
     }
     else
     {
-        // TODO
+        // nemelo by nastat
         return kw;
     }
 }
@@ -329,16 +329,25 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     }
     if (current_token.type == TOK_EOL) // asi v pohode, neco jako var x = \n 5
     {
-        getToken();
+        current_token = getToken();
     }
     
     // precti 2. token za =, pak se vrat na 1. token
+
+    bool is_func = false;
+    if ((current_token.type == TOK_IDENTIFIER) && (global_search(global_table, &current_token.attribute.str) != NULL))
+    {
+        if(global_search(global_table, &current_token.attribute.str)->is_func == true)
+        {
+            is_func = true;
+        }
+    }
+
     current_token = getToken();
-
     ungetToken();
     ungetToken();
 
-    if (current_token.type != TOK_EOF && current_token.type != TOK_EOL)
+    if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
         token_type_t type_expr = checkExpression(local_table, global_table);
         if (var_type.type == TOK_NOTHING)
@@ -366,6 +375,8 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 // error - prirazeni nil do non-nil var
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
+            var_type.type = kw_to_token_type(var_type.type);
+            gen_value(output, &var_type, false, NULL);
         }
         else if (current_token.type == TOK_IDENTIFIER)
         {
@@ -512,17 +523,21 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             ((local_symtab_t*)var)->isInitialised = true;
         }
 
+        bool is_func = false;
         current_token = getTokenAssertArr(5, (token_type_t[]){TOK_KW_NIL, TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER});
-
+        ungetToken();
+        if ((current_token.type == TOK_IDENTIFIER) && (global_search(global_table, &current_token.attribute.str) != NULL))
+        {
+            if(global_search(global_table, &current_token.attribute.str)->is_func == true)
+            {
+                is_func = true;
+            }
+        }
         current_token = getToken();
-
-
         ungetToken();
         ungetToken();
-
-        // TODO: zmenit poradi
-
-        if (current_token.type != TOK_EOF && current_token.type != TOK_EOL)
+        
+        if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
         {
             token_type_t type_expr = checkExpression(local_table, global_table);
             if (var_type != type_expr)
@@ -700,6 +715,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     }
     else if (current_token.type == TOK_KW_LET)
     {
+        gen_if(output, counter);
         current_token = getTokenAssert(TOK_IDENTIFIER);
         void* var = local_search_in_all(local_table, &current_token.attribute.str);
         if(var == NULL)
@@ -735,9 +751,9 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     }
     else
     {
+        gen_if(output, counter);
         ungetToken();
         handle_cond(local_table, global_table);
-        gen_if(output, counter);
         getTokenAssert(TOK_L_CRL_BRCKT);
         if(parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table) == false)
         {
@@ -1025,7 +1041,7 @@ void find_functions(global_symtab_t **global_table)
                 else
                 {
                     
-                    func_param_t* tmp = realloc(params, sizeof(func_param_t) * param_cntr + 1); // neni idealni, ale asi nebude tolik paramentru aby na tom zalezelo
+                    func_param_t* tmp = realloc(params, sizeof(func_param_t) * (param_cntr + 1)); // neni idealni, ale asi nebude tolik paramentru aby na tom zalezelo
                     if (tmp == 0)
                     {
                         // error
