@@ -95,7 +95,7 @@ void gen_end(string_t *output){
  * @param output Ukazatel na dynamicky string, v ktorom je output
  * @param token Token, ktoreho hodnota sa ma nacitat
 */
-void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
+void gen_value(string_t *output, token_t *token, bool isVariable, char* name, bool isFunction){
     switch (token->type) {
         case TOK_INT: {
             append_line(output, "PUSHS int@");
