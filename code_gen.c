@@ -95,7 +95,7 @@ void gen_end(string_t *output){
  * @param output Ukazatel na dynamicky string, v ktorom je output
  * @param token Token, ktoreho hodnota sa ma nacitat
 */
-void gen_value(string_t *output, token_t *token){
+void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     switch (token->type) {
         case TOK_INT: {
             append_line(output, "PUSHS int@");
@@ -207,6 +207,10 @@ void gen_func_end(string_t *output, token_t *token){
     append_line(output, "_end\n");
 }
 
+void gen_func_return(string_t *output, token_t *token){
+
+}
+
 /**
  * @brief Funckia na volanie funkcie
  * 
@@ -226,7 +230,7 @@ void gen_func_call(string_t *output, char *name){
  * @param tree Ukazatel na AST strom obsahujuci spracovany expression
 */
 void gen_expr(string_t *output, ast_node_t *tree){
-    ast_items_t *items = malloc(sizeof(ast_items_t));
+    /*ast_items_t *items = malloc(sizeof(ast_items_t));
     items_init(items);
     ast_postorder(tree, items);
     int index = 0;
@@ -298,7 +302,7 @@ void gen_expr(string_t *output, ast_node_t *tree){
             }
         }
         index++;
-    }
+    }*/
 }
 
 /**
