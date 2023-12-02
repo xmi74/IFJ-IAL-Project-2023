@@ -525,7 +525,6 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
 
         bool is_func = false;
         current_token = getTokenAssertArr(5, (token_type_t[]){TOK_KW_NIL, TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER});
-        ungetToken();
         if ((current_token.type == TOK_IDENTIFIER) && (global_search(global_table, &current_token.attribute.str) != NULL))
         {
             if(global_search(global_table, &current_token.attribute.str)->is_func == true)
