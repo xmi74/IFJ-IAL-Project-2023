@@ -42,6 +42,8 @@ void gen_expr(string_t *output, ast_node_t *tree);
 
 void gen_if(string_t *output, int counter);
 
+gen_if_let(string_t *output, char *name);
+
 void gen_else(string_t *output, int counter);
 
 void gen_if_end(string_t *output, int counter);
@@ -87,9 +89,5 @@ void gen_greater_or_eq(string_t *output);
 void gen_questionm(string_t *output);
 
 void gen_concat(string_t *output);
-
-void gen_true(string_t *output);
-
-void gen_false(string_t *output);
 
 #endif

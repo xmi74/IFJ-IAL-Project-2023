@@ -731,6 +731,8 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     }
     else if (current_token.type == TOK_KW_LET)
     {
+        gen_if_let(output, current_token.attribute.str.data);
+        gen_if(output, counter);
         current_token = getTokenAssert(TOK_IDENTIFIER);
         void* var = local_search_in_all(local_table, &current_token.attribute.str);
         if(var == NULL)
@@ -750,7 +752,6 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             {
                 has_return = false;
             }
-            gen_false(output);
         }
         else
         {
@@ -763,10 +764,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             {
                 has_return = false;
             }
-            gen_true(output);
         }
-        gen_true(output);
-        append_line(output, "CALL equals\n");
     }
     else
     {
@@ -806,6 +804,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         ungetToken();
     }
     gen_if_end(output, counter);
+    counter++;
     return has_return;
 }
 

@@ -395,6 +395,21 @@ void gen_if(string_t *output, int counter){
     }
 }
 
+gen_if_let(string_t *output, char *name){
+    gen_value(output, NULL, true, name);
+    append_line(output, "CREATEFRAME\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@type\n"
+                        "DEFVAR LF@tmp\n"
+                        "TYPE LF@type LF@tmp\n"
+                        "JUMPIFNEQ let_nil LF@type nil@nil\n"
+                        "PUSHS bool@true\n"
+                        "POPFRAME\n"
+                        "LABEL let_nil\n"
+                        "PUSHS bool@false\n"
+                        "POPFRAME\n");
+}
+
 /**
  * @brief Funkcia na vygenerovanie else
  * 
@@ -909,12 +924,4 @@ void prepare_values(string_t *output){
                         "POPS LF@op1\n"
                         "POPFRAME\n"
                         "RETURN\n");
-}
-
-void gen_true(string_t *output){
-    append_line(output, "PUSHS bool@true\n");
-}
-
-void gen_false(string_t *output){
-    append_line(output, "PUSHS bool@false\n");
 }
