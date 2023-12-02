@@ -33,6 +33,7 @@ typedef struct local_symtab
     token_type_t type;          // Typ lokalnej premennej
     bool includesNil;           // Obsahuje nil?
     bool isConstant;            // Je konstanta?
+    bool isInitialised;         // Je inicializovana?
     int height;                 // Vyska stromu
     //int depth;                  // Hlbka zanorenia
     struct local_symtab *left;  // Lavy potomok
@@ -60,6 +61,7 @@ typedef struct global_symtab
     type_t type;                // Typ funkcie/globalnej premennej
     bool includesNil;           // Obsahuje nil?
     bool isConstant;            // Je konstanta?
+    bool isInitialised;         // Je inicializovana?
     int height;                 // Vyska stromu
     //int depth;                  // Hlbka zanorenia
     bool is_func;               // Je funkce?
@@ -97,7 +99,7 @@ local_symtab_t *local_search(local_symtab_t *local_table, string_t *key);
 local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, string_t *key);
 
 // Vlozenie symbolu do lokalnej tabulky
-local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type, bool includesNil, bool isConstant);
+local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type, bool includesNil, bool isConstant, bool isInitialised);
 
 // Uvolnenie pamati lokalnej tabulky
 void local_dispose(local_symtab_t **local_table);
@@ -121,7 +123,7 @@ void global_init(global_symtab_t **global_table);
 global_symtab_t *global_search(global_symtab_t *global_table, string_t *key);
 
 // Vlozenie symbolu do globalnej tabulky
-global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params, bool includesNil, bool isConstant);
+global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params, bool includesNil, bool isConstant, bool isInitialised);
 
 // Uvolnenie pamati globalnej tabulky
 void global_dispose(global_symtab_t **global_table);
