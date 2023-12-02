@@ -63,20 +63,19 @@ void checkTypes(ast_node_t *root)
         {
             root->type = root->left->type;
         }
-
         // INT + Double, kde INT musi byt LITERAL!
-        else if (root->left->type == TOK_DOUBLE && (root->right->type == TOK_INT && root->right->token.type == TOK_INT))
+        else if (root->left->type == TOK_DOUBLE && (root->right->type == TOK_INT && root->right->literal == true))
         {
             root->type = TOK_DOUBLE;
         }
-        else if ((root->left->token.type == TOK_INT && root->left->type == TOK_INT) && root->right->type == TOK_DOUBLE)
+        else if ((root->left->literal == true && root->left->type == TOK_INT) && root->right->type == TOK_DOUBLE)
         {
             root->type = TOK_DOUBLE;
         }
         else
         {
             root->type = TOK_NOTHING; // chyba typov, nemalo by nastat, kontroluje sa uz v expr
-returnError(TYPE_COMPATIBILITY_ERR);
+            returnError(TYPE_COMPATIBILITY_ERR);
         }
     }
 
