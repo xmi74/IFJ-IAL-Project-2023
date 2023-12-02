@@ -23,7 +23,7 @@ type_t token_type_t_to_type_t(token_type_t type);
 
 void load_built_in_functions();
 
-void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table, int nest_level);
+void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
 void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level);
 
