@@ -335,8 +335,6 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     // precti 2. token za =, pak se vrat na 1. token
 
     bool is_func = false;
-
-    
     if (current_token.type == TOK_IDENTIFIER)
     {
         if(getToken().type == TOK_L_BRCKT)
@@ -550,6 +548,10 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 }
             }
             ungetToken();
+        }
+        else
+        {
+            getToken();
         }
 
         current_token = getToken();
