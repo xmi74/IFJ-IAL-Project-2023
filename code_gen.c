@@ -11,6 +11,7 @@
 */
 
 #include "code_gen.h"
+extern int nestLevel;
 
 /**
  * @brief Funkcia na vytvorenie dynamickeho stringu
@@ -96,45 +97,50 @@ void gen_end(string_t *output){
  * @param token Token, ktoreho hodnota sa ma nacitat
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
-    switch (token->type) {
-        case TOK_INT: {
-            append_line(output, "PUSHS int@");
-            char str[16];
-            sprintf(str, "%d\n", token->attribute.intValue);
-            append_line(output, str);
-            break;
-        }
+    if (isVariable){
         
-        case TOK_DOUBLE: {
-            append_line(output, "PUSHS float@");
-            char str[32];
-            sprintf(str, "%a\n", token->attribute.doubleValue);
-            append_line(output, str);
-            break;
-        }
-
-        case TOK_STRING: {
-            append_line(output, "PUSHS string@");
-            
-            for (size_t index = 0; index < token->attribute.str.length; index++){
-                char c = token->attribute.str.data[index];
-                char str[5];
-                if ((c >= 0 && c <= 32) || (c == 35) || (c == 92)){
-                    append_line(output, "\\\\");
-                    sprintf(str, "%03d", c);
-                    append_line(output, str);
-                }
-                else{
-                    str[0] = c;
-                    str[1] = '\0';
-                    append_line(output, str);
-                }
+    }
+    else{
+        switch (token->type) {
+            case TOK_INT: {
+                append_line(output, "PUSHS int@");
+                char str[16];
+                sprintf(str, "%d\n", token->attribute.intValue);
+                append_line(output, str);
+                break;
             }
-            append_line(output, "\n");
-            break;
+
+            case TOK_DOUBLE: {
+                append_line(output, "PUSHS float@");
+                char str[32];
+                sprintf(str, "%a\n", token->attribute.doubleValue);
+                append_line(output, str);
+                break;
+            }
+
+            case TOK_STRING: {
+                append_line(output, "PUSHS string@");
+
+                for (size_t index = 0; index < token->attribute.str.length; index++){
+                    char c = token->attribute.str.data[index];
+                    char str[5];
+                    if ((c >= 0 && c <= 32) || (c == 35) || (c == 92)){
+                        append_line(output, "\\\\");
+                        sprintf(str, "%03d", c);
+                        append_line(output, str);
+                    }
+                    else{
+                        str[0] = c;
+                        str[1] = '\0';
+                        append_line(output, str);
+                    }
+                }
+                append_line(output, "\n");
+                break;
+            }
+            default:
+                returnError(INTERN_ERR);
         }
-        default:
-            returnError(INTERN_ERR);
     }
 }
 
@@ -184,6 +190,7 @@ void gen_assign(string_t *output, token_t *token, bool function){
  * @param token Token obsahujuci nazov funkcie
 */
 void gen_func(string_t *output, token_t *token){
+    nestLevel++;
     append_line(output, "JUMP ");
     append_line(output, token->attribute.str.data);
     append_line(output, "_end\n");
@@ -200,6 +207,7 @@ void gen_func(string_t *output, token_t *token){
  * @param token Token obsahujuci nazov funckie
 */
 void gen_func_end(string_t *output, token_t *token){
+    nestLevel--;
     append_line(output, "POPFRAME\n"
                         "RETURN\n"
                         "LABEL ");
@@ -312,6 +320,7 @@ void gen_expr(string_t *output, ast_node_t *tree){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_if(string_t *output, int counter){
+    nestLevel++;
     append_line(output, "# body of if\n"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n"
@@ -348,6 +357,7 @@ void gen_else(string_t *output, int counter){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_if_end(string_t *output, int counter){
+    nestLevel--;
     append_line(output, "LABEL if_end");
     char str[16];
     sprintf(str, "%d\n", counter);
@@ -361,6 +371,7 @@ void gen_if_end(string_t *output, int counter){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_while(string_t *output, int counter){
+    nestLevel++;
     append_line(output, "LABEL while"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n");
@@ -391,6 +402,7 @@ void gen_while_body(string_t *output, int counter){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_while_end(string_t *output, int counter){
+    nestLevel--;
     append_line(output, "LABEL while_end");
     char str[16];
     sprintf(str, "%d\n", counter);
