@@ -12,6 +12,7 @@
 
 #include "code_gen.h"
 extern int nestLevel;
+extern string_t *localVariables;
 
 /**
  * @brief Funkcia na vytvorenie dynamickeho stringu
@@ -52,6 +53,7 @@ void append_line(string_t *str1, char* str2){
 */
 string_t *gen_start(){
     string_t *output = new_line(".IFJcode23\n");
+    append_line(output, "DEFVAR GF@tmp_res\n");
     append_line(output, "JUMP main\n");
     // definitions of builtin functions
     gen_read_str(output);
@@ -98,7 +100,14 @@ void gen_end(string_t *output){
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
-        
+        if (nestLevel == 0){
+            append_line(output, "PUSHS GF@");
+        }
+        else{
+            append_line(output, "PUSHS LF@");
+        }
+        append_line(output, name);
+        append_line(output, "\n");
     }
     else{
         switch (token->type) {
@@ -151,17 +160,31 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_var(string_t *output, token_t *token, bool function){
-    append_line(output, "DEFVAR ");
-    if (function){
-        append_line(output, "LF@");
+void gen_var(string_t *output, token_t *token){
+    if (nestLevel == 0){
+        append_line(output, "DEFVAR GF@");
+        append_line(output, token->attribute.str.data);
+        append_line(output, "\n");
     }
     else{
-        append_line(output, "GF@");
+        append_line(output, "DEFVAR LF@");
+        append_line(output, token->attribute.str.data);
+        append_line(output, "\n");
+        char *isDefined = strstr(localVariables->data, token->attribute.str.data);
+        if (isDefined == NULL){
+            append_line(output, "DEFVAR TF@");
+            append_line(output, token->attribute.str.data);
+            append_line(output, "\n");
+            append_line(localVariables, "DEFVAR TF@");
+            append_line(localVariables, token->attribute.str.data);
+            append_line(localVariables, "\n");
+        }
+        append_line(localVariables, "MOVE TF@");
+        append_line(localVariables, token->attribute.str.data);
+        append_line(localVariables, " LF@");
+        append_line(localVariables, token->attribute.str.data);
+        append_line(localVariables, "\n");
     }
-
-    append_line(output, token->attribute.str.data);
-    append_line(output, "\n");
 }
 
 /**
@@ -171,16 +194,22 @@ void gen_var(string_t *output, token_t *token, bool function){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_assign(string_t *output, token_t *token, bool function){
-    append_line(output, "POPS ");
-    if (function){
-        append_line(output, "LF@");
+void gen_assign(string_t *output, token_t *token){
+    if (nestLevel == 0){
+        append_line(output, "POPS GF@");
+        append_line(output, token->attribute.str.data);
+        append_line(output, "\n");
     }
     else{
-        append_line(output, "GF@");
+        append_line(output, "POPS LF@");
+        append_line(output, token->attribute.str.data);
+        append_line(output, "\n");
+        append_line(output, "MOVE TF@");
+        append_line(output, token->attribute.str.data);
+        append_line(output, " LF@");
+        append_line(output, token->attribute.str.data);
+        append_line(output, "\n");
     }
-    append_line(output, token->attribute.str.data);
-    append_line(output, "\n");
 }
 
 /**
@@ -196,8 +225,15 @@ void gen_func(string_t *output, token_t *token){
     append_line(output, "_end\n");
     append_line(output, "LABEL ");
     append_line(output, token->attribute.str.data);
-    append_line(output, "\nCREATEFRAME\n"
-                        "PUSHFRAME\n");
+    if (nestLevel == 1){
+      append_line(output, "\nCREATEFRAME\n"
+                            "PUSHFRAME\n");
+      localVariables = new_line("CREATEFRAME\n");
+    }
+    else{
+        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, localVariables->data);
+    }
 }
 
 /**
@@ -208,6 +244,9 @@ void gen_func(string_t *output, token_t *token){
 */
 void gen_func_end(string_t *output, token_t *token){
     nestLevel--;
+    if (nestLevel == 0){
+        dstringFree(localVariables);
+    }
     append_line(output, "POPFRAME\n"
                         "RETURN\n"
                         "LABEL ");
@@ -321,16 +360,23 @@ void gen_expr(string_t *output, ast_node_t *tree){
 */
 void gen_if(string_t *output, int counter){
     nestLevel++;
-    append_line(output, "# body of if\n"
-                        "CREATEFRAME\n"
-                        "PUSHFRAME\n"
-                        "DEFVAR LF@res\n"
-                        "POPS LF@res\n"
+    append_line(output, "# if condition\n"
+                        "POPS GF@tmp_res\n"
                         "JUMPIFNEQ else");
     char str[16];
     sprintf(str, "%d\n", counter);
     append_line(output, str);
-    append_line(output, "LF@res bool@true\n");
+    append_line(output, " GF@tmp_res bool@true\n");
+    append_line(output, "# body of if\n");
+    if (nestLevel == 1){
+      append_line(output, "\nCREATEFRAME\n"
+                            "PUSHFRAME\n");
+      localVariables = new_line("CREATEFRAME\n");
+    }
+    else{
+        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, localVariables->data);
+    }
 }
 
 /**
@@ -348,6 +394,15 @@ void gen_else(string_t *output, int counter){
                         "LABEL else");
     sprintf(str, "%d\n", counter);
     append_line(output, str);
+    if (nestLevel == 1){
+      append_line(output, "\nCREATEFRAME\n"
+                            "PUSHFRAME\n");
+      localVariables = new_line("CREATEFRAME\n");
+    }
+    else{
+        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, localVariables->data);
+    }
 }
 
 /**
@@ -358,6 +413,9 @@ void gen_else(string_t *output, int counter){
 */
 void gen_if_end(string_t *output, int counter){
     nestLevel--;
+    if (nestLevel == 0){
+        dstringFree(localVariables);
+    }
     append_line(output, "LABEL if_end");
     char str[16];
     sprintf(str, "%d\n", counter);
@@ -372,9 +430,16 @@ void gen_if_end(string_t *output, int counter){
 */
 void gen_while(string_t *output, int counter){
     nestLevel++;
-    append_line(output, "LABEL while"
-                        "CREATEFRAME\n"
-                        "PUSHFRAME\n");
+    if (nestLevel == 1){
+      append_line(output, "\nCREATEFRAME\n"
+                            "PUSHFRAME\n");
+      localVariables = new_line("CREATEFRAME\n");
+    }
+    else{
+        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, localVariables->data);
+    }
+    append_line(output, "LABEL while");
     char str[16];
     sprintf(str, "%d\n", counter);
     append_line(output, str);
@@ -387,12 +452,12 @@ void gen_while(string_t *output, int counter){
  * @param counter Pocitadlo konstrukcii
 */
 void gen_while_body(string_t *output, int counter){
-    append_line(output, "POPS LF@res\n"
+    append_line(output, "POPS GF@tmp_res\n"
                         "JUMPIFNEQ while_end");
     char str[16];
     sprintf(str, "%d", counter);
     append_line(output, str);
-    append_line(output, "LF@res bool@true\n");
+    append_line(output, " GF@tmp_res bool@true\n");
 }
 
 /**
@@ -403,6 +468,9 @@ void gen_while_body(string_t *output, int counter){
 */
 void gen_while_end(string_t *output, int counter){
     nestLevel--;
+    if (nestLevel == 0){
+        dstringFree(localVariables);
+    }
     append_line(output, "LABEL while_end");
     char str[16];
     sprintf(str, "%d\n", counter);
