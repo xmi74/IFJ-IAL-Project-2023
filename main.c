@@ -4,7 +4,9 @@
 
 token_table_t token_table;
 string_t *output;
+string_t *localVariables;
 int counter = 0;
+int nestLevel = 0;
 
 int main()
 {
