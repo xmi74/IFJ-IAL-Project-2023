@@ -122,7 +122,7 @@ bool dataTypeEqual(token_t token1, token_t token2)
 }
 
 // RULES:
-// 1: E → !E
+// 1: E → E!
 // 2: E → E*E
 // 3: E → E/E
 // 4: E → E+E
@@ -163,7 +163,7 @@ bool tokenIsIdentifier(token_t token)
  * @param table tabulka symbolov
  * @return typ tokenu
  */
-token_type_t getTokenType(token_t * token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
+token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     // TODO: PREROBIT PRE INCLUDESNIL MOZNO AJ INE ATRIBUTTY
     local_symtab_t *search;
@@ -240,7 +240,7 @@ void reduceArithmetic(Stack *stack)
     // INTEGER nie je literal a druhy operand je double -> ERROR
     if (operand1.tree->literal == false || operand2.tree->literal == false)
     {
-        if ((operand1.tree->literal == false && operand1.type == TOK_INT && operand2.type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.type == TOK_INT && operand1.type == TOK_DOUBLE))
+        if ((operand1.tree->literal == false && operand1.tree->type == TOK_INT && operand2.tree->type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.tree->type == TOK_INT && operand1.tree->type == TOK_DOUBLE))
         {
             fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
             returnError(TYPE_COMPATIBILITY_ERR);
@@ -341,7 +341,7 @@ void reduceNot(Stack *stack)
  */
 void applyRule(Stack *stack)
 {
-    // Stack_Print(stack);
+    // Stack_Print(stack); // DEBUG
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operation = stack->elements[stack->size - 2];
@@ -410,9 +410,10 @@ void reduceParenthesis(Stack *stack)
  * @brief Funkcia na analyzu vyrazov
  * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu
  * @param table tabulka symbolov
- * @return true ak sa analyza podarila, inak false
+ * @param globalTable globalna tabulka symbolov
+ * @return ast_node_t* ukazatel na koren AST stromu, kde sa nachadzaju potrebne informacie o vyraze
  */
-token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable) // TODO: Vyrovnavaci stack, globalna tabulka symbolov, zlozitejsie vyrazy
+token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     Stack stack;
     Stack_Init(&stack);
@@ -421,16 +422,16 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     token_t stackBottom;
     stackBottom.terminal = true;
     stackBottom.type = TOK_EOF;
-
     Stack_Push(&stack, &stackBottom);
 
     token_t token = getToken();
 
+    // Pomocne premenne pre zistenie ci je vyraz v podmienke
     int parenCount = 0;
-
-    while (token.type != TOK_EOL || token.type != TOK_EOF) // TODO : BUDE MUSIET BYT ZMENENE
+    bool condition = false;
+    while (token.type != TOK_EOL && token.type != TOK_EOF && token.type != TOK_R_CRL_BRCKT)
     {
-        // Stack_Print(&stack);
+        // Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -439,10 +440,15 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
 
         // Koniec vyrazu v podmienke, napr. if,while a pod.
-        if (parenCount == 0 && token.type == TOK_R_BRCKT)
+        // podpora pre if (a == 5) { ... }
+        // a pre if a == 5 { ... }, teda bez zatvoriek
+        if ((parenCount == 0 && token.type == TOK_R_BRCKT) || token.type == TOK_L_CRL_BRCKT)
+        {
+            condition = true;
             break;
+        }
 
-        // Kontrola poctu zatvoriek iba pri LOAD! `(` sa moze 2 krat odcitat, ked nastane REDUCE
+        // Kontrola poctu zatvoriek iba pri precedencii LOAD! Napr. '(' sa moze 2 krat odcitat, ked nastane REDUCE
         if (token.type == TOK_L_BRCKT && result == L)
         {
             parenCount++;
@@ -455,14 +461,29 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         // LOAD
         if (result == L)
         {
-            // Kontrola prefixoveho NOT '!'
+            // Kontrola prefixoveho NOT '!' - Syntax analyza
             if (token.type == TOK_NOT)
             {
                 token_t stackTrueTop;
                 Stack_Top(&stack, &stackTrueTop);
 
-                // Ak je operand postfixoveho 'NOT' nieco ine ako identifikator, ')' alebo terminal, tak je to chyba (neterminal je expression)
-                if (!tokenIsIdentifier(stackTrueTop) && stackTrueTop.type != TOK_R_BRCKT && stackTrueTop.terminal != false) // TODO : Mozno nemoze nastat R_BRCKT
+                // Kontrola ci operand je TERM alebo neterminal (Redukovana expression)
+                if (tokenIsIdentifier(stackTrueTop) || stackTrueTop.terminal == false)
+                {
+                    // Kontrola ci je operand literal
+                    if (stackTrueTop.tree->literal == true)
+                    {
+                        fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
+                        returnError(OTHER_ERR);
+                    }
+                    // if (!tokenIsIdentifier(stackTrueTop))
+                    // {
+                    //     fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
+                    //     returnError(SYNTAX_ERR);
+                    // }
+                }
+                // Oprand je operator (+-*/...)
+                else if (stackTrueTop.terminal == true)
                 {
                     fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
                     returnError(SYNTAX_ERR);
@@ -472,8 +493,10 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
             // Ak je identifikator aplikuj pravidlo E → i
             if (tokenIsIdentifier(token))
             {
+                // Uchovanie informacii o povodnom tokene
                 token.terminal = false;
                 token.tree = make_leaf(token);
+
                 // Ziskanie typu tokenu z tabulky symbolov
                 if (token.type == TOK_IDENTIFIER)
                 {
@@ -483,12 +506,15 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                         fprintf(stderr, "[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
                         returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
                     }
+                    // Token bol premenna, nastav literal na false
                     token.tree->literal = false;
                 }
                 else
                 {
+                    // Token je literal
                     token.tree->literal = true;
                 }
+                // Ulozenie typu tokenu do stromu
                 token.tree->type = token.type;
                 token.tree->token.attribute.includesNil = token.attribute.includesNil;
             }
@@ -497,8 +523,8 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                 Stack_InsertLesser(&stack);
             }
             Stack_Push(&stack, &token);
-            token = getToken();
 
+            token = getToken();
             continue;
         }
         // REDUCE - pouzi pravidlo
@@ -517,26 +543,40 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
             token = getToken();
             reduceParenthesis(&stack);
         }
-        else // Undefined
+        else // U - Undefined
         {
-            fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...)\n");
+            fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...) or double '!'\n");
             Stack_Dispose(&stack);
             returnError(SYNTAX_ERR);
         }
     }
 
-    // Stack_Print(&stack);
+    // Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
-    while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
+    while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
+        // Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
+    // Vysledok je na vrchole zasobnika, resp. koren AST stromu
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    // ast_gen(result.tree);
+    // ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
+
+    // Vratenie tokenu spat do parseru, pre dalsiu pripadnu analyzu
     ungetToken();
+
+    // Ak sme v podmienke, vyraz musi obsahovat boolovsky operator, inak chyba 7
+    if (condition == true)
+    {
+        if (result.type != TOK_EQUAL && result.type != TOK_NOT_EQUAL && result.type != TOK_LESSER && result.type != TOK_GREATER && result.type != TOK_LESSER_OR_EQUAL && result.type != TOK_GREATER_OR_EQUAL)
+        {
+            fprintf(stderr, "[EXPR] ERROR: No bool operator in condition\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
+    }
     return result.tree->type;
 }
