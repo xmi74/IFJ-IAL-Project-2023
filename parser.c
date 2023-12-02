@@ -109,8 +109,18 @@ void load_built_in_functions()
     }
 }
 
-void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
+void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table, int nest_level)
 {
+    bool is_in_func;
+    if (nest_level == 0)
+    {
+        is_in_func = false;
+    }
+    else
+    {
+        is_in_func = true;
+    }
+    
     token_t current_token;
     if (strcmp(func->key.data, "write") == 0)
     {
@@ -121,7 +131,7 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
 
             if (current_token.type != TOK_IDENTIFIER)
             {
-                gen_value(output, &current_token);
+                gen_value(output, &current_token, false, NULL, is_in_func);
                 current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT});
                 continue;
             }
@@ -175,7 +185,7 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
             // TODO
             
 
-            gen_value(output, &token_out);
+            gen_value(output, &token_out, current_token.attribute.str.data, NULL, is_in_func);
             current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT});
         }
         gen_func_call(output, func->key.data);
@@ -232,11 +242,11 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
                 token_out.type = ((local_symtab_t*)var)->type;
             }
             token_out.type = kw_to_token_type(token_out.type);
-            gen_value(output, &token_out);
+            gen_value(output, &token_out, true, current_token.attribute.str.data, is_in_func);
         }
         else
         {
-            gen_value(output, &current_token);
+            gen_value(output, &current_token, false, NULL, is_in_func);
         }
 
         if (i < global_table->param_count - 1)
@@ -250,6 +260,15 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
 
 void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
+    bool is_in_func;
+    if (nest_level == 0)
+    {
+        is_in_func = false;
+    }
+    else
+    {
+        is_in_func = true;
+    }
     token_t var_type;
     var_type.type = TOK_NOTHING;
     bool is_constant = false;
@@ -405,11 +424,11 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                         // error - spatny typ
                         returnError(TYPE_COMPATIBILITY_ERR);
                     }
-                    gen_value(output, &var_type);
+                    gen_value(output, &var_type, true, current_token.attribute.str.data, is_in_func);
                 }
                 else
                 {
-                    call_func(var_glob, local_table, global_table);
+                    call_func(var_glob, local_table, global_table, nest_level);
                 }
             }
             else
@@ -425,7 +444,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                     // error - spatny typ
                     returnError(TYPE_COMPATIBILITY_ERR);
                 }
-                gen_value(output, &var_type);
+                gen_value(output, &var_type, true, current_token.attribute.str.data, is_in_func);
             }
 
         }
@@ -440,7 +459,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 //error - spatny typ
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
-            gen_value(output, &current_token); // TODO: overit
+            gen_value(output, &current_token, false, NULL, is_in_func); // TODO: overit
         }
     }
     
@@ -467,6 +486,15 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
 void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
+    bool is_in_func;
+    if (nest_level == 0)
+    {
+        is_in_func = false;
+    }
+    else
+    {
+        is_in_func = true;
+    }
     token_t current_token = getToken();
     if (current_token.type == TOK_L_BRCKT) // za id ihned '('
     {
@@ -477,7 +505,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             // error - nedefinovana funkce
             returnError(FUNCTION_DEFINITION_ERR);
         }
-        call_func(func, local_table, global_table);
+        call_func(func, local_table, global_table, nest_level);
     }
     else if (current_token.type == TOK_ASSIGN)
     {
@@ -534,13 +562,13 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                     // error - spatny typ
                     returnError(TYPE_COMPATIBILITY_ERR);
                 }
-                gen_value(output, &current_token);   
+                gen_value(output, &current_token, false, NULL, is_in_func);   
             }
             else if (global_search(global_table, &current_token.attribute.str) != NULL)
             {
                 if(global_search(global_table, &current_token.attribute.str)->is_func == true)
                 {
-                    call_func(global_search(global_table, &current_token.attribute.str), local_table, global_table);
+                    call_func(global_search(global_table, &current_token.attribute.str), local_table, global_table, nest_level);
                 }
                 else
                 {
@@ -550,7 +578,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                         returnError(TYPE_COMPATIBILITY_ERR);
                     }
                     current_token.type = type_t_to_token_type_t(global_search(global_table, &current_token.attribute.str)->type);
-                    gen_value(output, &current_token);
+                    gen_value(output, &current_token, true, current_token.attribute.str.data, is_in_func);
                 }
             }
             else
