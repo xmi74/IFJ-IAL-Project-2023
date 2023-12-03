@@ -188,9 +188,6 @@ void gen_var(string_t *output, char *name){
         append_line(localVariables, name);
         append_line(localVariables, "\n");
     }
-
-    append_line(output, "PUSHS nil@nil\n");
-    gen_assign(output, name);
 }
 
 /**
@@ -408,7 +405,7 @@ void gen_if(string_t *output, int counter){
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
-        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, "PUSHFRAME\n");
         append_line(output, localVariables->data);
     }
 }
@@ -420,7 +417,7 @@ void gen_if_let(string_t *output, char *name){
                         "DEFVAR LF@type\n"
                         "DEFVAR LF@tmp\n"
                         "TYPE LF@type LF@tmp\n"
-                        "JUMPIFNEQ let_nil LF@type nil@nil\n"
+                        "JUMPIFNEQ let_nil LF@type string@\n"
                         "PUSHS bool@true\n"
                         "POPFRAME\n"
                         "LABEL let_nil\n"
@@ -450,7 +447,7 @@ void gen_else(string_t *output, int counter){
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
-        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, "PUSHFRAME\n");
         append_line(output, localVariables->data);
     }
 }
