@@ -300,14 +300,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 ungetToken();
             }
             
-            if (nest_level == 0)
-            {
-                gen_var(output, identifier.attribute.str.data);
-            }
-            else
-            {
-                gen_var(output, identifier.attribute.str.data);
-            }
+            gen_var(output, identifier.attribute.str.data);
 
             var_type.type = kw_to_token_type(var_type.type);
 
@@ -767,7 +760,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         if(var == NULL)
         {
             var = global_search(global_table, &current_token.attribute.str);
-            gen_if_let(output, ((global_symtab_t*)var)->key.data);
+            gen_if_let(output, ((global_symtab_t*)var)->key.data, counter);
             gen_if(output, counter);
             if (var == NULL)
             {
@@ -788,7 +781,6 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             {
                 //TODO
             }
-            gen_if(output, counter);
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
             if (parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, &((global_symtab_t*)var)->key, type_t_to_token_type_t(((global_symtab_t*)var)->type)) == false)
             {
@@ -797,7 +789,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         }
         else
         {
-            gen_if_let(output, ((local_symtab_t*)var)->key.data);
+            gen_if_let(output, ((local_symtab_t*)var)->key.data, counter);
             gen_if(output, counter);
             if (((local_symtab_t*)var)->includesNil == false)
             {

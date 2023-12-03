@@ -188,9 +188,6 @@ void gen_var(string_t *output, char *name){
         append_line(localVariables, name);
         append_line(localVariables, "\n");
     }
-
-    append_line(output, "PUSHS nil@nil\n");
-    gen_assign(output, name);
 }
 
 /**
@@ -408,24 +405,42 @@ void gen_if(string_t *output, int counter){
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
-        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, "PUSHFRAME\n");
         append_line(output, localVariables->data);
     }
 }
 
-void gen_if_let(string_t *output, char *name){
-    gen_value(output, NULL, true, name);
+void gen_if_let(string_t *output, char *name, int counter){
     append_line(output, "CREATEFRAME\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@type\n"
-                        "DEFVAR LF@tmp\n"
-                        "TYPE LF@type LF@tmp\n"
-                        "JUMPIFNEQ let_nil LF@type nil@nil\n"
+                        "TYPE LF@type ");
+    char *isDefined = NULL;
+    if (localVariables != NULL){
+        isDefined = strstr(localVariables->data, name);
+    }
+
+    if (isDefined == NULL){
+        append_line(output, "GF@");
+    }
+    else{
+        append_line(output, "LF@");
+    }
+    append_line(output, name);
+    char str[16];
+    sprintf(str, "%d", counter);
+    append_line(output, "\nJUMPIFEQ let_nil");
+    append_line(output, str);
+    append_line(output, " LF@type string@\n"
                         "PUSHS bool@true\n"
-                        "POPFRAME\n"
-                        "LABEL let_nil\n"
-                        "PUSHS bool@false\n"
-                        "POPFRAME\n");
+                        "JUMP let_nil_end");
+    append_line(output, str);
+    append_line(output, "\nLABEL let_nil");
+    append_line(output, str);
+    append_line(output, "\nPUSHS bool@false\n"
+                        "LABEL let_nil_end");
+    append_line(output, str);
+    append_line(output, "\nPOPFRAME\n");
 }
 
 /**
@@ -450,7 +465,7 @@ void gen_else(string_t *output, int counter){
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
-        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, "PUSHFRAME\n");
         append_line(output, localVariables->data);
     }
 }
