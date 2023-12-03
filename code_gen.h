@@ -28,9 +28,9 @@ void gen_end(string_t *output);
 
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name);
 
-void gen_var(string_t *output, token_t *token);
+void gen_var(string_t *output, char *name);
 
-void gen_assign(string_t *output, token_t *token);
+void gen_assign(string_t *output, char *name);
 
 void gen_func(string_t *output, token_t *token);
 

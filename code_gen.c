@@ -160,37 +160,37 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_var(string_t *output, token_t *token){
+void gen_var(string_t *output, char *name){
     if (nestLevel == 0){
         append_line(output, "DEFVAR GF@");
-        append_line(output, token->attribute.str.data);
+        append_line(output, name);
         append_line(output, "\n");
     }
     else{
         append_line(output, "DEFVAR LF@");
-        append_line(output, token->attribute.str.data);
+        append_line(output, name);
         append_line(output, "\n");
         char *isDefined = NULL;
         if (localVariables != NULL){
-            isDefined = strstr(localVariables->data, token->attribute.str.data);
+            isDefined = strstr(localVariables->data, name);
         }
         if (isDefined == NULL){
             append_line(output, "DEFVAR TF@");
-            append_line(output, token->attribute.str.data);
+            append_line(output, name);
             append_line(output, "\n");
             append_line(localVariables, "DEFVAR TF@");
-            append_line(localVariables, token->attribute.str.data);
+            append_line(localVariables, name);
             append_line(localVariables, "\n");
         }
         append_line(localVariables, "MOVE TF@");
-        append_line(localVariables, token->attribute.str.data);
+        append_line(localVariables, name);
         append_line(localVariables, " LF@");
-        append_line(localVariables, token->attribute.str.data);
+        append_line(localVariables, name);
         append_line(localVariables, "\n");
     }
 
     append_line(output, "PUSHS nil@nil\n");
-    gen_assign(output, token);
+    gen_assign(output, name);
 }
 
 /**
@@ -200,20 +200,20 @@ void gen_var(string_t *output, token_t *token){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_assign(string_t *output, token_t *token){
+void gen_assign(string_t *output, char *name){
     if (nestLevel == 0){
         append_line(output, "POPS GF@");
-        append_line(output, token->attribute.str.data);
+        append_line(output, name);
         append_line(output, "\n");
     }
     else{
         append_line(output, "POPS LF@");
-        append_line(output, token->attribute.str.data);
+        append_line(output, name);
         append_line(output, "\n");
         append_line(output, "MOVE TF@");
-        append_line(output, token->attribute.str.data);
+        append_line(output, name);
         append_line(output, " LF@");
-        append_line(output, token->attribute.str.data);
+        append_line(output, name);
         append_line(output, "\n");
     }
 }
