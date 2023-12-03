@@ -481,13 +481,13 @@ void gen_if_end(string_t *output, int counter){
 void gen_while(string_t *output, int counter){
     nestLevel++;
     if (nestLevel == 1){
-      append_line(output, "\nCREATEFRAME\n"
+      append_line(output, "CREATEFRAME\n"
                             "PUSHFRAME\n"
                             "CREATEFRAME\n");
       localVariables = new_line("CREATEFRAME\n");
     }
     else{
-        append_line(output, "\nPUSHFRAME\n");
+        append_line(output, "PUSHFRAME\n");
         append_line(output, localVariables->data);
     }
     append_line(output, "LABEL while");
