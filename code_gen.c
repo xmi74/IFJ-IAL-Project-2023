@@ -395,7 +395,7 @@ void gen_if(string_t *output, int counter){
     }
 }
 
-gen_if_let(string_t *output, char *name){
+void gen_if_let(string_t *output, char *name){
     gen_value(output, NULL, true, name);
     append_line(output, "CREATEFRAME\n"
                         "PUSHFRAME\n"

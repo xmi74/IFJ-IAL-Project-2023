@@ -42,7 +42,7 @@ void gen_expr(string_t *output, ast_node_t *tree);
 
 void gen_if(string_t *output, int counter);
 
-gen_if_let(string_t *output, char *name);
+void gen_if_let(string_t *output, char *name);
 
 void gen_else(string_t *output, int counter);
 

@@ -733,13 +733,13 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     }
     else if (current_token.type == TOK_KW_LET)
     {
-        gen_if_let(output, current_token.attribute.str.data);
-        gen_if(output, counter);
         current_token = getTokenAssert(TOK_IDENTIFIER);
         void* var = local_search_in_all(local_table, &current_token.attribute.str);
         if(var == NULL)
         {
             var = global_search(global_table, &current_token.attribute.str);
+            gen_if_let(output, ((global_symtab_t*)var)->key.data);
+            gen_if(output, counter);
             if (var == NULL)
             {
                 // error - nedefinovana promenna
@@ -757,6 +757,8 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         }
         else
         {
+            gen_if_let(output, ((local_symtab_t*)var)->key.data);
+            gen_if(output, counter);
             if (((local_symtab_t*)var)->includesNil == false)
             {
                 // error - non-nil promenna v if-let
