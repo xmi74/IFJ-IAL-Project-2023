@@ -29,6 +29,12 @@ extern int counter;
 // TODO: volani generatoru pri var x = y, apod., jak pushovat hodnotu?
 // TODO: globalni promenne - test 17
 
+/**
+ * @brief Konvertuje typ z type_t na token_type_t.
+ *
+ * @param type Typ, ktery se ma konvertovat.
+ * @return Konvertovany typ.
+ */
 token_type_t type_t_to_token_type_t(type_t type)
 {
     if (type == T_INT)
@@ -50,6 +56,12 @@ token_type_t type_t_to_token_type_t(type_t type)
     }
 }
 
+/**
+ * @brief Konvertuje typ z token_type_t na type_t.
+ *
+ * @param type Typ, ktery se ma konvertovat.
+ * @return Konvertovany typ.
+ */
 type_t token_type_t_to_type_t(token_type_t type)
 {
     if (type == TOK_INT)
@@ -71,7 +83,12 @@ type_t token_type_t_to_type_t(token_type_t type)
     }
 }
 
-
+/**
+ * @brief prevede nazev klicoveho slova na datovy typ.
+ *
+ * @param kw Klicove slovo.
+ * @return Datovy typ.
+ */
 token_type_t kw_to_token_type(token_type_t kw)
 {
     if (kw == TOK_KW_INT)
@@ -93,6 +110,10 @@ token_type_t kw_to_token_type(token_type_t kw)
     }
 }
 
+/**
+ * @brief Nacte vestavene funkce.
+ *
+ */
 void load_built_in_functions()
 {
 
@@ -114,6 +135,13 @@ void load_built_in_functions()
     }
 }
 
+/**
+ * @brief Zpracovani volani funkce
+ *
+ * @param func Ukazatel do tabulky symbolu na funkci.
+ * @param local_table Ukazatel na lokalni tabulku symbolu.
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ */
 void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     token_t current_token;
@@ -227,6 +255,14 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
     gen_func_call(output, func->key.data);
 }
 
+/**
+ * @brief Zpracovani nove promenne.
+ *
+ * @param token_assigner Token, ktery urcuje, zda se jedna o konstantu nebo promennou.
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ * @param local_table Ukazatel na lokalni tabulku symbolu.
+ * @param nest_level Uroven zanoreni.
+ */
 void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
     token_t var_type;
@@ -466,6 +502,14 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, true);
 }
 
+/**
+ * @brief Prirazeni hodnoty do promenne/volani funkce.
+ *
+ * @param token_id Nazev promenne ci funkce.
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ * @param local_table Ukazatel na lokalni tabulku symbolu.
+ * @param nest_level Uroven zanoreni.
+ */
 void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
     token_t current_token = getToken();
@@ -599,6 +643,13 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
     }
 }
 
+
+/**
+ * @brief Zpracovani definice funkce.
+ *
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ * @param local_table_one_up Ukazatel na lokalni tabulku symbolu.
+ */
 void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up)
 {
     token_t token = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
@@ -679,12 +730,26 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     }
 }
 
+/**
+ * @brief Zpracovani podminky
+ *
+ * @param local_table Ukazatel na lokalni tabulku symbolu.
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ */
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     //token_t current_token = getToken();
     checkExpression(local_table, global_table);
 }
 
+/**
+ * @brief Zpracovani podminky if.
+ *
+ * @param nest_level Uroven zanoreni.
+ * @param local_table Ukazatel na lokalni tabulku symbolu.
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ * @return Udava zda blok obsahuje return.
+ */
 bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     bool has_return = true;
@@ -800,6 +865,13 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     return has_return;
 }
 
+/**
+ * @brief Zpracovani podminky while.
+ *
+ * @param nest_level Uroven zanoreni.
+ * @param local_table Ukazatel na lokalni tabulku symbolu.
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ */
 void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     getTokenAssert(TOK_L_BRCKT, TYPE_COMPATIBILITY_ERR);
@@ -813,6 +885,17 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
     counter++;
 }
 
+/**
+ * @brief Zpracovani bloku kodu.
+ *
+ * @param nest_level Uroven zanoreni.
+ * @param block_start Token, ktery urcuje zda se jedna o blok v {} nebo ().
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ * @param local_table_one_up Ukazatel na lokalni tabulku symbolu.
+ * @param var_name Nazev promenne, ktera se ma na zacatku vlozit do tabulky symbolu.
+ * @param var_type Typ promenne, ktera se ma na zacatku vlozit do tabulky symbolu.
+ * @return Udava zda blok obsahuje return.
+ */
 bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up, string_t *var_name, token_type_t var_type) // returnuje posledni token
 {
     bool has_return = false;
@@ -931,6 +1014,12 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
     return has_return;
 }
 
+
+/**
+ * @brief Precte podblok, ignoruje obsah.
+ *
+ * @param token Token, ktery urcuje zda se jedna o blok v {} nebo ().
+ */
 void read_subblock(token_t token)
 {
     token_t block_end;
@@ -982,6 +1071,11 @@ void read_subblock(token_t token)
     return;
 }
 
+/**
+ * @brief Najde funkce v kodu, ulozi je to globalni tabulky symbolu.
+ *
+ * @param global_table Ukazatel na globalni tabulku symbolu.
+ */
 void find_functions(global_symtab_t **global_table)
 {
     token_t current_token;
@@ -1119,6 +1213,10 @@ void find_functions(global_symtab_t **global_table)
     addTableToken(&token_table, current_token);
 }
 
+/**
+ * @brief Hlavni funkce parseru.
+ *
+ */
 int parse()
 {
     global_symtab_t *global_table;
