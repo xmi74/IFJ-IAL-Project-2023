@@ -131,6 +131,16 @@ void checkTypes(ast_node_t *root, bool doubleQuestMark)
     {
         root->type = TOK_EOF;
     }
+
+    // Zachovanie informacie o literale
+    if (root->left->literal == true && root->right->literal == true)
+    {
+        root->literal = true;
+    }
+    else
+    {
+        root->literal = false;
+    }
 }
 
 /**

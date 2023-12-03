@@ -5,29 +5,46 @@
 
 testNum=1
 compilerPath="../parser"
+passed=0
+failed=0
+wrc=0
 
 # arguments:
 # 1. name of test
 # 2. input file
 # 3. expected output file
 # 4. expected return code
+#!/bin/bash
+
+# Initialize test number variable
+testNum=1
+
+# Define the execTest function
 execTest () {
 	echo "\e[33m--------------------------------\e[0m"
-	bash -c "$compilerPath < $2 > tmp_output.txt 2>&1"
+	touch stderr.txt
+	output=$(bash -c "$compilerPath < $2" 2>"stderr.txt")
 	returnCode=$?
+	echo "$output" > tmp_output.txt
 	touch tmp_output2.txt
 	if [ "$returnCode" = "0" ]; then
 		./ic23int tmp_output.txt > tmp_output2.txt
 	fi
+
 	printf "\n" >> tmp_output2.txt
-	if [ $returnCode -ne $4 ]; then
-		printf "\e[1m\e[31mFailed\e[0m Test %02d: $1:\n" $testNum
-		printf "\tWrong return code, expected $4, got $returnCode"
-	elif [ -z "$(diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt $3)" ]; then
-		printf "\e[1m\e[32mPassed\e[0m Test %02d: $1\n" $testNum
+
+	if [ "$returnCode" -ne "$4" ]; then
+		printf "\e[1m\e[31mFailed\e[0m Test %02d: %s:\n" "$testNum" "$1"
+		printf "\tWrong return code, expected %s, got %s\n" "$4" "$returnCode"
+		printf "\tStderr output: %s\n" "$(cat "stderr.txt" | tr -d '\n')"
+		wrc=$((wrc+1))
+	elif [ -z "$(diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3")" ]; then
+		printf "\e[1m\e[32mPassed\e[0m Test %02d: %s\n" "$testNum" "$1"
+		passed=$((passed+1))
 	else
-		printf "\e[1m\e[31mFailed\e[0m Test %02d: $1\n" $testNum
-		diff tmp_output2.txt $3 | colordiff
+		printf "\e[1m\e[31mFailed\e[0m Test %02d: %s\n" "$testNum" "$1"
+		failed=$((failed+1))
+		diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3"
 	fi
 	testNum=$((testNum+1))
 	rm -f tmp_output.txt tmp_output2.txt
@@ -106,3 +123,7 @@ execTest "Builtin Length function with wrong type" "input/builtin_length_wrong.s
 execTest "Substring" "input/substring.swift" "output/substring.txt" 0
 execTest "Builtin ord function" "input/builtin_ord.swift" "output/builtin_ord.txt" 0
 execTest "Builtin chr function" "input/builtin_chr.swift" "output/builtin_chr.txt" 0
+echo
+printf "\e[1m\e[32mPassed tests:\e[0m %02d %s\n" "$passed" "$1"
+printf "\e[1m\e[31mFailed tests:\e[0m %02d %s\n" "$failed" "$1"
+printf "\e[1m\e[31mWrong return codes:\e[0m %02d %s\n" "$wrc" "$1"

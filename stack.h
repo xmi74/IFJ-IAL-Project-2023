@@ -52,4 +52,6 @@ token_t *Stack_GetTopTerminal(Stack *stack);
 
 void Stack_InsertLesser(Stack *stack);
 
+void Stack_PopUntilLesser(Stack *stack);
+
 #endif

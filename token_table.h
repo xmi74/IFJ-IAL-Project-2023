@@ -11,6 +11,7 @@
 */
 
 #include "symtable.h"
+#include "error.h"
 #include <stdbool.h>
 
 // Struktura tabulky tokenu
@@ -37,8 +38,8 @@ token_t getTableToken(token_table_t *table);
 
 token_t getToken();
 
-token_t getTokenAssert(token_type_t type);
+token_t getTokenAssert(token_type_t type, int err_code);
 
-token_t getTokenAssertArr(int tok_amount, token_type_t *type);
+token_t getTokenAssertArr(int tok_amount, token_type_t *type, int err_code);
 
 void ungetToken();
