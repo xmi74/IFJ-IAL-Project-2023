@@ -302,11 +302,11 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
             
             if (nest_level == 0)
             {
-                gen_var(output, &identifier);
+                gen_var(output, identifier.attribute.str.data);
             }
             else
             {
-                gen_var(output, &identifier);
+                gen_var(output, identifier.attribute.str.data);
             }
 
             var_type.type = kw_to_token_type(var_type.type);
@@ -323,14 +323,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
             return;
         }
     }
-    if (nest_level == 0)
-    {
-        gen_var(output, &identifier);
-    }
-    else
-    {
-        gen_var(output, &identifier);
-    }
+    gen_var(output, identifier.attribute.str.data);
     
     current_token = getToken();
 
@@ -481,14 +474,8 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
         }
     }
     
-    if (nest_level == 0)
-    {
-        gen_assign(output, &identifier);
-    }
-    else
-    {
-        gen_assign(output, &identifier);
-    }
+    gen_assign(output, identifier.attribute.str.data);
+
     //current_token = getTokenAssertArr(2, (token_type_t[]){TOK_EOF, TOK_EOL});
     current_token = getToken();
     if (current_token.type == TOK_EOF)
@@ -627,14 +614,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             }
         }
 
-        if (nest_level == 0)
-        {
-            gen_assign(output, &token_id);
-        }
-        else
-        {
-            gen_assign(output, &token_id);
-        }
+        gen_assign(output, token_id.attribute.str.data);
     }
     else
     {
@@ -725,6 +705,10 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     }
     else
     {
+        if (local_table.table != NULL){
+            gen_var(output, local_table.table->key.data);
+            gen_assign(output, local_table.table->key.data);
+        }
         parse_block(-1000, TOK_L_CRL_BRCKT, global_table, &local_table, NULL, TOK_NOTHING);
         gen_func_end(output, &token);
     }
@@ -783,6 +767,8 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         if(var == NULL)
         {
             var = global_search(global_table, &current_token.attribute.str);
+            gen_if_let(output, ((global_symtab_t*)var)->key.data);
+            gen_if(output, counter);
             if (var == NULL)
             {
                 // error - nedefinovana promenna
@@ -811,6 +797,8 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         }
         else
         {
+            gen_if_let(output, ((local_symtab_t*)var)->key.data);
+            gen_if(output, counter);
             if (((local_symtab_t*)var)->includesNil == false)
             {
                 // error - non-nil promenna v if-let
@@ -826,9 +814,9 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     }
     else
     {
-        gen_if(output, counter);
         ungetToken();
         handle_cond(local_table, global_table);
+        gen_if(output, counter);
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
         if(parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING) == false)
         {
@@ -862,6 +850,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         ungetToken();
     }
     gen_if_end(output, counter);
+    counter++;
     return has_return;
 }
 
@@ -957,6 +946,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
             while (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
             {
                 current_token = getToken();
+                gen_func_return(output, &current_token);
             }
         }
         else if (current_token.type == TOK_L_CRL_BRCKT)

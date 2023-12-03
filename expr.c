@@ -207,7 +207,7 @@ bool checkOperands(token_t operand1, token_t operand2)
     if (operand1.tree->token.attribute.includesNil == true || operand2.tree->token.attribute.includesNil == true)
     {
         fprintf(stderr, "[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!\n");
-        returnError(TYPE_DEDUCTION_ERR); // Z typu nil sa neda odvodit typ
+        returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
     }
     // Operands okay
     return true;
@@ -289,12 +289,27 @@ bool reduceLogical(Stack *stack)
     token_t operation = stack->elements[stack->size - 2];
     token_t operand1 = stack->elements[stack->size - 3];
 
-    if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = != 3)
+    if (operation.type == TOK_DOUBLE_QUEST_MARK)
+    {
+        if (operand1.attribute.includesNil == false && operand2.attribute.includesNil == false)
+        {
+            returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
+        }
         if (dataTypeEqual(operand1, operand2) == false)
         {
             fprintf(stderr, "[EXPR] ERROR: Incompatible data types in bool expression!\n");
             returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
         }
+    }
+    else
+    {
+        if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = != 3)
+            if (dataTypeEqual(operand1, operand2) == false)
+            {
+                fprintf(stderr, "[EXPR] ERROR: Incompatible data types in bool expression!\n");
+                returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
+            }
+    }
 
     while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
     {
@@ -318,13 +333,11 @@ void reduceNot(Stack *stack)
     Stack_Top(stack, &stackTop);
     token_t operand1 = stack->elements[stack->size - 2];  // E
     token_t operation = stack->elements[stack->size - 1]; // !
-    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
-    {
-        Stack_Pop(stack);
-        Stack_Top(stack, &stackTop);
-    }
 
-    Stack_Pop(stack);
+    if (operand1.attribute.includesNil == false)
+        returnError(TYPE_COMPATIBILITY_ERR);
+
+    Stack_PopUntilLesser(stack);
 
     token_t expr = operation;
     expr.terminal = false;
