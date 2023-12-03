@@ -81,6 +81,7 @@ token_t getTokenAssertArr(int tok_amount, token_type_t *type) // getToken, vraci
     }
     // error
     returnError(SYNTAX_ERR); // TODO, placeholder
+    return token; // jen aby si kompilator nestezoval
 }
 
 token_t getToken()

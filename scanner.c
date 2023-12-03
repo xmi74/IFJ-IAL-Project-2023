@@ -30,6 +30,9 @@
         2) v cisle - napr. 1e...
         3) prevody identifikatory, klucove slova
         4) v escape sekvenciach stringov
+
+    CHYBA : NAPR 123ABC, 1.0.0
+    alebo sa z 123ABC spravi 123 a ABC
 */
 
 // Nacitanie znaku zo vstupu
@@ -191,7 +194,7 @@ token_t getNextToken()
 
     initToken(&token);
 
-    while (isspace(c = getNextChar())) {}
+    while (isspace(c = getNextChar())) { if (c == '\n') { ungetChar(c); break; }}
  
     /*  ------ SPRACOVANIE IDENTIFIER ------ */
     if (isalpha(c) || c == '_')    // IDENTIFIER
@@ -223,11 +226,12 @@ token_t getNextToken()
     /*  ------ SPRACOVANIE CISELNY LITERAL ------ */
     else if (isdigit(c))    // ciselny literal musi byt oddeleny medzerou od dalsieho znaku
     {
-        char buffer[100];
+        char buffer[300];
         int i = 0;
         buffer[i++] = c;
+        bool doubleHandled = false;
 
-        while ((c = getNextChar()) != EOF) 
+        while (doubleHandled == false &&(c = getNextChar()) != EOF) 
         {
             /*  ------ SPRACOVANIE DOUBLE LITERALU S DESATINNOU CIARKOU ------ */
 
@@ -238,19 +242,18 @@ token_t getNextToken()
                 if (isdigit(c))         // ak za . nasleduje cislo
                 {
                     buffer[i++] = c;        
-                    while ((c = getNextChar()) != EOF && !(isspace(c)))
+                    while ((c = getNextChar()) != EOF)
                     {
                         if (isdigit(c))     // ak je cislo, pripisuj dalej
                         {
                             buffer[i++] = c;
                         }
-                        else                // ak nie je cislo, error
+                        else
                         {
-                            //ungetChar(c);
-                            break;
-                            //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
-                            //returnError(SCANNER_ERR);
+                            doubleHandled = true;
+                            break;                            
                         }
+                        
                     }
                 }
                 else                    // ak za . nenasleduje cislo -> error
@@ -266,30 +269,53 @@ token_t getNextToken()
             {
                 buffer[i++] = c;     // zapis e/E do bufferu
                 c = getNextChar();
-                if (c == '+' || c == '-' || isdigit(c))     // za exponentom moze nasledovat +, - ci rovno kladne cislo
+                if (c == '+' || c == '-')     // za exponentom moze nasledovat +/-
                 {
-                    buffer[i++] = c;    // zapis +/-/cislo do bufferu
-                    while ((c = getNextChar()) != EOF && !(isspace(c)))
+                    buffer[i++] = c;    
+                    c = getNextChar();
+                    if (isdigit(c))         // ak pride +/- tak musi nasledovat aspon 1 cislo
+                    {
+                        buffer[i++] = c;
+                        while ((c = getNextChar()) != EOF)
+                        {
+                            if (isdigit(c))     // ak je cislo, pripisuj dalej
+                            {
+                                buffer[i++] = c;
+                            }
+                            else                // ak nie je cislo, error
+                            {
+                                doubleHandled = true;
+                                break;
+                            }
+                        }
+                    }
+                    else    // ak za exponentom nenasleduje aspon 1 cislo -> error
+                    {
+                        fprintf(stderr, "SCANNER: Za Exponentom DOUBLE literalu nasledovaneho znamienkom musi nasledovat aspon 1 cislo\n");
+                        returnError(SCANNER_ERR);
+                    }
+                    
+                }
+                else if (isdigit(c))    // ak za Exponentom prislo cislo bez znamienka, je automaticky kladny
+                {
+                    buffer[i++] = c;
+                    while ((c = getNextChar()) != EOF)
                     {
                         if (isdigit(c))     // ak je cislo, pripisuj dalej
                         {
                             buffer[i++] = c;
                         }
-                        else                // ak nie je cislo, error
+                        else                // ak nie je cislo, ani operator
                         {
                             ungetChar(c);
                             break;
-                            //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
-                            //returnError(SCANNER_ERR);
                         }
                     }
                 }
-                else
+                else    // ak za exponentom nasleduje hocico ine ako +/-/cislo -> error
                 {
-                    //ungetChar(c);
-                    break;
-                    //fprintf(stderr, "\nSCANNER: Zapis nepovoleneho znaku do double literalu : [ %c ]\n", c);
-                    //returnError(SCANNER_ERR);
+                    fprintf(stderr, "\nSCANNER: Za exponentom DOUBLE literalu musi nasledovat +/-/cislo : [ %c ]\n", c);
+                    returnError(SCANNER_ERR);
                 }                
             }
 
@@ -302,15 +328,18 @@ token_t getNextToken()
             else
             {
                 break;
-                fprintf(stderr, "SCANNER: Nepovoleny znak: [ %c ] pri zapise ciselneho literalu\n", c);
-                returnError(SCANNER_ERR);
             }
         }
 
         buffer[i] = '\0';
         ungetChar(c);
 
-        if (strchr(buffer, '.') != NULL || strchr(buffer, 'e') != NULL || strchr(buffer, 'E') != NULL) 
+        if (strchr(buffer, '.') != NULL && (strchr(buffer, 'e') != NULL || strchr(buffer, 'E') != NULL))    // Ak sa v cisle nachadza zaroven desatina ciarka a exponent -> error
+        {
+            fprintf(stderr, "\nSCANNER: Double literal obsahuje exponent aj desatinnu ciarku zaroven!\n");
+            returnError(SCANNER_ERR);
+        }
+        else if (strchr(buffer, '.') != NULL || strchr(buffer, 'e') != NULL || strchr(buffer, 'E') != NULL) 
         {
             token.type = TOK_DOUBLE;
             token.attribute.doubleValue = strtod(buffer, NULL);
@@ -338,7 +367,7 @@ token_t getNextToken()
     {
         token.type = TOK_DIV;
         c = getNextChar();
-        if (c == '*') // Blokový komentár /* ... */
+        if (c == '*')   // Blokovy komentar /* ... */
         {
             token.type = TOK_BLOCK_COM_START;
             int nestedCommentLevel = 1;
@@ -363,22 +392,21 @@ token_t getNextToken()
 
             if (nestedCommentLevel > 0)
             {
-                // Chyba: Neočakávaný koniec súboru v blokovom komentári
                 fprintf(stderr, "SCANNER: Chybaju [ %d ] ukoncenia blokovych komentarov\n", nestedCommentLevel);
                 returnError(SCANNER_ERR);
             }
         }
-        else if (c == '/') // Riadkový komentár // ...
+        else if (c == '/')  // Riadkovy koment // ...
         {
             token.type = TOK_COMMENT;
             while ((c = getNextChar()) != EOF && c != '\n')
             {
-                // Sme v komentári, teda nepotrebujeme načítavať znaky až do konca riadku
+                // V riadkovom komentari ignoruj znaky az do konca riadku
             }
         }
         else
         {
-            ungetChar(c); // Vrátiť nečítaný znak späť do vstupu
+            ungetChar(c); 
         }
     }
     else if (c == EOF) token.type = TOK_EOF;        // EOF
@@ -580,9 +608,6 @@ token_t getNextToken()
         token.type = TOK_STRING;
         token.attribute.str = string;   // neni potreba dstring copy ?
     }
-
-    /*  ------------------------------------ */
-
     else if (c == '\n')
     {
         token.type = TOK_EOL;                       // EOL
@@ -594,6 +619,7 @@ token_t getNextToken()
         }
         ungetChar(c);                               // ERROR
     }
+    /*  ------------------------------------ */
     else
     {
         fprintf(stderr, "\nSCANNER: Nacitanie neznameho symbolu: [ %c ]\n", c);
@@ -602,4 +628,3 @@ token_t getNextToken()
 
     return token;
 }
-

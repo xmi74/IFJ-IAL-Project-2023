@@ -4,3 +4,4 @@ project
 symtableWriteGraph.dot
 tests/tmp_output2.txt
 parser
+tests/stderr.txt
