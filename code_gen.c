@@ -207,6 +207,13 @@ void gen_assign(string_t *output, char *name){
         append_line(output, "\n");
     }
     else{
+        char *isDefined = NULL;
+        if (localVariables != NULL){
+            isDefined = strstr(localVariables->data, name);
+        }
+        if (isDefined == NULL){
+            gen_var(output, name);
+        }
         append_line(output, "POPS LF@");
         append_line(output, name);
         append_line(output, "\n");
@@ -262,7 +269,18 @@ void gen_func_end(string_t *output, token_t *token){
 }
 
 void gen_func_return(string_t *output, token_t *token){
-
+    if (token->type == TOK_EOL){
+        append_line(output, "POPFRAME\n"
+                            "RETURN\n");
+    }
+    else{
+        if (token->type == TOK_IDENTIFIER){
+            gen_value(output, NULL, true, token->attribute.str.data);
+        }
+        else{
+            gen_value(output, token, false, NULL);
+        }
+    }
 }
 
 /**

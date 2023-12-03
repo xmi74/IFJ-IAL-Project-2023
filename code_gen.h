@@ -34,6 +34,8 @@ void gen_assign(string_t *output, char *name);
 
 void gen_func(string_t *output, token_t *token);
 
+void gen_func_return(string_t *output, token_t *token);
+
 void gen_func_end(string_t *output, token_t *token);
 
 void gen_func_call(string_t *output, char *name);

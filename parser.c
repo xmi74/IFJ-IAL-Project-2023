@@ -674,8 +674,10 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     }
     else
     {
-        gen_var(output, local_table.table->key.data);
-        gen_assign(output, local_table.table->key.data);
+        if (local_table.table != NULL){
+            gen_var(output, local_table.table->key.data);
+            gen_assign(output, local_table.table->key.data);
+        }
         parse_block(-1000, TOK_L_CRL_BRCKT, global_table, &local_table);
         gen_func_end(output, &token);
     }
@@ -862,6 +864,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
             while (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
             {
                 current_token = getToken();
+                gen_func_return(output, &current_token);
             }
         }
         else if (current_token.type == TOK_L_CRL_BRCKT)
