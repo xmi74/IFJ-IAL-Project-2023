@@ -58,18 +58,18 @@ token_t getTableToken(token_table_t *table)
     return table->tokens[table->index++];
 }
 
-token_t getTokenAssert(token_type_t type) // getToken, vraci chybu pokud obdrzi jiny token nez ocekavany
+token_t getTokenAssert(token_type_t type, int err_code) // getToken, vraci chybu pokud obdrzi jiny token nez ocekavany
 {
     token_t token = getToken();
     if (token.type != type)
     {
         // error
-        returnError(SYNTAX_ERR); // TODO, placeholder
+        returnError(err_code); // TODO, placeholder
     }
     return token;
 }
 
-token_t getTokenAssertArr(int tok_amount, token_type_t *type) // getToken, vraci chybu pokud obdrzi jiny token nez ze seznamu ocekavanych
+token_t getTokenAssertArr(int tok_amount, token_type_t *type, int err_code) // getToken, vraci chybu pokud obdrzi jiny token nez ze seznamu ocekavanych
 {
     token_t token = getToken();
     for(int i = 0; i < tok_amount; i++)
@@ -80,7 +80,7 @@ token_t getTokenAssertArr(int tok_amount, token_type_t *type) // getToken, vraci
         }
     }
     // error
-    returnError(SYNTAX_ERR); // TODO, placeholder
+    returnError(err_code); // TODO, placeholder
     return token; // jen aby si kompilator nestezoval
 }
 
