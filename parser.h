@@ -41,6 +41,6 @@ void read_subblock(token_t token);
 
 void find_functions(global_symtab_t **global_table);
 
-bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
+bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up, string_t *var_name, token_type_t var_type);
 
 int parse();
