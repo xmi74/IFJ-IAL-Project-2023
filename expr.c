@@ -478,7 +478,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     bool condition = false;
     while (token.type != TOK_EOL && token.type != TOK_EOF && token.type != TOK_R_CRL_BRCKT)
     {
-        // Stack_Print(&stack); // DEBUG
+        Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -540,6 +540,8 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
             // Ak je identifikator aplikuj pravidlo E → i
             if (tokenIsIdentifier(token) || token.type == TOK_KW_NIL)
             {
+                if (token.type == TOK_KW_NIL)
+                    token.attribute.includesNil = true;
                 // Uchovanie informacii o povodnom tokene
                 token.terminal = false;
                 token.tree = make_leaf(token);
@@ -603,15 +605,16 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
-        // Stack_Print(&stack); // DEBUG
+        Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
     // Vysledok je na vrchole zasobnika, resp. koren AST stromu
+    Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    // ast_gen(result.tree); // DEBUG
+    ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
 
     // Vratenie tokenu spat do parseru, pre dalsiu pripadnu analyzu

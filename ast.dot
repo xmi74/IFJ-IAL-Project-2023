@@ -1,0 +1,7 @@
+digraph AST {
+  node0x555fb06e34f0 [label="?? (TOK_INT)(N:false)"];
+  node0x555fb06e34f0 -> node0x555fb06e3430 [label="left"];
+  node0x555fb06e3430 [label="?? (TOK_KW_NIL)(N:true)"];
+  node0x555fb06e34f0 -> node0x555fb06e3490 [label="right"];
+  node0x555fb06e3490 [label="5 (TOK_INT)(N:false)"];
+}

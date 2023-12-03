@@ -1,0 +1,2762 @@
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 16, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = nil ?? 5
+    write(a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...) or double '!'
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 21, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int? = nil
+    let b = a ?? 4
+    write(nil, b)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 27, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = 5
+    let b = "ahoj"
+    let c = a + b
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 33, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a = 0
+    while a < 5 {
+        write(a)
+        a = a + 1
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 41, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a = readInt()
+    var b = readInt()
+    if a! == b! {
+        write("eq")
+    } else {
+        write("ne")
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] - SYMTABLE ERROR: Unknown identifier type
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 55, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let input = "ifj projekt je moc hard"
+    let mock = mock(input)
+    write(mock)
+
+    func is_even(_ i: Int) -> Bool {
+        let int = i / 2 * 2 // integer division
+
+        let i_d = Int2Double(i)
+        let d = i_d / 2.0 * 2.0
+        let double = Double2Int(d)
+
+        return int == double
+    }
+
+    func mock_char(_ s: String) -> String {
+        var c = ord(s)
+
+        if c >= 65 { if c <= 90 { // big -> small
+            c = c + 32
+            let new = chr(c)
+            return new
+        } else {} } else {}
+
+        if c >= 97 { if c <= 122 { // small -> big
+            c = c - 32
+            let new = chr(c)
+            return new
+        } else {} } else {}
+
+        return s
+    }
+
+    // you know what it is
+    func mock(_ s: String) -> String {
+        let length = length(s)
+        var idx = 0
+        var output = ""
+
+        while idx < length {
+            let end = idx + 1
+            let char_opt = substring(of: s, startingAt: idx, endingBefore: end)
+            let char = char_opt!
+
+            let is_even = is_even(idx)
+
+            if is_even {
+                let mock_char = mock_char(char)
+                output = output + mock_char
+            } else {
+                output = output + char
+            }
+
+            idx = idx + 1
+        }
+
+        return output
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 116, in test_all[0m
+[31mcompiler stdin:[0m
+
+    func concat(_ x : String, with y : String) -> String {
+        let x = x + y
+        return x + " " + y
+    }
+
+    let a = "ahoj "
+    var ct : String
+    ct = concat(a, with: "svete")
+    write(ct, a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Interny error
+
+[31mcompiler returned error code ErrorType.error_internal (99)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 128, in test_all[0m
+[31mcompiler stdin:[0m
+
+        let cycles = 50
+
+        func is_inside(_ real: Double, _ imag: Double) -> Bool {
+            var x = real
+            var y = imag
+
+            var cycle = 0
+
+            while cycle < cycles {
+                let tmp = x
+                x = x * x - y * y + real
+                y = 2 * tmp * y + imag
+
+                if x * x + y * y > 4 {
+                    return false
+                } else {}
+
+                cycle = cycle + 1
+            }
+
+            return true
+        }
+
+        let size = readInt()
+        if let size {
+            let size_d = Int2Double(size)
+            var y = 0 - size
+            while y < size {
+                var x = 0 - 2 * size
+
+                while x < size {
+                    var real = Int2Double(x)
+                    var imag = Int2Double(y)
+                    real = real / size_d
+                    imag = imag / size_d
+
+                    let is_inside = is_inside(real, imag)
+
+                    if is_inside { write() }
+                    else { write() }
+
+                    x = x + 1
+                }
+
+                write()
+                y = y + 1
+            }
+        } else {
+            write("Cannot parse input")
+        }
+
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 183, in test_all[0m
+[31mcompiler stdin:[0m
+
+    // Program 1: Vypocet faktorialu (iterativne)
+    /* Hlavni telo programu */
+    write("Zadejte cislo pro vypocet faktorialu\n")
+    let a : Int? = readInt()
+    if let a {
+        if (a < 0) {write("Faktorial nelze spocitat\n")
+        } else {
+            var a = Int2Double(a)
+            var vysl : Double = 1
+            while (a > 0) {
+                vysl = vysl * a
+                a = a - 1
+            }
+            write("Vysledek je: ", vysl, "\n")
+        }
+    } else {
+        write("Chyba pri nacitani celeho cisla!\n")
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 205, in test_all[0m
+[31mcompiler stdin:[0m
+
+    // Program 2: Vypocet faktorialu (rekurzivne)
+    // Hlavni telo programu
+    write("Zadejte cislo pro vypocet faktorialu: ")
+    let inp = readInt()
+
+    // pomocna funkce pro dekrementaci celeho cisla o zadane cislo
+    func decrement(of n: Int, by m: Int) -> Int {
+        return n - m
+    }
+
+    // Definice funkce pro vypocet hodnoty faktorialu
+    func factorial(_ n : Int) -> Int {
+        var result : Int?
+        if (n < 2) {
+            result = 1
+        } else {
+            let decremented_n = decrement(of: n, by: 1)
+            let temp_result = factorial(decremented_n)
+            result = n * temp_result
+        }
+        return result!
+    }
+    // pokracovani hlavniho tela programu
+    if let inp {
+        if (inp < 0) { // Pokracovani hlavniho tela programu
+            write("Faktorial nelze spocitat!")
+        } else {
+            let vysl = factorial(inp)
+            write("Vysledek je: ", vysl)
+        }
+    } else {
+        write("Chyba pri nacitani celeho cisla!")
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Interny error
+
+[31mcompiler returned error code ErrorType.error_internal (99)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/compiler_tests.py", line 241, in test_all[0m
+[31mcompiler stdin:[0m
+
+    /* Program 3: Prace s retezci a vestavenymi funkcemi */
+    var str1 = "Toto je nejaky text v programu jazyka IFJ23"
+    let str2 = str1 + ", ktery jeste trochu obohatime"
+    write(str1, "\n", str2, "\n")
+    let i = length(str1)
+    write("Pozice retezce \"text\" v str2: ", i, "\n")
+    write("Zadejte serazenou posloupnost vsech malych pismen a-h, ")
+
+    let newInput = readString()
+    if let newInput {
+        str1 = newInput
+        while (str1 != "abcdefgh") {
+            write("Spatne zadana posloupnost, zkuste znovu:\n")
+            let tmp = readString()
+            str1 = tmp ?? ""
+        }
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Iny error
+
+[31mcompiler returned error code ErrorType.error_other_semantic (9)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/rec_parser_tests.py", line 20, in test_all[0m
+[31mcompiler stdin:[0m
+if true {}
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Unknown identifier type
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/rec_parser_tests.py", line 23, in test_all[0m
+[31mcompiler stdin:[0m
+if true {} else {} let a = 5
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Unknown identifier type
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/rec_parser_tests.py", line 24, in test_all[0m
+[31mcompiler stdin:[0m
+if true {let a = 5 let b = 3} else {}
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Unknown identifier type
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/rec_parser_tests.py", line 41, in test_all[0m
+[31mcompiler stdin:[0m
+_
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 52, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = 5 // so it begins
+    write(a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...) or double '!'
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 63, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a: Int? = 5 + 5
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 92, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int = 5
+    let b: Int? = a - 7
+    write(b)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 98, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int = 5
+    let b: Int = a - 7
+    write(b)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 104, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a: Int?
+    write(a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 109, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a: Int? = 5 - 7
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: Interpreter output differs from expected output[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 138, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Double? = 5
+    write(a)
+    
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+PUSHS int@5
+POPS GF@a
+PUSHS GF@a
+CALL write
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+[31mexpected output:[0m
+0x1.4p+2
+[31minterpreter stdout:[0m
+5
+[31minterp_stderr:[0m
+
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 149, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = b
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia funkcie
+
+[31mcompiler returned error code ErrorType.error_ident (3)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 153, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int = b
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia funkcie
+
+[31mcompiler returned error code ErrorType.error_ident (3)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 157, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    let b = a
+    
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+DEFVAR GF@b
+PUSHS nil@nil
+POPS GF@b
+PUSHS GF@a
+POPS GF@b
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 162, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    let b: Int = a
+    
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+DEFVAR GF@b
+PUSHS nil@nil
+POPS GF@b
+PUSHS GF@a
+POPS GF@b
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 167, in test_all[0m
+[31mcompiler stdin:[0m
+
+    func a(_ a: Int) {}
+    let a: Int
+    a(a)
+    
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+JUMP a_end
+LABEL a
+CREATEFRAME
+PUSHFRAME
+CREATEFRAME
+DEFVAR LF@a
+DEFVAR TF@a
+PUSHS nil@nil
+POPS LF@a
+MOVE TF@a LF@a
+POPS LF@a
+MOVE TF@a LF@a
+POPFRAME
+RETURN
+LABEL a_end
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+PUSHS GF@a
+CALL a
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 178, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    if true {
+        a = 5
+    } else { }
+    let b = a
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Unknown identifier type
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 186, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    var t = true
+    while t {
+        a = 5
+        t = false
+    }
+    let b = a
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia funkcie
+
+[31mcompiler returned error code ErrorType.error_ident (3)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 196, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var t: Bool
+    while t {
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 202, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var t: Bool
+    if t {
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 208, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Double
+    a = 5
+    write(a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 214, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Double? // already initialized to nil
+    a = 5
+    write(a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Syntakticka Analyza
+
+[31mcompiler returned error code ErrorType.error_parser (2)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 220, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a: Double? 
+    a = 5
+    write(a)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 226, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    let b: Int
+    a = 5
+    b = a
+    write(b)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 234, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    let b: Int
+    a = 5
+    b = a
+    write(b)
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 242, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    let b: Int
+    a = 5
+    b = a
+    a = 5
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 250, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int
+    let b: Int
+    a = 5
+    b = a
+    b = 5
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 285, in test_all[0m
+[31mcompiler stdin:[0m
+
+    var a :Int
+    var a = 4
+    
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+PUSHS int@4
+POPS GF@a
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 290, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = 1
+    if true {
+        write(a)
+        let a = "2"
+        if true {
+            write(a)
+            let a = 3
+            write(a)
+        } else {}
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Unknown identifier type
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 305, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = 45 > 3
+    if a {
+        write(a)
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: No bool operator in condition
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 312, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Bool? = 45 > 3
+    if a {
+        write(a)
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+
+SCANNER: Nemozno nacitat samotny [ ? ]
+ERROR: Lexikalna Analyza
+
+[31mcompiler returned error code ErrorType.error_lexer (1)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 332, in test_all[0m
+[31mcompiler stdin:[0m
+
+    if 45 > 3 {
+        write(true)
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+ERROR: Definicia premennej
+
+[31mcompiler returned error code ErrorType.error_undefined_var (5)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 338, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = 45 > 3
+    let b = a == a
+    if b {
+        write(a)
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: No bool operator in condition
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 346, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a = 45 > 3
+    if a {
+        let kentus = "blentus"
+    } else {
+        write(kentus)
+    }
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: No bool operator in condition
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 355, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int? = 45
+    if let a {
+        let kentus = a + 4
+        let b: Int = a
+        write(b)
+    } else {}
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m
+
+[31;1mError: interpreter failed with exit code 52[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 364, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int? = 5
+    if let a {
+        let a = "shadowing"
+        write(a)
+    } else {
+    }
+    
+[31mcompiler stdout:[0m
+.IFJcode23
+DEFVAR GF@tmp_res
+JUMP main
+# func readString
+LABEL readString
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+READ LF@str string
+PUSHS LF@str
+POPFRAME
+RETURN
+# func readINT
+LABEL readInt
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@inte
+READ LF@inte int
+PUSHS LF@inte
+POPFRAME
+RETURN
+# func readFloat
+LABEL readDouble
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@doub
+READ LF@doub float
+PUSHS LF@doub
+POPFRAME
+RETURN
+# func write
+LABEL write
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+POPS LF@str
+WRITE LF@str
+POPFRAME
+RETURN
+# func Int2Double
+LABEL Int2Double
+INT2FLOATS
+RETURN
+# func Double2Int
+LABEL Double2Int
+FLOAT2INTS
+RETURN
+# func length
+LABEL length
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@len
+POPS LF@str
+STRLEN LF@len LF@str
+PUSHS LF@len
+POPFRAME
+RETURN
+# func substring
+LABEL substring
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@i
+DEFVAR LF@j
+DEFVAR LF@str
+DEFVAR LF@len
+DEFVAR LF@res
+DEFVAR LF@substr
+DEFVAR LF@tmp
+POPS LF@j
+POPS LF@i
+POPS LF@str
+STRLEN LF@len LF@str
+LT LF@res LF@i int@0
+JUMPIFEQ substring_err LF@res bool@true
+LT LF@res LF@j int@0
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@j
+JUMPIFEQ substring_err LF@res bool@true
+GT LF@res LF@i LF@len
+JUMPIFEQ substring_err LF@res bool@true
+JUMPIFEQ substring_err LF@i LF@len
+GT LF@res LF@j LF@len
+JUMPIFEQ substring_err LF@res bool@true
+MOVE LF@substr string@nil
+LABEL substring_cycle
+SUB LF@res LF@j LF@i
+JUMPIFEQ substring_cycle_end LF@tmp int@1
+GETCHAR LF@tmp LF@str LF@i
+CONCAT LF@substr LF@substr LF@tmp
+ADD LF@i LF@i int@1
+JUMP substring_cycle
+LABEL substring_cycle_end
+PUSHS LF@substr
+JUMP substring_end
+LABEL substring_err
+PUSHS nil@nil
+LABEL substring_end
+POPFRAME
+RETURN
+# func ord
+LABEL ord
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@str
+DEFVAR LF@ordin
+POPS LF@str
+STRI2INT LF@ordin LF@str int@0
+PUSHS LF@ordin
+POPFRAME
+RETURN
+# func chr
+LABEL chr
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@ordin
+DEFVAR LF@ch
+POPS LF@ordin
+INT2CHAR LF@ch LF@ordin
+PUSHS LF@ch
+POPFRAME
+RETURN
+# function equal
+LABEL equals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ eq_true LF@op0 LF@op1
+PUSHS bool@false
+JUMP eq_end
+LABEL eq_true
+PUSHS bool@true
+LABEL eq_end
+POPFRAME
+RETURN
+# function not equal
+LABEL nequals
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ neq_true LF@op0 LF@op1
+PUSHS bool@true
+JUMP neq_end
+LABEL neq_true
+PUSHS bool@false
+LABEL neq_end
+POPFRAME
+RETURN
+# function lesser
+LABEL lesser
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+LT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+# function lesser or equal
+LABEL lesser_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res0
+DEFVAR LF@res1
+POPS LF@op1
+POPS LF@op0
+LT LF@res0 LF@op0 LF@op1
+EQ LF@res1 LF@op0 LF@op1
+PUSHS LF@res0
+PUSHS LF@res1
+ORS
+POPFRAME
+RETURN
+# function greater
+LABEL greater
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser
+POPFRAME
+RETURN
+# function greater or equal
+LABEL greater_or_equal
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+POPS LF@op1
+POPS LF@op0
+PUSHS LF@op1
+PUSHS LF@op0
+CALL lesser_or_equal
+POPFRAME
+RETURN
+# function remove nil
+LABEL remove_nil
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@type0
+DEFVAR LF@type1
+POPS LF@op1
+POPS LF@op0
+JUMPIFEQ first_nil LF@op0 nil@nil
+PUSHS LF@op0
+POPFRAME
+RETURN
+LABEL first_nil
+TYPE LF@type0 LF@op0
+TYPE LF@type1 LF@op1
+JUMPIFEQ nil_same LF@type0 LF@type1
+JUMP error
+LABEL nil_same
+PUSHS LF@op1
+POPFRAME
+RETURN
+# concatenation
+LABEL concat
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@op0
+DEFVAR LF@op1
+DEFVAR LF@res
+POPS LF@op1
+POPS LF@op0
+CONCAT LF@res LF@op0 LF@op1
+PUSHS LF@res
+POPFRAME
+RETURN
+LABEL main
+DEFVAR GF@a
+PUSHS nil@nil
+POPS GF@a
+PUSHS int@5
+POPS GF@a
+PUSHS GF@a
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@type
+DEFVAR LF@tmp
+TYPE LF@type LF@tmp
+JUMPIFNEQ let_nil LF@type nil@nil
+PUSHS bool@true
+POPFRAME
+LABEL let_nil
+PUSHS bool@false
+POPFRAME
+# if condition
+POPS GF@tmp_res
+JUMPIFNEQ else0 GF@tmp_res bool@true
+# body of if
+CREATEFRAME
+PUSHFRAME
+CREATEFRAME
+DEFVAR LF@a
+DEFVAR TF@a
+PUSHS nil@nil
+POPS LF@a
+MOVE TF@a LF@a
+PUSHS string@shadowing
+POPS LF@a
+MOVE TF@a LF@a
+PUSHS LF@a
+CALL write
+LABEL if_end0
+POPFRAME
+EXIT int@0
+LABEL error
+EXIT int@50
+
+[31mcompiler stderr:[0m
+
+[31mcompiler returned error code ErrorType.success (0)[0m
+[31mexpected output:[0m
+shadowing
+[31minterpreter stdout:[0m
+
+[31minterp_stderr:[0m
+Error at line: 267
+Label does not exist!
+
+
+[31;1mError: compiler return code does not match expected value[0m
+[33m  File "/home/marko/IFJ-IAL-Project-2023/ifj23-tests-master/backend_tests.py", line 373, in test_all[0m
+[31mcompiler stdin:[0m
+
+    let a: Int?
+    if let a {
+        let kentus = a + 4
+        let b: Int = a
+        write(b)
+    } else {
+        write(false)
+    }
+    let b = 5
+    
+[31mcompiler stdout:[0m
+
+[31mcompiler stderr:[0m
+[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!
+ERROR: Nekompatibilne datove typy
+
+[31mcompiler returned error code ErrorType.error_type (7)[0m

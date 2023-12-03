@@ -1,0 +1,7 @@
+digraph AST {
+  node0x557d4a7df240 [label="< (TOK_INT)(N:false)"];
+  node0x557d4a7df240 -> node0x557d4a7df180 [label="left"];
+  node0x557d4a7df180 [label="x (TOK_INT)(N:false)"];
+  node0x557d4a7df240 -> node0x557d4a7df1e0 [label="right"];
+  node0x557d4a7df1e0 [label="4 (TOK_INT)(N:false)"];
+}
