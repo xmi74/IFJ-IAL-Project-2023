@@ -1,4 +1,4 @@
-func function1() {
+func function1() -> Int {
     var x : Int = 5
-    return x
+    return
 }

@@ -3,6 +3,6 @@
 var b : Double
 
 func function1(_ a : Double) -> Double {
-    a = a + b
+    a = b
     return a
 }
