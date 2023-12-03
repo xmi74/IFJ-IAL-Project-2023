@@ -53,29 +53,69 @@ ast_node_t *make_leaf(token_t token)
  * @brief Funkcia na kontrolu typov.
  * @param root Ukazatel na koren stromu.
  */
-void checkTypes(ast_node_t *root)
+void checkTypes(ast_node_t *root, bool doubleQuestMark)
 {
     // skontroluj typy laveho a praveho podstromu, podla toho nastav typ otca
     if (root->left != NULL && root->right != NULL)
     {
-        // Ak su typy rovnake, nastav typ otca na ten isty
-        if (root->left->type == root->right->type)
+        if (doubleQuestMark)
         {
-            root->type = root->left->type;
-        }
+            // TOK_KW_NIL je lavy potomok
+            if (root->left->type == TOK_KW_NIL && root->right->type == TOK_INT)
+            {
+                root->type = TOK_INT;
+                return;
+            }
+            else if (root->left->type == TOK_KW_NIL && root->right->type == TOK_DOUBLE)
+            {
+                root->type = TOK_DOUBLE;
+                return;
+            }
+            else if (root->left->type == TOK_KW_NIL && root->right->type == TOK_STRING)
+            {
+                root->type = TOK_STRING;
+                return;
+            }
 
-        // INT + Double, kde INT musi byt LITERAL!
-        else if (root->left->type == TOK_DOUBLE && (root->right->type == TOK_INT && root->right->token.type == TOK_INT))
-        {
-            root->type = TOK_DOUBLE;
-        }
-        else if ((root->left->token.type == TOK_INT && root->left->type == TOK_INT) && root->right->type == TOK_DOUBLE)
-        {
-            root->type = TOK_DOUBLE;
+            // TOK_KW_NIL je pravy potomok
+            if (root->right->type == TOK_KW_NIL && root->left->type == TOK_INT)
+            {
+                root->type = TOK_INT;
+                return;
+            }
+            else if (root->right->type == TOK_KW_NIL && root->left->type == TOK_DOUBLE)
+            {
+                root->type = TOK_DOUBLE;
+                return;
+            }
+            else if (root->right->type == TOK_KW_NIL && root->left->type == TOK_STRING)
+            {
+                root->type = TOK_STRING;
+                return;
+            }
         }
         else
         {
-            root->type = TOK_NOTHING; // chyba typov, nemalo by nastat, kontroluje sa uz v expr
+
+            // Ak su typy rovnake, nastav typ otca na ten isty
+            if (root->left->type == root->right->type)
+            {
+                root->type = root->left->type;
+            }
+            // INT + Double, kde INT musi byt LITERAL!
+            else if (root->left->type == TOK_DOUBLE && (root->right->type == TOK_INT && root->right->literal == true))
+            {
+                root->type = TOK_DOUBLE;
+            }
+            else if ((root->left->literal == true && root->left->type == TOK_INT) && root->right->type == TOK_DOUBLE)
+            {
+                root->type = TOK_DOUBLE;
+            }
+            else
+            {
+                root->type = TOK_NOTHING; // chyba typov, nemalo by nastat, kontroluje sa uz v expr
+                returnError(TYPE_COMPATIBILITY_ERR);
+            }
         }
     }
 
@@ -101,12 +141,12 @@ void checkTypes(ast_node_t *root)
  * @param right Ukazatel na pravy uzol.
  * @return Ukazatel na koren (otca) stromu.
  */
-ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right)
+ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right, bool doubleQuestMark)
 {
     ast_node_t *fatherNode = make_leaf(fatherToken);
     fatherNode->left = left;
     fatherNode->right = right;
-    checkTypes(fatherNode);
+    checkTypes(fatherNode, doubleQuestMark);
 
     return fatherNode;
 }

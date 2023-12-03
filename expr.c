@@ -84,6 +84,7 @@ int getTokenIndex(token_t token)
     case TOK_STRING:
     case TOK_INT:
     case TOK_DOUBLE:
+    case TOK_KW_NIL:
         return 14; // 'i'
     case TOK_EOF:
     case TOK_EOL:
@@ -99,25 +100,43 @@ int getTokenIndex(token_t token)
  * @param token2 Druhy token.
  * @return True ak su datove typy rovnake, inak false.
  */
-bool dataTypeEqual(token_t token1, token_t token2)
+bool dataTypeEqual(token_t token1, token_t token2, token_t operation)
 {
-    if (token1.type == TOK_INT && token2.type == TOK_INT)
+    switch (operation.type)
     {
-        return true;
+    case TOK_DOUBLE_QUEST_MARK:
+        // Vo Swifte OK, napr let a = nil ?? 3
+        if (token1.type == TOK_KW_NIL || token2.type == TOK_KW_NIL)
+        {
+            return true;
+        }
+        else if (token1.type == TOK_KW_NIL && token2.type == TOK_KW_NIL)
+        {
+            // Swift nepodporuje nil ?? nil
+            returnError(OTHER_ERR);
+        }
+        break;
+    default:
+        if (token1.type == TOK_INT && token2.type == TOK_INT)
+        {
+            return true;
+        }
+        else if (token1.type == TOK_DOUBLE && token2.type == TOK_DOUBLE)
+        {
+            return true;
+        }
+        else if (token1.type == TOK_STRING && token2.type == TOK_STRING)
+        {
+            return true;
+        }
+        else if (token1.tree->type == token2.tree->type)
+        {
+            // Kontrola typov podla AST stromu, resp. tokeny nemusia byt terminaly
+            return true;
+        }
+        break;
     }
-    else if (token1.type == TOK_DOUBLE && token2.type == TOK_DOUBLE)
-    {
-        return true;
-    }
-    else if (token1.type == TOK_STRING && token2.type == TOK_STRING)
-    {
-        return true;
-    }
-    else if (token1.tree->type == token2.tree->type)
-    {
-        // Kontrola typov podla AST stromu, resp. tokeny nemusia byt terminaly
-        return true;
-    }
+
     return false;
 }
 
@@ -219,7 +238,7 @@ void reduceArithmetic(Stack *stack)
     // Mozno nie je potreba, druha podmienka by mala stacit
     if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = * 3)
 
-        if (operand1.tree->literal == false && operand2.tree->literal == false && dataTypeEqual(operand1, operand2) == false)
+        if (operand1.tree->literal == false && operand2.tree->literal == false && dataTypeEqual(operand1, operand2, operation) == false)
         {
             returnError(SYNTAX_ERR);
         }
@@ -258,7 +277,7 @@ void reduceArithmetic(Stack *stack)
 
     token_t expr = operation;
     // Vytvorenie stromu s uchovanim datoveho typu po operacii
-    expr.tree = make_tree(expr, operand1.tree, operand2.tree);
+    expr.tree = make_tree(expr, operand1.tree, operand2.tree, false);
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -281,23 +300,34 @@ bool reduceLogical(Stack *stack)
     token_t operation = stack->elements[stack->size - 2];
     token_t operand1 = stack->elements[stack->size - 3];
 
-    if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = != 3)
-        if (dataTypeEqual(operand1, operand2) == false)
+    bool doubleQuestMark = false;
+    if (operation.type == TOK_DOUBLE_QUEST_MARK)
+    {
+        doubleQuestMark = true;
+        if (operand1.attribute.includesNil == false && operand2.attribute.includesNil == false)
+        {
+            returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
+        }
+        if (dataTypeEqual(operand1, operand2, operation) == false)
         {
             fprintf(stderr, "[EXPR] ERROR: Incompatible data types\n");
             returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
         }
-
-    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
+    }
+    else
     {
-        Stack_Pop(stack);
-        Stack_Top(stack, &stackTop);
+        if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = != 3)
+            if (dataTypeEqual(operand1, operand2, operation) == false)
+            {
+                fprintf(stderr, "[EXPR] ERROR: Incompatible data types in bool expression!\n");
+                returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
+            }
     }
 
-    Stack_Pop(stack);
+    Stack_PopUntilLesser(stack);
 
     token_t expr = operation;
-    expr.tree = make_tree(operation, operand1.tree, operand2.tree);
+    expr.tree = make_tree(operation, operand1.tree, operand2.tree, doubleQuestMark);
     expr.terminal = false;
 
     Stack_Push(stack, &expr);
@@ -320,7 +350,8 @@ void reduceNot(Stack *stack)
 
     token_t expr = operation;
     expr.terminal = false;
-    expr.tree = make_tree(operation, operand1.tree, NULL);
+    expr.tree = make_tree(operation, operand1.tree, NULL, false);
+    expr.tree->token.attribute.includesNil = false;
     Stack_Push(stack, &expr);
 }
 
@@ -440,17 +471,10 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     token_t prevToken = token;
 
     int parenCount = 0;
-
-    while (!expressionEnd(token, prevToken)) // TODO : BUDE MUSIET BYT ZMENENE
+    bool condition = false;
+    while (token.type != TOK_EOL && token.type != TOK_EOF && token.type != TOK_R_CRL_BRCKT)
     {
-        // Preskocenie EOL pri viacriadkovom vyraze
-        if (token.type == TOK_EOL && !expressionEnd(token, prevToken))
-        {
-            token = getToken();
-            prevToken = token;
-        }
-
-        Stack_Print(&stack);
+        Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -498,8 +522,11 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
             }
 
             // Ak je identifikator aplikuj pravidlo E → i
-            if (tokenIsIdentifier(token))
+            if (tokenIsIdentifier(token) || token.type == TOK_KW_NIL)
             {
+                if (token.type == TOK_KW_NIL)
+                    token.attribute.includesNil = true;
+                // Uchovanie informacii o povodnom tokene
                 token.terminal = false;
                 token.tree = make_leaf(token);
                 // Ziskanie typu tokenu z tabulky symbolov
@@ -559,14 +586,16 @@ bool checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTab
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL) && stack.size != 2)
     {
-        Stack_Print(&stack);
+        Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
+    // Vysledok je na vrchole zasobnika, resp. koren AST stromu
+    Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    ast_gen(result.tree);
+    ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
     ungetToken();
     printf("[EXPR] OK\n");

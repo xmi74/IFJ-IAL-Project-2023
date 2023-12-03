@@ -68,6 +68,8 @@ const char *getTokenTypeName(token_type_t tokenType)
         return "TOK_BLOCK_COM_START";
     case TOK_BLOCK_COM_END:
         return "TOK_BLOCK_COM_END";
+    case TOK_KW_NIL:
+        return "TOK_KW_NIL";
     default:
         return "Unknown token type";
     }

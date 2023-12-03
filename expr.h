@@ -30,7 +30,7 @@ int getTokenIndex(token_t token);
 
 int getPrecedence(int tokenIndex);
 
-bool dataTypeEqual(token_t token1, token_t token2);
+bool dataTypeEqual(token_t token1, token_t token2, token_t operation);
 
 bool tokenIsIdentifier(token_t token);
 
