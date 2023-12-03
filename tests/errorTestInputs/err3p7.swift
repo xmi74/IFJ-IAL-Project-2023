@@ -1,6 +1,6 @@
 // Nedefinovana funkcia v definicii funkcie
-let value = 10
 
-func a() {
-    performAction() // Chyba: Nedefinovaná funkcia
+func a(_ value: Int) -> Int {
+    value = performAction() // Chyba: Nedefinovaná funkcia
+    return value
 }
