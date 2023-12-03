@@ -760,7 +760,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         if(var == NULL)
         {
             var = global_search(global_table, &current_token.attribute.str);
-            gen_if_let(output, ((global_symtab_t*)var)->key.data);
+            gen_if_let(output, ((global_symtab_t*)var)->key.data, counter);
             gen_if(output, counter);
             if (var == NULL)
             {
@@ -789,7 +789,7 @@ bool handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         }
         else
         {
-            gen_if_let(output, ((local_symtab_t*)var)->key.data);
+            gen_if_let(output, ((local_symtab_t*)var)->key.data, counter);
             gen_if(output, counter);
             if (((local_symtab_t*)var)->includesNil == false)
             {

@@ -410,7 +410,7 @@ void gen_if(string_t *output, int counter){
     }
 }
 
-void gen_if_let(string_t *output, char *name){
+void gen_if_let(string_t *output, char *name, int counter){
     append_line(output, "CREATEFRAME\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@type\n"
@@ -427,13 +427,20 @@ void gen_if_let(string_t *output, char *name){
         append_line(output, "LF@");
     }
     append_line(output, name);
-    append_line(output, "\nJUMPIFEQ let_nil LF@type string@\n"
+    char str[16];
+    sprintf(str, "%d", counter);
+    append_line(output, "\nJUMPIFEQ let_nil");
+    append_line(output, str);
+    append_line(output, " LF@type string@\n"
                         "PUSHS bool@true\n"
-                        "JUMP let_nil_end\n"
-                        "LABEL let_nil\n"
-                        "PUSHS bool@false\n"
-                        "LABEL let_nil_end\n"
-                        "POPFRAME\n");
+                        "JUMP let_nil_end");
+    append_line(output, str);
+    append_line(output, "\nLABEL let_nil");
+    append_line(output, str);
+    append_line(output, "\nPUSHS bool@false\n"
+                        "LABEL let_nil_end");
+    append_line(output, str);
+    append_line(output, "\nPOPFRAME\n");
 }
 
 /**
