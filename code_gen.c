@@ -411,17 +411,28 @@ void gen_if(string_t *output, int counter){
 }
 
 void gen_if_let(string_t *output, char *name){
-    gen_value(output, NULL, true, name);
     append_line(output, "CREATEFRAME\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@type\n"
-                        "DEFVAR LF@tmp\n"
-                        "TYPE LF@type LF@tmp\n"
-                        "JUMPIFNEQ let_nil LF@type string@\n"
+                        "TYPE LF@type ");
+    char *isDefined = NULL;
+    if (localVariables != NULL){
+        isDefined = strstr(localVariables->data, name);
+    }
+
+    if (isDefined == NULL){
+        append_line(output, "GF@");
+    }
+    else{
+        append_line(output, "LF@");
+    }
+    append_line(output, name);
+    append_line(output, "\nJUMPIFEQ let_nil LF@type string@\n"
                         "PUSHS bool@true\n"
-                        "POPFRAME\n"
+                        "JUMP let_nil_end\n"
                         "LABEL let_nil\n"
                         "PUSHS bool@false\n"
+                        "LABEL let_nil_end\n"
                         "POPFRAME\n");
 }
 

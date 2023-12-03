@@ -300,14 +300,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 ungetToken();
             }
             
-            if (nest_level == 0)
-            {
-                gen_var(output, identifier.attribute.str.data);
-            }
-            else
-            {
-                gen_var(output, identifier.attribute.str.data);
-            }
+            gen_var(output, identifier.attribute.str.data);
 
             var_type.type = kw_to_token_type(var_type.type);
 
