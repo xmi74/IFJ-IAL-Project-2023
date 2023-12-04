@@ -174,7 +174,7 @@ token_t *Stack_GetTopTerminal(Stack *stack)
 void Stack_InsertLesser(Stack *stack)
 {
     token_t lesser;
-    lesser.type = TOK_LESSER;
+    lesser.type = TOK_NOTHING;
     lesser.terminal = false;
 
     token_t currToken;
@@ -217,7 +217,8 @@ void Stack_InsertLesser(Stack *stack)
 void Stack_PopUntilLesser(Stack *stack)
 {
     token_t stackTop;
-    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
+    Stack_Top(stack, &stackTop);
+    while (stackTop.type != TOK_NOTHING || stackTop.terminal == true)
     {
         Stack_Pop(stack);
         Stack_Top(stack, &stackTop);

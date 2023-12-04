@@ -887,11 +887,11 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
  */
 void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
-    getTokenAssert(TOK_L_BRCKT, TYPE_COMPATIBILITY_ERR);
+    // getTokenAssert(TOK_L_BRCKT, TYPE_COMPATIBILITY_ERR);
     gen_while(output, counter);
     handle_cond(local_table, global_table);
     gen_while_body(output, counter);
-    getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
+    // getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
     if (getToken().type != TOK_EOL)
     {
         ungetToken();

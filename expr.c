@@ -303,7 +303,7 @@ void reduceArithmetic(Stack *stack)
     }
 
     // Kontrola konkatenacie stringov
-    if (operand1.type == TOK_STRING && operand2.type == TOK_STRING)
+    if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
     {
         if (operation.type != TOK_PLUS)
         {
@@ -311,7 +311,7 @@ void reduceArithmetic(Stack *stack)
             returnError(TYPE_COMPATIBILITY_ERR); // TODO : KONTROLA? napr. 5 * "string"
         }
     }
-    else if (operand1.type == TOK_STRING || operand2.type == TOK_STRING)
+    else if (operand1.tree->type == TOK_STRING || operand2.tree->type == TOK_STRING)
     {
         fprintf(stderr, "[EXPR] ERROR: Incompatible data types - String + notString\n");
         returnError(TYPE_COMPATIBILITY_ERR); // TODO : Kontrola napr. 5 + "string"
@@ -509,7 +509,7 @@ void applyRule(Stack *stack)
 bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token->type == TOK_EOL && !tokenIsOperator(prevToken)) || token->type == TOK_EOF || token->type == TOK_L_CRL_BRCKT)
+    if ((token->type == TOK_EOL && !tokenIsOperator(prevToken)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
     {
         // Koniec podmienky, napr. if (a == 5) { ... }
         if (token->type == TOK_L_CRL_BRCKT) {
@@ -550,7 +550,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     bool condition = false;
     while (expressionEnd(&token, prevToken, &condition) == false)
     {
-        // Stack_Print(&stack); // DEBUG
+        Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -679,16 +679,16 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         }
     }
 
-    // Stack_Print(&stack); // DEBUG
+    Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
-    while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
+    while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_COMMENT || token.type == TOK_BLOCK_COM_START || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
         // Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
     // Vysledok je na vrchole zasobnika, resp. koren AST stromu
-    // Stack_Print(&stack); // DEBUG
+    Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
