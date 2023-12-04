@@ -322,6 +322,10 @@ void gen_expr(string_t *output, ast_node_t *tree){
     bool isString = false;
     while (index < items->size){
         switch (items->nodes[index]->token.type){
+            case TOK_KW_NIL: {
+                gen_value(output, &(items->nodes[index]->token), false, NULL);
+                break;
+            }
             case TOK_IDENTIFIER:{
                 gen_value(output, NULL, true, items->nodes[index]->token.attribute.str.data);
                 break;
@@ -715,11 +719,11 @@ void gen_substring(string_t *output){
                         // j > len
                         "GT LF@res LF@j LF@len\n"
                         "JUMPIFEQ substring_err LF@res bool@true\n"
-                        "MOVE LF@substr string@nil\n"
+                        "MOVE LF@substr string@\n"
                         //cycle
                         "LABEL substring_cycle\n"
                         "SUB LF@res LF@j LF@i\n"
-                        "JUMPIFEQ substring_cycle_end LF@tmp int@1\n"
+                        "JUMPIFEQ substring_cycle_end LF@res int@0\n"
                         "GETCHAR LF@tmp LF@str LF@i\n"
                         "CONCAT LF@substr LF@substr LF@tmp\n"
                         "ADD LF@i LF@i int@1\n"
