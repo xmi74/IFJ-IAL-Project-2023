@@ -214,7 +214,7 @@ bool checkOperands(token_t operand1, token_t operand2)
     if (operand1.tree->token.attribute.includesNil == true || operand2.tree->token.attribute.includesNil == true)
     {
         fprintf(stderr, "[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!\n");
-        returnError(TYPE_DEDUCTION_ERR); // Z typu nil sa neda odvodit typ
+        returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
     }
     // Operandy ok
     return true;
@@ -354,8 +354,8 @@ bool reduceLogical(Stack *stack)
     {
         // a == nil || a != nil || nil == nil je ok, kde a je Int?, Double?...
         if ((operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL) &&
-            ((operand1.type == TOK_KW_NIL && operand2.attribute.includesNil == true) ||
-             (operand2.type == TOK_KW_NIL && operand1.attribute.includesNil == true)))
+            ((operand1.type == TOK_KW_NIL || operand1.attribute.includesNil == true) &&
+             (operand2.type == TOK_KW_NIL || operand2.attribute.includesNil == true)))
         {
             if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
             {
@@ -550,7 +550,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     bool condition = false;
     while (expressionEnd(&token, prevToken, &condition) == false)
     {
-        Stack_Print(&stack); // DEBUG
+        // Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -679,20 +679,20 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         }
     }
 
-    Stack_Print(&stack); // DEBUG
+    // Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
-        Stack_Print(&stack); // DEBUG
+        // Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
     // Vysledok je na vrchole zasobnika, resp. koren AST stromu
-    Stack_Print(&stack); // DEBUG
+    // Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    ast_gen(result.tree); // DEBUG
+    // ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
 
     // Vratenie tokenu spat do parseru, pre dalsiu pripadnu analyzu
