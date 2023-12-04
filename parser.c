@@ -390,7 +390,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
     if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
-        token_type_t type_expr = checkExpression(local_table, global_table);
+        token_type_t type_expr = checkExpression(local_table, global_table)->type;
         if (var_type.type == TOK_NOTHING)
         {
             var_type.type = type_expr;
@@ -602,7 +602,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         
         if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
         {
-            token_type_t type_expr = checkExpression(local_table, global_table);
+            token_type_t type_expr = checkExpression(local_table, global_table)->type;
             if (var_type != type_expr)
             {
                 // error - spatny typ
@@ -1028,7 +1028,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
                 if (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
                 {
                     ungetToken();
-                    token_type_t return_type = checkExpression(&local_table, global_table);
+                    token_type_t return_type = checkExpression(&local_table, global_table)->type;
                     if (return_type == TOK_NOTHING)
                     {
                         // error - spatny typ
