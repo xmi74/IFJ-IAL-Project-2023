@@ -19,6 +19,18 @@
 
 #include "scanner.h"
 
+/* TODO
+    • Kontrola funkcnosti escape sekvencie
+    • Viacriadkovy string """
+    • Pridanie riadkov, na ktorych nastala chyba ?
+    • mozno iny zapis escape sekvencii - aby sa zapisovali ako cisla do retazcov
+
+    • Kde vsade mozu nastat chyby :
+        1) neznamy znak
+        2) v cisle - napr. 1e...
+        3) prevody identifikatory, klucove slova
+        4) v escape sekvenciach stringov
+*/
 
 // Nacitanie znaku zo vstupu
 int getNextChar() 
@@ -372,21 +384,29 @@ token_t getNextToken()
                                     stringFinished = true;               
                                     break;
                                 }
-                                else
+                                else            // nechceme ukoncit string
                                 {
-                                    dstringAppend(&string, newLine);
-                                    dstringAppend(&string, firstQuotation);    // zapis 1. "
-                                    dstringAppend(&string, SecondQuotation);    // zapis 1. "
-                                    dstringAppend(&string, c);      // zapis 2. "
+                                    //printf("Appendujem newLine, firstQuotation, secondQuotation, char\n");
+                                    dstringAppend(&string, newLine);            // zapis newLine
+                                    dstringAppend(&string, firstQuotation);     // zapis 1. "
+                                    dstringAppend(&string, SecondQuotation);    // zapis 2. "
+                                    dstringAppend(&string, c);                  // zapis znaku
                                 }
                             }
                             else
                             {
+                                //printf("Appendujem newLine, firstQuotation, char\n");
                                 dstringAppend(&string, newLine);
                                 dstringAppend(&string, firstQuotation);
                                 dstringAppend(&string, c);                            
                             }
-                        }                                        
+                        }
+                        else
+                        {
+                            //printf("Appendujem newLine, %c\n", c);
+                            dstringAppend(&string, newLine);
+                            dstringAppend(&string, c);
+                        }
                     }
                     else if (c == '\\')              // Escape sekvencia
                     {
@@ -395,6 +415,7 @@ token_t getNextToken()
                     }
                     else
                     {
+                        printf("Appendujem %c\n", c);
                         dstringAppend(&string, c);
                     }
                     
