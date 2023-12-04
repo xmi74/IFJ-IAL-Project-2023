@@ -272,6 +272,20 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
         {
             returnError(TYPE_COMPATIBILITY_ERR);
         }
+
+        if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
+        {
+            if (operation.type != TOK_PLUS)
+            {
+                fprintf(stderr, "[EXPR] ERROR: Invalid operator, concat operator is + => String + String\n");
+                returnError(TYPE_COMPATIBILITY_ERR); // TODO : KONTROLA? napr. 5 * "string"
+            }
+        }
+        else if (operand1.tree->type == TOK_STRING || operand2.tree->type == TOK_STRING)
+        {
+            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - String + notString\n");
+            returnError(TYPE_COMPATIBILITY_ERR); // TODO : Kontrola napr. 5 + "string"
+        }
         return true;
         break;
     }
@@ -290,31 +304,13 @@ void reduceArithmetic(Stack *stack)
 {
     token_t stackTop;
     Stack_Top(stack, &stackTop);
-    token_t operand2 = stack->elements[stack->size - 1];
     token_t operand1 = stack->elements[stack->size - 3];
-
     token_t operation = stack->elements[stack->size - 2];
+    token_t operand2 = stack->elements[stack->size - 1];
 
-    // Mozno nie je potreba, druha podmienka by mala stacit
     if (checkOperands(operand1, operand2))
-    { // Syntax analyza -> napr. (var a : Int = * 3)
-
+    {
         dataTypeEqual(operand1, operand2, operation);
-    }
-
-    // Kontrola konkatenacie stringov
-    if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
-    {
-        if (operation.type != TOK_PLUS)
-        {
-            fprintf(stderr, "[EXPR] ERROR: Invalid operator, concat operator is + => String + String\n");
-            returnError(TYPE_COMPATIBILITY_ERR); // TODO : KONTROLA? napr. 5 * "string"
-        }
-    }
-    else if (operand1.tree->type == TOK_STRING || operand2.tree->type == TOK_STRING)
-    {
-        fprintf(stderr, "[EXPR] ERROR: Incompatible data types - String + notString\n");
-        returnError(TYPE_COMPATIBILITY_ERR); // TODO : Kontrola napr. 5 + "string"
     }
 
     Stack_PopUntilLesser(stack);
@@ -509,10 +505,11 @@ void applyRule(Stack *stack)
 bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token->type == TOK_EOL && !tokenIsOperator(prevToken)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
+    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) || token->type != TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
     {
         // Koniec podmienky, napr. if (a == 5) { ... }
-        if (token->type == TOK_L_CRL_BRCKT) {
+        if (token->type == TOK_L_CRL_BRCKT)
+        {
             *condition = true;
         }
         return true;
@@ -546,11 +543,10 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     token_t prevToken = token;
 
     // Pomocne premenne pre zistenie ci je vyraz v podmienke
-    int parenCount = 0;
     bool condition = false;
     while (expressionEnd(&token, prevToken, &condition) == false)
     {
-        Stack_Print(&stack); // DEBUG
+        // Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -565,25 +561,6 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         }
 
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
-
-        // Koniec vyrazu v podmienke, napr. if,while a pod.
-        // podpora pre if (a == 5) { ... }
-        // a pre if a == 5 { ... }, teda bez zatvoriek
-        // if ((parenCount == 0 && token.type == TOK_R_BRCKT) || token.type == TOK_L_CRL_BRCKT)
-        // {
-        //     condition = true;
-        //     break;
-        // }
-
-        // // Kontrola poctu zatvoriek iba pri precedencii LOAD! Napr. '(' sa moze 2 krat odcitat, ked nastane REDUCE
-        // if (token.type == TOK_L_BRCKT && result == L)
-        // {
-        //     parenCount++;
-        // }
-        // else if (token.type == TOK_R_BRCKT && result == L)
-        // {
-        //     parenCount--;
-        // }
 
         // LOAD
         if (result == L)
@@ -640,7 +617,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                     // Token je literal
                     token.tree->literal = true;
                 }
-                // Ulozenie typu tokenu do stromu
+                // Ulozenie typu tokenu do stromu, pri operaciach sa prepisuje !!
                 token.tree->type = token.type;
                 token.tree->token.attribute.includesNil = token.attribute.includesNil;
             }
@@ -679,7 +656,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         }
     }
 
-    Stack_Print(&stack); // DEBUG
+    // Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_COMMENT || token.type == TOK_BLOCK_COM_START || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
@@ -688,7 +665,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     }
 
     // Vysledok je na vrchole zasobnika, resp. koren AST stromu
-    Stack_Print(&stack); // DEBUG
+    // Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);

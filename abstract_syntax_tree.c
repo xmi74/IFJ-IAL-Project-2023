@@ -94,19 +94,26 @@ void checkLeafTypes(ast_node_t *root, bool doubleQuestMark)
         }
 
         // Kontrola operandov uz bola vykonana
-        if (root->type == TOK_EQUAL || root->type == TOK_NOT_EQUAL){
-            if (leftType == TOK_KW_NIL || rightType == TOK_KW_NIL || root->left->token.attribute.includesNil == true || root->right->token.attribute.includesNil == true) {
-                return;
+        if (root->type == TOK_EQUAL || root->type == TOK_NOT_EQUAL)
+        {
+            if (leftType == TOK_KW_NIL || rightType == TOK_KW_NIL || root->left->token.attribute.includesNil == true || root->right->token.attribute.includesNil == true)
+            {
+                if (root->left->token.attribute.includesNil == true || root->right->token.attribute.includesNil == true)
+                {
+                    root->token.attribute.includesNil = true;
+                    return;
+                }
             }
-        }
 
-        // If none of the above conditions met, there's a type error
-        root->type = TOK_NOTHING;
-        fprintf(stderr, "[EXPR] Type compatibility error");
-        returnError(TYPE_COMPATIBILITY_ERR);
+            // If none of the above conditions met, there's a type error
+            root->type = TOK_NOTHING;
+            fprintf(stderr, "[EXPR] Type compatibility error");
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
     }
     else
     {
+        // Operacia NOT
         // Otec ma jednoho syna
         root->type = (root->left != NULL) ? root->left->type : root->right->type;
         root->literal = (root->left != NULL) ? root->left->literal : root->right->literal;
