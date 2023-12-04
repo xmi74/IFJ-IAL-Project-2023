@@ -167,16 +167,24 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_var(string_t *output, char *name){
+void gen_var(string_t *output, char *name, bool includesNil){
     if (nestLevel == 0){
         append_line(output, "DEFVAR GF@");
         append_line(output, name);
         append_line(output, "\n");
+        if (includesNil){
+            append_line(output, "PUSHS nil@nil\n");
+            gen_assign(output, name);
+        }
     }
     else{
         append_line(output, "DEFVAR LF@");
         append_line(output, name);
         append_line(output, "\n");
+        if (includesNil){
+            append_line(output, "PUSHS nil@nil\n");
+            gen_assign(output, name);
+        }
         char *isDefined = NULL;
         if (localVariables != NULL){
             isDefined = strstr(localVariables->data, name);
@@ -216,7 +224,7 @@ void gen_assign(string_t *output, char *name){
             isDefined = strstr(localVariables->data, name);
         }
         if (isDefined == NULL){
-            gen_var(output, name);
+            gen_var(output, name, false);
         }
         append_line(output, "POPS LF@");
         append_line(output, name);

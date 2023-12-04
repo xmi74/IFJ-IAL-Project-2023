@@ -327,7 +327,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 ungetToken();
             }
             
-            gen_var(output, identifier.attribute.str.data);
+            gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil);
 
             var_type.type = kw_to_token_type(var_type.type);
 
@@ -343,7 +343,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
             return;
         }
     }
-    gen_var(output, identifier.attribute.str.data);
+    gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil);
     
     current_token = getToken();
 
@@ -742,7 +742,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     else
     {
         if (local_table.table != NULL){
-            gen_var(output, local_table.table->key.data);
+            gen_var(output, local_table.table->key.data, local_table.table->includesNil);
             gen_assign(output, local_table.table->key.data);
         }
         parse_block(-MAX_NEST_LEVEL, TOK_L_CRL_BRCKT, global_table, &local_table, NULL, TOK_NOTHING, type_t_to_token_type_t(found->type));
