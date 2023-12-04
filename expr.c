@@ -275,7 +275,7 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
 
         if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
         {
-            if (operation.type != TOK_PLUS)
+            if (operation.type == TOK_MINUS || operation.type == TOK_DIV || operation.type == TOK_MUL)
             {
                 fprintf(stderr, "[EXPR] ERROR: Invalid operator, concat operator is + => String + String\n");
                 returnError(TYPE_COMPATIBILITY_ERR); // TODO : KONTROLA? napr. 5 * "string"
@@ -528,7 +528,7 @@ bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
  * @param globalTable globalna tabulka symbolov
  * @return ast_node_t* ukazatel na koren AST stromu, kde sa nachadzaju potrebne informacie o vyraze
  */
-token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
+ast_node_t * checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     Stack stack;
     Stack_Init(&stack);
@@ -546,7 +546,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     bool condition = false;
     while (expressionEnd(&token, prevToken, &condition) == false)
     {
-        // Stack_Print(&stack); // DEBUG
+        Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -669,7 +669,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    // ast_gen(result.tree); // DEBUG
+    ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
 
     // Vratenie tokenu spat do parseru, pre dalsiu pripadnu analyzu
@@ -684,5 +684,5 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
             returnError(TYPE_COMPATIBILITY_ERR);
         }
     }
-    return result.tree->type;
+    return result.tree;
 }

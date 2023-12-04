@@ -44,6 +44,6 @@ void applyRule(Stack *stack);
 
 void reduceParenthesis(Stack *stack);
 
-token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
+ast_node_t * checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 #endif // EXPR_H
