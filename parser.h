@@ -31,7 +31,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
 
 void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up);
 
-void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
+void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table, bool is_while);
 
 void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table);
 
