@@ -211,7 +211,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
     {
         if (strcmp(func->params[i].name.data, "_") != 0)
         {
-            current_token = getTokenAssert(TOK_IDENTIFIER, FUNCTION_USAGE_ERR);
+            current_token = getTokenAssert(TOK_IDENTIFIER, OTHER_ERR);
             if (dstringCompare(&current_token.attribute.str, &func->params[i].name) != 0)
             {
                 returnError(FUNCTION_USAGE_ERR);
@@ -231,7 +231,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                 var = global_search(global_table, &current_token.attribute.str);
                 if (var == NULL)
                 {
-                    returnError(VARIABLE_DEFINITION_ERR);
+                    returnError(OTHER_ERR);
                     // error - nedefinovana promenna
                 }
 
@@ -600,7 +600,12 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             current_token = getToken();
             if (current_token.type != TOK_IDENTIFIER)
             {
-                if (current_token.type != var_type)
+                if (current_token.type == TOK_INT && var_type == TOK_DOUBLE)
+                {
+                    // TODO
+                    //current_token.type = TOK_DOUBLE;
+                }
+                else if (current_token.type != var_type)
                 {
                     // error - spatny typ
                     returnError(TYPE_COMPATIBILITY_ERR);
@@ -711,7 +716,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     // TODO
     for (int i = 0; i < found->param_count; i++)
     {
-        local_table.table = local_insert(local_table.table, &found->params[i].identifier, found->params[i].type, found->params[i].includesNil, true, true); // paramentry nelze menit uvnitr funkce, asi?
+        local_table.table = local_insert(local_table.table, &found->params[i].identifier, kw_to_token_type(found->params[i].type), found->params[i].includesNil, true, true); // paramentry nelze menit uvnitr funkce, asi?
     }
 
     if (strcmp(found->key.data, "write")        == 0
