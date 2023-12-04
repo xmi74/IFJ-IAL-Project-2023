@@ -779,19 +779,19 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     }
     
 
-    if (current_token.type == TOK_L_BRCKT)
-    {
-        handle_cond(local_table, global_table);
-        gen_if(output, counter);
-        getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
-        if (getToken().type != TOK_EOL)
-        {
-            ungetToken();
-        }
-        getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
-        parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
-    }
-    else if (current_token.type == TOK_KW_LET)
+    //if (current_token.type == TOK_L_BRCKT)
+    //{
+    //    handle_cond(local_table, global_table);
+    //    gen_if(output, counter);
+    //    getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
+    //    if (getToken().type != TOK_EOL)
+    //    {
+    //        ungetToken();
+    //    }
+    //    getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+    //    parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
+    //}
+    if (current_token.type == TOK_KW_LET)
     {
         current_token = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
         void* var = local_search_in_all(local_table, &current_token.attribute.str);

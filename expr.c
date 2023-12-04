@@ -354,8 +354,8 @@ bool reduceLogical(Stack *stack)
     {
         // a == nil || a != nil || nil == nil je ok, kde a je Int?, Double?...
         if ((operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL) &&
-            ((operand1.type == TOK_KW_NIL || operand1.attribute.includesNil == true) ||
-             (operand2.type == TOK_KW_NIL || operand2.attribute.includesNil == true)))
+            ((operand1.type == TOK_KW_NIL && operand2.attribute.includesNil == true) ||
+             (operand2.type == TOK_KW_NIL && operand1.attribute.includesNil == true)))
         {
             if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
             {
@@ -552,6 +552,14 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
 
+        token_t stackTrueTop;
+        Stack_Top(&stack, &stackTrueTop);
+        if (tokenIsIdentifier(stackTrueTop) && tokenIsIdentifier(token))
+        {
+            fprintf(stderr, "[EXPR] ERROR: Two identifiers in a row\n");
+            returnError(SYNTAX_ERR);
+        }
+
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
 
         // Koniec vyrazu v podmienke, napr. if,while a pod.
@@ -591,11 +599,6 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                         fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
                         returnError(OTHER_ERR);
                     }
-                    // if (!tokenIsIdentifier(stackTrueTop))
-                    // {
-                    //     fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
-                    //     returnError(SYNTAX_ERR);
-                    // }
                 }
                 // Oprand je operator (+-*/...)
                 else if (stackTrueTop.terminal == true)
