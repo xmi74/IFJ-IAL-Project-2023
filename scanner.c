@@ -248,8 +248,7 @@ token_t getNextToken()
                         {
                             doubleHandled = true;
                             break;                            
-                        }
-                        
+                        }                        
                     }
                 }
                 else                    // ak za . nenasleduje cislo -> error
@@ -326,7 +325,7 @@ token_t getNextToken()
         buffer[i] = '\0';
         ungetChar(c);
 
-        if (strchr(buffer, '.') != NULL && (strchr(buffer, 'e') != NULL || strchr(buffer, 'E') != NULL))    // Ak sa v cisle nachadza zaroven desatina ciarka a exponent -> error
+        if (strchr(buffer, '.') != NULL && (strchr(buffer, 'e') != NULL || strchr(buffer, 'E') != NULL))    // nemalo by nikdy nastat
         {
             fprintf(stderr, "\nSCANNER: Double literal obsahuje exponent aj desatinnu ciarku zaroven!\n");
             returnError(SCANNER_ERR);
@@ -435,30 +434,25 @@ token_t getNextToken()
         }
         else                    // " klasicky string
         {
-            if (c == '\\')
+            while (c != EOF) 
             {
-                handleEscapeSequence(&c);
-            }
-            dstringAppend(&string, c);
-            while ((c = getNextChar()) != EOF && c != '"') 
-            {
-                if (c == '\n')
-                {
-                    fprintf(stderr,"\nSCANNER: Nepovoleny zapis retazca na viac riadkov\nPre viacriadkovy retazec je potrebna inicializacia pomocou [ \"\"\" ]\n");
-                    returnError(SCANNER_ERR);
-                }
                 if (c == '\\')              
                 {
                     handleEscapeSequence(&c);
                
                 }
-                //printf("pridavam do stringu znak : [ %c ]\n", c);
+                else if (c <= 31)
+                {
+                    fprintf(stderr, "SCANNER: Zapis nepovoleneho znaku do stringu! (ASCII hodnota < 31 a neobsahuje escape sekvenciu)\n");
+                    returnError(SCANNER_ERR);
+                }
+                else if (c == '"')
+                {
+                    break;
+                }
+                //printf("pridavam do stringu znak : [ %d ]\n", c);
                 dstringAppend(&string, c);
-            }
-            if (c != '"')
-            {
-                fprintf(stderr, "\nSCANNER: Retazec: [ %s ] nebol ukonceny\n", string.data);
-                returnError(SCANNER_ERR);
+                c = getNextChar();
             }
         }
         
