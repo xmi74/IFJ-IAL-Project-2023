@@ -783,7 +783,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
             gen_var(output, local_table.table->key.data, local_table.table->includesNil);
             gen_assign(output, local_table.table->key.data);
         }
-        parse_block(-MAX_NEST_LEVEL, TOK_L_CRL_BRCKT, global_table, &local_table, NULL, TOK_NOTHING, type_t_to_token_type_t(found->type));
+        parse_block(-MAX_NEST_LEVEL, TOK_L_CRL_BRCKT, &global_table, &local_table, NULL, TOK_NOTHING, type_t_to_token_type_t(found->type));
         gen_func_end(output, &token);
     }
 }
@@ -851,7 +851,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             }
             
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
-            parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, &((global_symtab_t*)var)->key, type_t_to_token_type_t(((global_symtab_t*)var)->type), TOK_NOTHING);
+            parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, &((global_symtab_t*)var)->key, type_t_to_token_type_t(((global_symtab_t*)var)->type), TOK_NOTHING);
         }
         else
         {
@@ -867,7 +867,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
                 ungetToken();
             }
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
-            parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, &((local_symtab_t*)var)->key, ((local_symtab_t*)var)->type, TOK_NOTHING);
+            parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, &((local_symtab_t*)var)->key, ((local_symtab_t*)var)->type, TOK_NOTHING);
         }
     }
     else
@@ -880,7 +880,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             ungetToken();
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
-        parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
+        parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
     
 
@@ -899,7 +899,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
         gen_else(output, counter);
-        parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
+        parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
     else
     {
@@ -928,7 +928,7 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
         ungetToken();
     }
     getTokenAssert(TOK_L_CRL_BRCKT, VARIABLE_DEFINITION_ERR);
-    parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
+    parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     gen_while_end(output, counter);
     counter++;
 }
@@ -945,7 +945,7 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
  * @param return_type Predpokladany typ navratove hodnoty.
  * @return Udava zda blok obsahuje return.
  */
-bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table_one_up, string_t *var_name, token_type_t var_type, token_type_t expected_return) // returnuje posledni token
+bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **global_table, local_symtab_w_par_ptr_t *local_table_one_up, string_t *var_name, token_type_t var_type, token_type_t expected_return) // returnuje posledni token
 {
     bool has_return = false;
     token_type_t block_end;
@@ -1009,7 +1009,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
         }
         else if (current_token.type == TOK_L_CRL_BRCKT)
         {
-            parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, &local_table, NULL, TOK_NOTHING, TOK_NOTHING);
+            parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &(*global_table), &local_table, NULL, TOK_NOTHING, TOK_NOTHING);
         }
         else if (current_token.type == TOK_R_CRL_BRCKT)
         {
@@ -1018,11 +1018,11 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
         }
         else if (current_token.type == TOK_KW_LET || current_token.type == TOK_KW_VAR)
         {
-            handle_variable(current_token, &global_table, &local_table, nest_level);
+            handle_variable(current_token, &(*global_table), &local_table, nest_level);
         }
         else if (current_token.type == TOK_IDENTIFIER)
         {
-            handle_assign_or_call_func(current_token, global_table, &local_table, nest_level);
+            handle_assign_or_call_func(current_token, (*global_table), &local_table, nest_level);
         }
         else if (current_token.type == TOK_KW_FUNC)
         {
@@ -1033,16 +1033,16 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
             }
             else
             {
-                handle_func_def(global_table, &local_table);
+                handle_func_def((*global_table), &local_table);
             }
         }
         else if (current_token.type == TOK_KW_IF)
         {
-            handle_if(nest_level, &local_table, global_table);
+            handle_if(nest_level, &local_table, (*global_table));
         }
         else if (current_token.type == TOK_KW_WHILE)
         {
-            handle_while(nest_level, &local_table, global_table);
+            handle_while(nest_level, &local_table, (*global_table));
         }
         else if (current_token.type == TOK_KW_RETURN)
         {
@@ -1058,7 +1058,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
                 if (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
                 {
                     ungetToken();
-                    token_type_t return_type = checkExpression(&local_table, global_table)->type;
+                    token_type_t return_type = checkExpression(&local_table, (*global_table))->type;
                     if (return_type == TOK_NOTHING)
                     {
                         // error - spatny typ
@@ -1302,7 +1302,7 @@ int parse()
     find_functions(&global_table);
     token_table.insert = false;
     token_table.index = 0;
-    parse_block(0, TOK_NOTHING, global_table, NULL, NULL, TOK_NOTHING, TOK_NOTHING);
+    parse_block(0, TOK_NOTHING, &global_table, NULL, NULL, TOK_NOTHING, TOK_NOTHING);
     freeTokenTable(&token_table);
     global_dispose(&global_table);
     return 1;
