@@ -355,7 +355,7 @@ bool reduceLogical(Stack *stack)
         // a == nil || a != nil || nil == nil je ok, kde a je Int?, Double?...
         if ((operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL) &&
             ((operand1.type == TOK_KW_NIL || operand1.attribute.includesNil == true) ||
-            (operand2.type == TOK_KW_NIL || operand2.attribute.includesNil == true)))
+             (operand2.type == TOK_KW_NIL || operand2.attribute.includesNil == true)))
         {
             if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
             {
@@ -368,7 +368,9 @@ bool reduceLogical(Stack *stack)
             else if (operand2.type == TOK_KW_NIL && operand1.attribute.includesNil == true)
             {
                 // a == nil, kde a je Int?, Double?...
-            } else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == true) {
+            }
+            else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == true)
+            {
                 // a == b, kde a a b su Int?, Double?...
             }
             else
@@ -504,11 +506,15 @@ void applyRule(Stack *stack)
  * @param prevToken predchadzajuci token
  * @return true ak je koniec vyrazu, inak false
  */
-bool expressionEnd(token_t token, token_t prevToken)
+bool expressionEnd(token_t *token, token_t prevToken)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token.type == TOK_EOL && tokenIsOperator(prevToken)) || token.type == TOK_EOF || token.type == TOK_L_CRL_BRCKT)
+    if ((token->type == TOK_EOL && !tokenIsOperator(prevToken)) || token->type == TOK_EOF || token->type == TOK_L_CRL_BRCKT)
+    {
         return true;
+    }
+    if (token->type == TOK_EOL)
+        *token = getToken();
     // Napriklad vyraz na viacero riadkov, kde pred EOL je operator
     return false;
 }
@@ -538,7 +544,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     // Pomocne premenne pre zistenie ci je vyraz v podmienke
     int parenCount = 0;
     bool condition = false;
-    while (expressionEnd(token, prevToken) == false)
+    while (expressionEnd(&token, prevToken) == false)
     {
         // Stack_Print(&stack); // DEBUG
         token.terminal = true;
@@ -637,6 +643,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
             }
             Stack_Push(&stack, &token);
 
+            prevToken = token;
             token = getToken();
             continue;
         }
