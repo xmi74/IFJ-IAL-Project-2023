@@ -99,7 +99,11 @@ void gen_end(string_t *output){
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
-        if (nestLevel == 0){
+        char *isDefined = NULL;
+        if (localVariables != NULL){
+            isDefined = strstr(localVariables->data, name);
+        }
+        if (nestLevel == 0 || isDefined == NULL){
             append_line(output, "PUSHS GF@");
         }
         else{
@@ -110,6 +114,10 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     }
     else{
         switch (token->type) {
+            case TOK_KW_NIL: {
+                append_line(output, "PUSHS nil@nil\n");
+                break;
+            }
             case TOK_INT: {
                 append_line(output, "PUSHS int@");
                 char str[16];
@@ -256,6 +264,7 @@ void gen_func_end(string_t *output, token_t *token){
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
+        localVariables = NULL;
     }
     append_line(output, "POPFRAME\n"
                         "RETURN\n"
@@ -433,7 +442,7 @@ void gen_if_let(string_t *output, char *name, int counter){
     sprintf(str, "%d", counter);
     append_line(output, "\nJUMPIFEQ let_nil");
     append_line(output, str);
-    append_line(output, " LF@type string@\n"
+    append_line(output, " LF@type string@nil\n"
                         "PUSHS bool@true\n"
                         "JUMP let_nil_end");
     append_line(output, str);
@@ -482,6 +491,7 @@ void gen_if_end(string_t *output, int counter){
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
+        localVariables = NULL;
     }
     append_line(output, "LABEL if_end");
     char str[16];
@@ -538,6 +548,7 @@ void gen_while_end(string_t *output, int counter){
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
+        localVariables = NULL;
     }
     append_line(output, "LABEL while_end");
     char str[16];

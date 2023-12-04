@@ -413,7 +413,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
             var_type.type = kw_to_token_type(var_type.type);
-            gen_value(output, &var_type, false, NULL);
+            gen_value(output, &current_token, false, NULL);
         }
         else if (current_token.type == TOK_IDENTIFIER)
         {
@@ -831,7 +831,6 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
                 // error - non-nil promenna v if-let
                 returnError(OTHER_ERR);
             }            
-            gen_if(output, counter);
             if (getToken().type != TOK_EOL)
             {
                 ungetToken();
