@@ -75,6 +75,7 @@ string_t *gen_start(){
     gen_greater_or_eq(output);
     gen_questionm(output);
     gen_concat(output);
+    prepare_values(output);
     append_line(output, "LABEL main\n");
     return(output);
 }
@@ -322,7 +323,8 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_MUL:{
-                append_line(output, "MULS\n");
+                append_line(output, "CALL prepare\n"
+                                    "MULS\n");
                 break;
             }
             case TOK_DIV:{
@@ -334,12 +336,14 @@ void gen_expr(string_t *output, ast_node_t *tree){
                     append_line(output, "CALL concat\n");
                 }
                 else{
-                    append_line(output, "ADDS\n");
+                    append_line(output, "CALL prepare\n"
+                                        "ADDS\n");
                 }
                 break;
             }
             case TOK_MINUS:{
-                append_line(output, "SUBS\n");
+                append_line(output, "CALL prepare\n"
+                                    "SUBS\n");
                 break;
             }
             case TOK_ASSIGN:{
@@ -953,8 +957,21 @@ void prepare_values(string_t *output){
                         "PUSHFRAME\n"
                         "DEFVAR LF@op0\n"
                         "DEFVAR LF@op1\n"
-                        "POPS LF@op0\n"
+                        "DEFVAR LF@type0\n"
+                        "DEFVAR LF@type1\n"
                         "POPS LF@op1\n"
+                        "POPS LF@op0\n"
+                        "TYPE LF@type0 LF@op0\n"
+                        "TYPE LF@type1 LF@op1\n"
+                        "JUMPIFEQ prepare_end LF@type0 LF@type1\n"
+                        "JUMPIFEQ prepare0 LF@type0 string@int\n"
+                        "INT2FLOAT LF@op1 LF@op1\n"
+                        "JUMP prepare_end\n"
+                        "LABEL prepare0\n"
+                        "INT2FLOAT LF@op0 LF@op0\n"
+                        "LABEL prepare_end\n"
+                        "PUSHS LF@op0\n"
+                        "PUSHS LF@op1\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }

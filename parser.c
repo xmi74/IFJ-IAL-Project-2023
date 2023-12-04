@@ -155,6 +155,7 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
             if (current_token.type != TOK_IDENTIFIER)
             {
                 gen_value(output, &current_token, false, NULL);
+                gen_func_call(output, "write");
                 current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT}, SYNTAX_ERR);
                 continue;
             }
@@ -193,10 +194,10 @@ void call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, glo
             token_out.type = kw_to_token_type(token_out.type);
             
             gen_value(output, NULL, true, token_out.attribute.str.data);
-            //gen_value(output, &token_out, current_token.attribute.str.data, NULL);
+            
             current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT}, SYNTAX_ERR);
+            gen_func_call(output, "write");
         }
-        gen_func_call(output, func->key.data);
         return;
     }
     getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);

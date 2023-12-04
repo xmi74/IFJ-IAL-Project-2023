@@ -92,4 +92,6 @@ void gen_questionm(string_t *output);
 
 void gen_concat(string_t *output);
 
+void prepare_values(string_t *output);
+
 #endif
