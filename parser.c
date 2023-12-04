@@ -14,7 +14,6 @@
 
 extern token_table_t token_table;
 extern string_t *output;
-extern int counter;
 
 #define MAX_NEST_LEVEL 1000
 
@@ -806,8 +805,8 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         if(var == NULL)
         {
             var = global_search(global_table, &current_token.attribute.str);
-            gen_if_let(output, ((global_symtab_t*)var)->key.data, counter);
-            gen_if(output, counter);
+            gen_if_let(output, ((global_symtab_t*)var)->key.data);
+            gen_if(output);
             if (var == NULL)
             {
                 // error - nedefinovana promenna
@@ -832,8 +831,8 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         }
         else
         {
-            gen_if_let(output, ((local_symtab_t*)var)->key.data, counter);
-            gen_if(output, counter);
+            gen_if_let(output, ((local_symtab_t*)var)->key.data);
+            gen_if(output);
             if (((local_symtab_t*)var)->includesNil == false)
             {
                 // error - non-nil promenna v if-let
@@ -851,7 +850,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     {
         ungetToken();
         handle_cond(local_table, global_table);
-        gen_if(output, counter);
+        gen_if(output);
         if (getToken().type != TOK_EOL)
         {
             ungetToken();
@@ -875,15 +874,14 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             ungetToken();
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
-        gen_else(output, counter);
+        gen_else(output);
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
     else
     {
         ungetToken();
     }
-    gen_if_end(output, counter);
-    counter++;
+    gen_if_end(output);
 }
 
 /**
@@ -896,9 +894,9 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
 void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     // getTokenAssert(TOK_L_BRCKT, TYPE_COMPATIBILITY_ERR);
-    gen_while(output, counter);
+    gen_while(output);
     handle_cond(local_table, global_table);
-    gen_while_body(output, counter);
+    gen_while_body(output);
     // getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
     if (getToken().type != TOK_EOL)
     {
@@ -906,8 +904,7 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
     }
     getTokenAssert(TOK_L_CRL_BRCKT, VARIABLE_DEFINITION_ERR);
     parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
-    gen_while_end(output, counter);
-    counter++;
+    gen_while_end(output);
 }
 
 /**

@@ -13,6 +13,9 @@
 #include "code_gen.h"
 extern int nestLevel;
 extern string_t *localVariables;
+extern int global_counter;
+extern int local_counter;
+extern Stack counter_stack;
 
 /**
  * @brief Funkcia na vytvorenie dynamickeho stringu
@@ -44,6 +47,24 @@ void append_line(string_t *str1, char* str2){
         dstringAppend(str1, str2[index++]);
     }
     dstringAppend(str1, str2[index]);
+}
+
+void push_counter(int counter){
+    token_t newToken;
+    initToken(&newToken);
+    newToken.attribute.intValue = counter;
+    Stack_Push(&counter_stack, &newToken);
+}
+
+int top_counter(){
+    int top = counter_stack.elements[counter_stack.topIndex].attribute.intValue;
+    return top;
+}
+
+void pop_counter(){
+    token_t deleteToken;
+    Stack_Top(&counter_stack, &deleteToken);
+    freeToken(&deleteToken);
 }
 
 /**
@@ -406,18 +427,20 @@ void gen_expr(string_t *output, ast_node_t *tree){
 }
 
 /**
- * @brief Funkcia na genrocanie zaciatku if konstrukcie
+ * @brief Funkcia na generovanie zaciatku if konstrukcie
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param counter Pocitadlo konstrukcii
 */
-void gen_if(string_t *output, int counter){
+void gen_if(string_t *output){
+    global_counter++;
+    local_counter = global_counter;
+    push_counter(local_counter);
     nestLevel++;
     append_line(output, "# if condition\n"
                         "POPS GF@tmp_res\n"
                         "JUMPIFNEQ else");
     char str[16];
-    sprintf(str, "%d", counter);
+    sprintf(str, "%d", local_counter);
     append_line(output, str);
     append_line(output, " GF@tmp_res bool@true\n");
     append_line(output, "# body of if\n");
@@ -433,7 +456,9 @@ void gen_if(string_t *output, int counter){
     }
 }
 
-void gen_if_let(string_t *output, char *name, int counter){
+void gen_if_let(string_t *output, char *name){
+    global_counter++;
+    local_counter = global_counter;
     if (nestLevel != 0){
         append_line(output, "PUSHFRAME\n");
     }
@@ -454,7 +479,7 @@ void gen_if_let(string_t *output, char *name, int counter){
     }
     append_line(output, name);
     char str[16];
-    sprintf(str, "%d", counter);
+    sprintf(str, "%d", local_counter);
     append_line(output, "\nJUMPIFEQ let_nil");
     append_line(output, str);
     append_line(output, " LF@type string@nil\n"
@@ -473,16 +498,15 @@ void gen_if_let(string_t *output, char *name, int counter){
  * @brief Funkcia na vygenerovanie else
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param counter Pocitadlo konstrukcii
 */
-void gen_else(string_t *output, int counter){
+void gen_else(string_t *output){
+    local_counter = top_counter();
     append_line(output, "JUMP if_end");
     char str[16];
-    sprintf(str, "%d\n", counter);
+    sprintf(str, "%d\n", local_counter);
     append_line(output, str);
     append_line(output, "# body of else\n"
                         "LABEL else");
-    sprintf(str, "%d\n", counter);
     append_line(output, str);
     if (nestLevel == 1){
       append_line(output, "CREATEFRAME\n"
@@ -500,9 +524,9 @@ void gen_else(string_t *output, int counter){
  * @brief Funkcia na generovania konca if-else konstrukcie
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param counter Pocitadlo konstrukcii
 */
-void gen_if_end(string_t *output, int counter){
+void gen_if_end(string_t *output){
+    local_counter = top_counter();
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
@@ -510,17 +534,20 @@ void gen_if_end(string_t *output, int counter){
     }
     append_line(output, "LABEL if_end");
     char str[16];
-    sprintf(str, "%d\n", counter);
+    sprintf(str, "%d\n", local_counter);
     append_line(output, str);
     append_line(output, "POPFRAME\n");
+    pop_counter();
 }
 
 /**
  * @brief Funckia na genrovanie zaciatku while konstrukcie
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param counter Pocitadlo konstrukcii
 */
-void gen_while(string_t *output, int counter){
+void gen_while(string_t *output){
+    global_counter++;
+    local_counter = global_counter;
+    push_counter(local_counter);
     nestLevel++;
     if (nestLevel == 1){
       append_line(output, "CREATEFRAME\n"
@@ -534,7 +561,7 @@ void gen_while(string_t *output, int counter){
     }
     append_line(output, "LABEL while");
     char str[16];
-    sprintf(str, "%d\n", counter);
+    sprintf(str, "%d\n", local_counter);
     append_line(output, str);
 }
 
@@ -542,13 +569,13 @@ void gen_while(string_t *output, int counter){
  * @brief Funkcia na genrovanie tela while konstrukcie
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param counter Pocitadlo konstrukcii
 */
-void gen_while_body(string_t *output, int counter){
+void gen_while_body(string_t *output){
+    local_counter = top_counter();
     append_line(output, "POPS GF@tmp_res\n"
                         "JUMPIFNEQ while_end");
     char str[16];
-    sprintf(str, "%d", counter);
+    sprintf(str, "%d", local_counter);
     append_line(output, str);
     append_line(output, " GF@tmp_res bool@true\n");
 }
@@ -557,9 +584,9 @@ void gen_while_body(string_t *output, int counter){
  * @brief Funckia na generovanie konca while konstrukcie
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param counter Pocitadlo konstrukcii
 */
-void gen_while_end(string_t *output, int counter){
+void gen_while_end(string_t *output){
+    local_counter = top_counter();
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
@@ -567,12 +594,13 @@ void gen_while_end(string_t *output, int counter){
     }
 
     char str[16];
-    sprintf(str, "%d\n", counter);
+    sprintf(str, "%d\n", local_counter);
     append_line(output, "JUMP while");
     append_line(output, str);
     append_line(output, "LABEL while_end");
     append_line(output, str);
     append_line(output, "POPFRAME\n");
+    pop_counter();
 }
 
 // builtin functions

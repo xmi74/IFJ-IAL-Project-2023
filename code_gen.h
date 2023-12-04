@@ -17,10 +17,17 @@
 #include <stdlib.h>
 #include "scanner.h"
 #include "abstract_syntax_tree.h"
+#include "stack.h"
 
 string_t *new_line(char *string);
 
 void append_line(string_t *str1, char* str2);
+
+void push_counter(int counter);
+
+int top_counter();
+
+void pop_counter();
 
 string_t *gen_start();
 
@@ -42,19 +49,19 @@ void gen_func_call(string_t *output, char *name);
 
 void gen_expr(string_t *output, ast_node_t *tree);
 
-void gen_if(string_t *output, int counter);
+void gen_if(string_t *output);
 
-void gen_if_let(string_t *output, char *name, int counter);
+void gen_if_let(string_t *output, char *name);
 
-void gen_else(string_t *output, int counter);
+void gen_else(string_t *output);
 
-void gen_if_end(string_t *output, int counter);
+void gen_if_end(string_t *output);
 
-void gen_while(string_t *output, int counter);
+void gen_while(string_t *output);
 
-void gen_while_body(string_t *output, int counter);
+void gen_while_body(string_t *output);
 
-void gen_while_end(string_t *output, int counter);
+void gen_while_end(string_t *output);
 
 void gen_read_str(string_t *output);
 

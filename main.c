@@ -5,12 +5,16 @@
 token_table_t token_table;
 string_t *output;
 string_t *localVariables;
-int counter = 0;
+int global_counter = 0;
+int local_counter = 0;
+Stack counter_stack;
 int nestLevel = 0;
 
 int main()
 {
+    Stack_Init(&counter_stack);
     output = gen_start();
     parse();
     gen_end(output);
+    Stack_Dispose(&counter_stack);
 }
