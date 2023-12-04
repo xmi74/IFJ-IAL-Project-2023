@@ -22,11 +22,8 @@ extern int counter;
 // 14, 22-28, 32 - return
 // 3, 19, 20, 38, 39-40 - potreba rozdelit, konflikt s jinymi testy
 
-// TODO: inicializace promennych
 // TODO: promenne do global symtab v mainu
 // TODO: returns + codegen?
-// TODO: mozna assignment do funkci, e.g. write = 5
-// TODO: volani generatoru pri var x = y, apod., jak pushovat hodnotu?
 // TODO: globalni promenne - test 17
 
 /**
@@ -295,7 +292,16 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
         is_constant = true;
     }
 
-    token_t identifier = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
+    
+
+    //token_t identifier = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
+
+    // aby prochazely testy 4 a 5
+    token_t identifier = getTokenAssertArr(2, (token_type_t[]){TOK_IDENTIFIER, TOK_UNDERSCORE}, SCANNER_ERR);
+    if (identifier.type == TOK_UNDERSCORE)
+    {
+        returnError(SYNTAX_ERR);
+    }
 
     if(local_search(local_table->table, &identifier.attribute.str) != NULL)
     {
@@ -440,6 +446,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 {
                     func_in = call_func(var_glob, local_table, global_table);
                     var_type.attribute.includesNil = func_in.attribute.includesNil;
+                    var_type.type = func_in.type;
                 }
             }
             else
@@ -1155,7 +1162,20 @@ void find_functions(global_symtab_t **global_table)
                     returnError(SYNTAX_ERR);
                 }
                 
+                // TODO: opravit pripad _ _ : Int
+                //token_t id = getToken();
+                //if (id.type == TOK_UNDERSCORE)
+                //{
+                //    dstringAppend(&id.attribute.str, '_'); 
+                //}
+                //else if (id.type != TOK_IDENTIFIER)
+                //{
+                //    // error
+                //    returnError(SYNTAX_ERR);
+                //}
+
                 token_t id = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
+
 
                 if (dstringCompare(&name.attribute.str, &id.attribute.str) == 0)
                 {
