@@ -1041,7 +1041,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
                         returnError(FUNCTION_RETURN_ERROR);
                     }
                 }
-                
+                gen_func_return(output, &current_token);
             }
         }
         current_token = getToken();
