@@ -36,7 +36,8 @@ typedef struct ast_items
 
 void ast_init(ast_node_t *tree);
 ast_node_t *make_leaf(token_t token);
-ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right);
+void checkTypes(ast_node_t *root, bool doubleQuestMark);
+ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right, bool doubleQuestMark);
 void ast_dispose(ast_node_t *tree);
 void items_init(ast_items_t *items);
 void ast_add_node_to_items(ast_node_t *node, ast_items_t *items);
