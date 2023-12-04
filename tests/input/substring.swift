@@ -21,7 +21,7 @@ if let b4
 }
 else { }
 
-if let b5
+if b5 == nil
 {
     write("WRONG5!\n")
 }
@@ -35,7 +35,7 @@ else { }
 
 if let b7
 {
-    write("WRONG6!\n")
+    write("WRONG7!\n")
 }
 else { }
 

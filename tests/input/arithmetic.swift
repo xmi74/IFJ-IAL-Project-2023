@@ -5,14 +5,22 @@ let c = 20 - 1
 write(a, "\n", b, "\n", c, "\n")
 
 let af = 1.0 + 2.0
-let bf = 4.0 * 3.0
+let bf = 4.0 * (3.0 * 1)
 let cf = 20.1 - 1.1
 
 write(af, "\n", bf, "\n", cf, "\n")
 
 let da = 25.0 / 5.0
+let db = 25 / 6
 
-write(da, "\n")
+write(da, "\n", db, "\n")
+
+let ea = 1e2 - 11
+let eb = 1.1e2 + 9
+let ec = 25e-2 + 0.5
+let ed = 25e-2+5e-1+0.25e+1
+
+write(ea, "\n", eb, "\n", ec, "\n", ed, "\n")
 
 // automatic conversion
 let ac = 1 + 2.0
