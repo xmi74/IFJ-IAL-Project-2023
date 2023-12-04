@@ -528,7 +528,7 @@ bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
  * @param globalTable globalna tabulka symbolov
  * @return ast_node_t* ukazatel na koren AST stromu, kde sa nachadzaju potrebne informacie o vyraze
  */
-ast_node_t * checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
+ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     Stack stack;
     Stack_Init(&stack);
@@ -654,6 +654,24 @@ ast_node_t * checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
             Stack_Dispose(&stack);
             returnError(SYNTAX_ERR);
         }
+    }
+
+    // Kontrola ci je vyraz v podmienke a na viacero riadkov
+    // TODO : Prerobit na niekolko EOL za sebou?
+    if (token.type == TOK_EOL)
+    {
+        token = getToken();
+
+        // Kontrola ci je vyraz v podmienke
+        if (token.type == TOK_L_CRL_BRCKT)
+        {
+            condition = true;
+        }
+
+        // Vratenie spravneho tokenu spat
+        ungetToken();
+        ungetToken();
+        token = getToken();
     }
 
     // Stack_Print(&stack); // DEBUG
