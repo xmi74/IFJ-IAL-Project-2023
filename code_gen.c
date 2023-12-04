@@ -87,8 +87,6 @@ string_t *gen_start(){
 */
 void gen_end(string_t *output){
     append_line(output, "EXIT int@0\n");
-    append_line(output, "LABEL error\n"
-                        "EXIT int@50\n");
     fprintf(stdout, "%s", output->data);
     dstringFree(output);
 }
@@ -135,7 +133,7 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
                     char c = token->attribute.str.data[index];
                     char str[5];
                     if ((c >= 0 && c <= 32) || (c == 35) || (c == 92)){
-                        append_line(output, "\\\\");
+                        append_line(output, "\\");
                         sprintf(str, "%03d", c);
                         append_line(output, str);
                     }
