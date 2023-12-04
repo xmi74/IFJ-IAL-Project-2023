@@ -506,11 +506,15 @@ void applyRule(Stack *stack)
  * @param prevToken predchadzajuci token
  * @return true ak je koniec vyrazu, inak false
  */
-bool expressionEnd(token_t *token, token_t prevToken)
+bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
     if ((token->type == TOK_EOL && !tokenIsOperator(prevToken)) || token->type == TOK_EOF || token->type == TOK_L_CRL_BRCKT)
     {
+        // Koniec podmienky, napr. if (a == 5) { ... }
+        if (token->type == TOK_L_CRL_BRCKT) {
+            *condition = true;
+        }
         return true;
     }
     if (token->type == TOK_EOL)
@@ -544,9 +548,9 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     // Pomocne premenne pre zistenie ci je vyraz v podmienke
     int parenCount = 0;
     bool condition = false;
-    while (expressionEnd(&token, prevToken) == false)
+    while (expressionEnd(&token, prevToken, &condition) == false)
     {
-        // Stack_Print(&stack); // DEBUG
+        Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -565,21 +569,21 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         // Koniec vyrazu v podmienke, napr. if,while a pod.
         // podpora pre if (a == 5) { ... }
         // a pre if a == 5 { ... }, teda bez zatvoriek
-        if ((parenCount == 0 && token.type == TOK_R_BRCKT) || token.type == TOK_L_CRL_BRCKT)
-        {
-            condition = true;
-            break;
-        }
+        // if ((parenCount == 0 && token.type == TOK_R_BRCKT) || token.type == TOK_L_CRL_BRCKT)
+        // {
+        //     condition = true;
+        //     break;
+        // }
 
-        // Kontrola poctu zatvoriek iba pri precedencii LOAD! Napr. '(' sa moze 2 krat odcitat, ked nastane REDUCE
-        if (token.type == TOK_L_BRCKT && result == L)
-        {
-            parenCount++;
-        }
-        else if (token.type == TOK_R_BRCKT && result == L)
-        {
-            parenCount--;
-        }
+        // // Kontrola poctu zatvoriek iba pri precedencii LOAD! Napr. '(' sa moze 2 krat odcitat, ked nastane REDUCE
+        // if (token.type == TOK_L_BRCKT && result == L)
+        // {
+        //     parenCount++;
+        // }
+        // else if (token.type == TOK_R_BRCKT && result == L)
+        // {
+        //     parenCount--;
+        // }
 
         // LOAD
         if (result == L)
@@ -675,20 +679,20 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
         }
     }
 
-    // Stack_Print(&stack); // DEBUG
+    Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
-        // Stack_Print(&stack); // DEBUG
+        Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
     // Vysledok je na vrchole zasobnika, resp. koren AST stromu
-    // Stack_Print(&stack); // DEBUG
+    Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    // ast_gen(result.tree); // DEBUG
+    ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
 
     // Vratenie tokenu spat do parseru, pre dalsiu pripadnu analyzu
