@@ -415,7 +415,7 @@ token_t getNextToken()
                     }
                     else
                     {
-                        printf("Appendujem %c\n", c);
+                        //printf("Appendujem %c\n", c);
                         dstringAppend(&string, c);
                     }
                     
