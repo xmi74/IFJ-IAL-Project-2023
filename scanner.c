@@ -19,21 +19,6 @@
 
 #include "scanner.h"
 
-/* TODO
-    • Kontrola funkcnosti escape sekvencie
-    • Viacriadkovy string """
-    • Pridanie riadkov, na ktorych nastala chyba ?
-    • mozno iny zapis escape sekvencii - aby sa zapisovali ako cisla do retazcov
-
-    • Kde vsade mozu nastat chyby :
-        1) neznamy znak
-        2) v cisle - napr. 1e...
-        3) prevody identifikatory, klucove slova
-        4) v escape sekvenciach stringov
-
-    CHYBA : NAPR 123ABC, 1.0.0
-    alebo sa z 123ABC spravi 123 a ABC
-*/
 
 // Nacitanie znaku zo vstupu
 int getNextChar() 
@@ -103,7 +88,7 @@ void handleEscapeSequence(int *c)
                             value = (16 * value) + (tolower(*c) - 'a' + 10);
                         }   
                     }
-                    else    // /u{nehexadecimal
+                    else
                     {
                         value = *c;
                         fprintf(stderr, "SCANNER: Escape sekvencia [ \\u ] nebola riadne ukoncena, ocakavana [ } ], problemovy znak: %c\n", value);
@@ -234,7 +219,6 @@ token_t getNextToken()
         while (doubleHandled == false &&(c = getNextChar()) != EOF) 
         {
             /*  ------ SPRACOVANIE DOUBLE LITERALU S DESATINNOU CIARKOU ------ */
-
             if (c == '.')   // ak dostanem bodku -> mozu nasledovat iba dalsie cisla
             {
                 buffer[i++] = c;    // zapis . do bufferu
@@ -262,9 +246,7 @@ token_t getNextToken()
                     returnError(SCANNER_ERR);
                 }
             }             
-
             /*  ------ SPRACOVANIE DOUBLE LITERALU S EXPONENTOM ------ */
-
             else if (c == 'e' || c == 'E')   // ak dostanem e/E   -> moze nasledovat +/- alebo iba dalsie cisla
             {
                 buffer[i++] = c;     // zapis e/E do bufferu
@@ -318,9 +300,7 @@ token_t getNextToken()
                     returnError(SCANNER_ERR);
                 }                
             }
-
             /*  ------ SPRACOVANIE INTEGERU CI DOUBLE PRED ZISKANIM EXPONENTU ALEBO DESATINNEJ CIARKY ------ */
-
             else if (isdigit(c))
             {
                 buffer[i++] = c;
@@ -350,154 +330,7 @@ token_t getNextToken()
             token.attribute.intValue = atoi(buffer);
         }
     }
-    else if (c == '*')  // tu sa spracovava koniec blokoveho komentaru ?
-    {
-        token.type = TOK_MUL;
-        c = getNextChar();
-        if (c == '/')                               // */
-        {
-            token.type = TOK_BLOCK_COM_END;         
-        }
-        else                       // *
-        {
-            ungetChar(c);
-        }   
-    }
-    else if (c == '/')  // tu sa spracovava zaciatok blokoveho komentaru
-    {
-        token.type = TOK_DIV;
-        c = getNextChar();
-        if (c == '*')   // Blokovy komentar /* ... */
-        {
-            token.type = TOK_BLOCK_COM_START;
-            int nestedCommentLevel = 1;
-
-            while ((c = getNextChar()) != EOF)
-            {
-                if (c == '/' && (c = getNextChar()) == '*')
-                {
-                    nestedCommentLevel++;
-                }
-                else if (c == '*' && (c = getNextChar()) == '/')
-                {
-                    nestedCommentLevel--;
-                    if (nestedCommentLevel == 0)
-                    {
-                        ungetChar('/');
-                        ungetChar('*');
-                        break;
-                    }
-                }
-            }
-
-            if (nestedCommentLevel > 0)
-            {
-                fprintf(stderr, "SCANNER: Chybaju [ %d ] ukoncenia blokovych komentarov\n", nestedCommentLevel);
-                returnError(SCANNER_ERR);
-            }
-        }
-        else if (c == '/')  // Riadkovy koment // ...
-        {
-            token.type = TOK_COMMENT;
-            while ((c = getNextChar()) != EOF && c != '\n')
-            {
-                // V riadkovom komentari ignoruj znaky az do konca riadku
-            }
-        }
-        else
-        {
-            ungetChar(c); 
-        }
-    }
-    else if (c == EOF) token.type = TOK_EOF;        // EOF
-    else if (c == '+') token.type = TOK_PLUS;       // +
-    else if (c == '-')
-    {
-        token.type = TOK_MINUS;                 
-        c = getNextChar();
-        if (c == '>')                               // ->
-        {
-            token.type = TOK_ARROW;
-        }
-        else
-        {
-            ungetChar(c);            
-        } 
-    }
-    else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
-    else if (c == '{') token.type = TOK_L_CRL_BRCKT;// {
-    else if (c == ')') token.type = TOK_R_BRCKT;    // )
-    else if (c == '(') token.type = TOK_L_BRCKT;    // (
-    else if (c == '!')                              // !
-    {
-        token.type = TOK_NOT;
-        c = getNextChar();
-        if (c == '=')                               // !=
-        {
-            token.type = TOK_NOT_EQUAL;
-        } 
-        else 
-        {
-            ungetChar(c);
-        }
-    } 
-    else if (c == '<')                              
-    {
-        token.type = TOK_LESSER;
-        c = getNextChar();
-        if (c == '=')                               // <=
-        {
-            token.type = TOK_LESSER_OR_EQUAL;       
-        } 
-        else 
-        {
-            ungetChar(c);                          
-        }
-    }
-    else if (c == '>')
-    {
-        token.type = TOK_GREATER;               // >
-        c = getNextChar();
-        if (c == '=')
-        {
-             token.type = TOK_GREATER_OR_EQUAL;     // >=
-        }
-        else
-        {
-            ungetChar(c);                 
-        }
-    }
-    else if (c == '=')
-    {
-        token.type = TOK_ASSIGN;                 // =
-        c = getNextChar();
-        if (c == '=')
-        {
-            token.type = TOK_EQUAL;                // ==
-        }
-        else
-        {
-            ungetChar(c);                           
-        }
-    }
-    else if (c == ':') token.type = TOK_COLON;      // ,       
-    else if (c == ',') token.type = TOK_COMMA;      // ,
-    else if (c == '?')
-    {
-        c = getNextChar();
-        if (c == '?')
-        {
-            token.type = TOK_DOUBLE_QUEST_MARK;     // ??
-        }
-        else
-        {
-            fprintf(stderr, "\nSCANNER: Nemozno nacitat samotny [ ? ]\n");
-            returnError(SCANNER_ERR);
-        }
-    }
-
     /*  ------ SPRACOVANIE STRINGOV ------ */
-
     else if (c == '"')                              // STRING_LITERAL
     {
         string_t string;
@@ -580,7 +413,11 @@ token_t getNextToken()
             }
         }
         else                    // " klasicky string
-        {            
+        {
+            if (c == '\\')
+            {
+                handleEscapeSequence(&c);
+            }
             dstringAppend(&string, c);
             while ((c = getNextChar()) != EOF && c != '"') 
             {
@@ -608,6 +445,143 @@ token_t getNextToken()
         token.type = TOK_STRING;
         token.attribute.str = string;   // neni potreba dstring copy ?
     }
+    else if (c == '*')  // tu sa spracovava koniec blokoveho komentaru ?
+    {
+        token.type = TOK_MUL;
+        c = getNextChar();
+        if (c == '/')                               // */
+        {
+            token.type = TOK_BLOCK_COM_END;         
+        }
+        else                       // *
+        {
+            ungetChar(c);
+        }   
+    }
+    else if (c == '/')  // tu sa spracovava zaciatok blokoveho komentaru
+    {
+        token.type = TOK_DIV;
+        c = getNextChar();
+        if (c == '*')   // Blokovy komentar /* ... */
+        {
+            token.type = TOK_BLOCK_COM_START;
+            int nestedCommentLevel = 1;
+
+            while ((c = getNextChar()) != EOF)
+            {
+                if (c == '/' && (c = getNextChar()) == '*')
+                {
+                    nestedCommentLevel++;
+                }
+                else if (c == '*' && (c = getNextChar()) == '/')
+                {
+                    nestedCommentLevel--;
+                    if (nestedCommentLevel == 0)
+                    {
+                        ungetChar('/');
+                        ungetChar('*');
+                        break;
+                    }
+                }
+            }
+
+            if (nestedCommentLevel > 0)
+            {
+                fprintf(stderr, "SCANNER: Chybaju [ %d ] ukoncenia blokovych komentarov\n", nestedCommentLevel);
+                returnError(SCANNER_ERR);
+            }
+        }
+        else if (c == '/')  // Riadkovy koment // ...
+        {
+            token.type = TOK_COMMENT;
+            while ((c = getNextChar()) != EOF && c != '\n')
+            {
+                // V riadkovom komentari ignoruj znaky az do konca riadku
+            }
+        }
+        else
+        {
+            ungetChar(c); 
+        }
+    }
+    else if (c == '-')
+    {
+        token.type = TOK_MINUS;                 
+        c = getNextChar();
+        if (c == '>')                               // ->
+        {
+            token.type = TOK_ARROW;
+        }
+        else
+        {
+            ungetChar(c);            
+        } 
+    }
+    else if (c == '!')                              // !
+    {
+        token.type = TOK_NOT;
+        c = getNextChar();
+        if (c == '=')                               // !=
+        {
+            token.type = TOK_NOT_EQUAL;
+        } 
+        else 
+        {
+            ungetChar(c);
+        }
+    } 
+    else if (c == '<')                              
+    {
+        token.type = TOK_LESSER;
+        c = getNextChar();
+        if (c == '=')                               // <=
+        {
+            token.type = TOK_LESSER_OR_EQUAL;       
+        } 
+        else 
+        {
+            ungetChar(c);                          
+        }
+    }
+    else if (c == '>')
+    {
+        token.type = TOK_GREATER;               // >
+        c = getNextChar();
+        if (c == '=')
+        {
+             token.type = TOK_GREATER_OR_EQUAL;     // >=
+        }
+        else
+        {
+            ungetChar(c);                 
+        }
+    }
+    else if (c == '=')
+    {
+        token.type = TOK_ASSIGN;                 // =
+        c = getNextChar();
+        if (c == '=')
+        {
+            token.type = TOK_EQUAL;                // ==
+        }
+        else
+        {
+            ungetChar(c);                           
+        }
+    }
+    else if (c == '?')
+    {
+        c = getNextChar();
+        if (c == '?')
+        {
+            token.type = TOK_DOUBLE_QUEST_MARK;     // ??
+        }
+        else
+        {
+            fprintf(stderr, "\nSCANNER: Nemozno nacitat samotny [ ? ]\n");
+            returnError(SCANNER_ERR);
+        }
+    }    
     else if (c == '\n')
     {
         token.type = TOK_EOL;                       // EOL
@@ -619,6 +593,14 @@ token_t getNextToken()
         }
         ungetChar(c);                               // ERROR
     }
+    else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
+    else if (c == '{') token.type = TOK_L_CRL_BRCKT;// {
+    else if (c == ')') token.type = TOK_R_BRCKT;    // )
+    else if (c == '(') token.type = TOK_L_BRCKT;    // (
+    else if (c == ':') token.type = TOK_COLON;      // ,       
+    else if (c == ',') token.type = TOK_COMMA;      // ,
+    else if (c == EOF) token.type = TOK_EOF;        // EOF
+    else if (c == '+') token.type = TOK_PLUS;       // +
     /*  ------------------------------------ */
     else
     {
