@@ -197,7 +197,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
             }
 
             token_out.type = kw_to_token_type(token_out.type);
-            
+
             gen_value(output, NULL, true, token_out.attribute.str.data);
             
             current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT}, SYNTAX_ERR);
@@ -283,7 +283,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
  * @param local_table Ukazatel na lokalni tabulku symbolu.
  * @param nest_level Uroven zanoreni.
  */
-void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
+void handle_variable(token_t token_assigner, global_symtab_t **global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
     token_t var_type;
     var_type.attribute.includesNil = false;
@@ -307,7 +307,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
         returnError(SYNTAX_ERR);
     }
 
-    if(local_search(local_table->table, &identifier.attribute.str) != NULL)
+    if(local_search(local_table->table, &identifier.attribute.str) != NULL || (nest_level == 0 && global_search((*global_table), &identifier.attribute.str) != NULL))
     {
         // error - redefinice promenne
         returnError(FUNCTION_DEFINITION_ERR);
@@ -337,7 +337,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
             if (nest_level == 0)
             {
-                global_table = global_insert(global_table, &identifier.attribute.str, token_type_t_to_type_t(var_type.type), false, 0, NULL, var_type.attribute.includesNil, is_constant, false);
+                (*global_table) = global_insert((*global_table), &identifier.attribute.str, token_type_t_to_type_t(var_type.type), false, 0, NULL, var_type.attribute.includesNil, is_constant, false);
             }
             else
             {
@@ -371,7 +371,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     {
         if(getToken().type == TOK_L_BRCKT)
         {   
-            if((global_search(global_table, &current_token.attribute.str) != NULL) && (global_search(global_table, &current_token.attribute.str)->is_func == true))
+            if((global_search((*global_table), &current_token.attribute.str) != NULL) && (global_search((*global_table), &current_token.attribute.str)->is_func == true))
             {
                 is_func = true;
             }
@@ -390,7 +390,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
     if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
-        token_type_t type_expr = checkExpression(local_table, global_table)->type;
+        token_type_t type_expr = checkExpression(local_table, (*global_table))->type;
         if (var_type.type == TOK_NOTHING)
         {
             var_type.type = type_expr;
@@ -424,7 +424,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
             local_symtab_t* var_loc = local_search_in_all(local_table, &current_token.attribute.str);
             if (var_loc == NULL)
             {
-                global_symtab_t* var_glob = (global_symtab_t*)global_search(global_table, &current_token.attribute.str);
+                global_symtab_t* var_glob = (global_symtab_t*)global_search((*global_table), &current_token.attribute.str);
                 if (var_glob == NULL)
                 {
                     // error - nedefinovana funkce
@@ -436,7 +436,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
 
                     if(var_type.type == TOK_NOTHING)
                     {
-                        var_glob->type = token_type_t_to_type_t(var_loc->type);
+                        var_glob->type = var_glob->type;
                     }
                     else if ((var_glob->type == T_INT && var_type.type != TOK_INT) || (var_glob->type == T_DOUBLE && var_type.type != TOK_DOUBLE) || (var_glob->type == T_STRING && var_type.type != TOK_STRING))
                     {
@@ -448,7 +448,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 }
                 else
                 {
-                    func_in = call_func(var_glob, local_table, global_table);
+                    func_in = call_func(var_glob, local_table, (*global_table));
                     var_type.attribute.includesNil = func_in.attribute.includesNil;
                     var_type.type = func_in.type;
                 }
@@ -498,7 +498,14 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     var_type.type = kw_to_token_type(var_type.type);
     
     
-    local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, true);
+    if (nest_level == 0)
+    {
+        (*global_table) = global_insert((*global_table), &identifier.attribute.str, token_type_t_to_type_t(var_type.type), false, 0, NULL, var_type.attribute.includesNil, is_constant, true);
+    }
+    else
+    {
+        local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, true);
+    }
 }
 
 /**
@@ -602,8 +609,8 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         
         if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
         {
-            token_type_t type_expr = checkExpression(local_table, global_table)->type;
-            if (var_type != type_expr)
+            ast_node_t* node = checkExpression(local_table, global_table);
+            if (var_type != node->type)
             {
                 // error - spatny typ
                 returnError(TYPE_COMPATIBILITY_ERR);
@@ -806,13 +813,13 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         if(var == NULL)
         {
             var = global_search(global_table, &current_token.attribute.str);
-            gen_if_let(output, ((global_symtab_t*)var)->key.data, counter);
-            gen_if(output, counter);
             if (var == NULL)
             {
                 // error - nedefinovana promenna
                 returnError(VARIABLE_DEFINITION_ERR);
             }
+            gen_if_let(output, ((global_symtab_t*)var)->key.data, counter);
+            gen_if(output, counter);
             if (((global_symtab_t*)var)->includesNil == false)
             {
                 // error - non-nil promenna v if-let
@@ -827,6 +834,11 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             {
                 //TODO
             }
+            if (getToken().type != TOK_EOL)
+            {
+                ungetToken();
+            }
+            
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
             parse_block(nest_level + 1, TOK_L_CRL_BRCKT, global_table, local_table, &((global_symtab_t*)var)->key, type_t_to_token_type_t(((global_symtab_t*)var)->type), TOK_NOTHING);
         }
@@ -988,7 +1000,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
         }
         else if (current_token.type == TOK_KW_LET || current_token.type == TOK_KW_VAR)
         {
-            handle_variable(current_token, global_table, &local_table, nest_level);
+            handle_variable(current_token, &global_table, &local_table, nest_level);
         }
         else if (current_token.type == TOK_IDENTIFIER)
         {
