@@ -213,19 +213,16 @@ void gen_var(string_t *output, char *name, bool includesNil){
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
 void gen_assign(string_t *output, char *name){
-    if (nestLevel == 0){
+    char *isDefined = NULL;
+    if (localVariables != NULL){
+        isDefined = strstr(localVariables->data, name);
+    }
+    if (nestLevel == 0 || isDefined == NULL){
         append_line(output, "POPS GF@");
         append_line(output, name);
         append_line(output, "\n");
     }
     else{
-        char *isDefined = NULL;
-        if (localVariables != NULL){
-            isDefined = strstr(localVariables->data, name);
-        }
-        if (isDefined == NULL){
-            gen_var(output, name, false);
-        }
         append_line(output, "POPS LF@");
         append_line(output, name);
         append_line(output, "\n");
@@ -562,9 +559,12 @@ void gen_while_end(string_t *output, int counter){
         dstringFree(localVariables);
         localVariables = NULL;
     }
-    append_line(output, "LABEL while_end");
+
     char str[16];
     sprintf(str, "%d\n", counter);
+    append_line(output, "JUMP while");
+    append_line(output, str);
+    append_line(output, "LABEL while_end");
     append_line(output, str);
     append_line(output, "POPFRAME\n");
 }
