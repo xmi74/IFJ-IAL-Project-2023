@@ -300,6 +300,9 @@ void gen_func_return(string_t *output, token_t *token){
  * @param name Nazov volanej funkcie
 */
 void gen_func_call(string_t *output, char *name){
+    if (nestLevel != 0){
+        append_line(output, "PUSHFRAME\n");
+    }
     append_line(output, "CALL ");
     append_line(output, name);
     append_line(output, "\n");
@@ -431,6 +434,9 @@ void gen_if(string_t *output, int counter){
 }
 
 void gen_if_let(string_t *output, char *name, int counter){
+    if (nestLevel != 0){
+        append_line(output, "PUSHFRAME\n");
+    }
     append_line(output, "CREATEFRAME\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@type\n"
