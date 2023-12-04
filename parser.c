@@ -308,6 +308,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     if (current_token.type == TOK_COLON)
     {
         var_type = getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING}, SYNTAX_ERR);
+        var_type.type = kw_to_token_type(var_type.type);
         current_token =  getTokenAssertArr(3, (token_type_t[]){TOK_ASSIGN, TOK_EOF, TOK_EOL}, SYNTAX_ERR);
         if (current_token.type == TOK_ASSIGN)
         {
