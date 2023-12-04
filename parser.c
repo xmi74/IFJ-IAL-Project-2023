@@ -151,7 +151,11 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
         getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
         while (current_token.type != TOK_R_BRCKT)
         {
-            current_token = getTokenAssertArr(4, (token_type_t[]){TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER}, SYNTAX_ERR);
+            current_token = getTokenAssertArr(5, (token_type_t[]){TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER, TOK_R_BRCKT}, SYNTAX_ERR);
+            if (current_token.type == TOK_R_BRCKT)
+            {
+                return func_out; // func_out neni definovane v tomto pripade
+            }
 
             if (current_token.type != TOK_IDENTIFIER)
             {
@@ -394,7 +398,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
         else if (var_type.type != type_expr)
         {
             // error - spatny typ
-            returnError(VARIABLE_DEFINITION_ERR);
+            returnError(TYPE_COMPATIBILITY_ERR);
         }
     }
     else
@@ -549,6 +553,10 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             if (nest_level == 0)
             {
                 ((global_symtab_t*)var)->isInitialised = true;
+            }
+            else
+            {
+                // TODO
             }
         }
         else
@@ -945,7 +953,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
 
     if (var_name != NULL)
     {
-        local_insert(local_table.table, var_name, var_type, false, true, true);
+        local_table.table = local_insert(local_table.table, var_name, var_type, false, true, true);
     }
     
 
@@ -1029,7 +1037,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
                     if (return_type != expected_return)
                     {
                         // error - spatny typ
-                        returnError(FUNCTION_RETURN_ERROR);
+                        returnError(SYNTAX_ERR);
                     }
                 }
                 else
@@ -1162,21 +1170,19 @@ void find_functions(global_symtab_t **global_table)
                 }
                 
                 // TODO: opravit pripad _ _ : Int
-                //token_t id = getToken();
-                //if (id.type == TOK_UNDERSCORE)
-                //{
-                //    dstringAppend(&id.attribute.str, '_'); 
-                //}
-                //else if (id.type != TOK_IDENTIFIER)
-                //{
-                //    // error
-                //    returnError(SYNTAX_ERR);
-                //}
-
-                token_t id = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
+                token_t id = getToken();
+                if (id.type == TOK_UNDERSCORE)
+                {
+                    dstringAppend(&id.attribute.str, '_'); 
+                }
+                else if (id.type != TOK_IDENTIFIER)
+                {
+                    // error
+                    returnError(SYNTAX_ERR);
+                }
 
 
-                if (dstringCompare(&name.attribute.str, &id.attribute.str) == 0)
+                if (dstringCompare(&name.attribute.str, &id.attribute.str) == 0 && strcmp(name.attribute.str.data, "_") != 0)
                 {
                     // error - jmeno a id se nesmi rovnat
                     returnError(OTHER_ERR); // asi 9?
