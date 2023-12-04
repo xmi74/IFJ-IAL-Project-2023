@@ -94,54 +94,6 @@ int getTokenIndex(token_t token)
     }
 }
 
-/**
- * @brief Funkcia zistuje ci su dva tokenu rovnakeho datoveho typu.
- * @param token1 Prvy token.
- * @param token2 Druhy token.
- * @return True ak su datove typy rovnake, inak false.
- */
-bool dataTypeEqual(token_t token1, token_t token2, token_t operation)
-{
-    switch (operation.type)
-    {
-    case TOK_DOUBLE_QUEST_MARK:
-        // Vo Swifte OK, napr let a = nil ?? 3
-        if (token1.type == TOK_KW_NIL || token2.type == TOK_KW_NIL)
-        {
-            return true;
-        }
-        else if (token1.type == TOK_KW_NIL && token2.type == TOK_KW_NIL)
-        {
-            // Swift nepodporuje nil ?? nil
-            returnError(OTHER_ERR);
-        }
-        break;
-    default:
-        if (token1.type == TOK_INT && token2.type == TOK_INT)
-        {
-            return true;
-        }
-        else if (token1.type == TOK_DOUBLE && token2.type == TOK_DOUBLE)
-        {
-            return true;
-        }
-        else if (token1.type == TOK_STRING && token2.type == TOK_STRING)
-        {
-            return true;
-        }
-        else if (token1.tree->type == token2.tree->type)
-        {
-            // Kontrola typov podla AST stromu, resp. tokeny nemusia byt terminaly
-            return true;
-        }
-        break;
-
-        return false;
-    }
-
-    return true;
-}
-
 // RULES:
 // 1: E → E!
 // 2: E → E*E
@@ -171,6 +123,33 @@ bool tokenIsIdentifier(token_t token)
     case TOK_INT:
     case TOK_DOUBLE:
     case TOK_STRING:
+        return true;
+    default:
+        return false;
+    }
+}
+
+/**
+ * @brief pomocna funckia pre zistenie ci je token operator
+ * @param token token ktory sa ma skontrolovat
+ * @return true ak je operator, inak false
+*/
+bool tokenIsOperator(token_t token)
+{
+    switch (token.type)
+    {
+    case TOK_NOT:
+    case TOK_MUL:
+    case TOK_DIV:
+    case TOK_PLUS:
+    case TOK_MINUS:
+    case TOK_EQUAL:
+    case TOK_NOT_EQUAL:
+    case TOK_LESSER:
+    case TOK_GREATER:
+    case TOK_LESSER_OR_EQUAL:
+    case TOK_GREATER_OR_EQUAL:
+    case TOK_DOUBLE_QUEST_MARK:
         return true;
     default:
         return false;
@@ -216,6 +195,13 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
     token->attribute.includesNil = search->includesNil;
     return search->type;
 }
+/**
+ * @brief Funkcia na kontrolu operandov
+ * Funkcia tiez kontroluje ci operandy neobsahuju nil, v takom pripade sa jedna o error
+ * @param operand1 prvy operand
+ * @param operand2 druhy operand
+ * @return true ak su operandy v poriadku, inak false
+*/
 
 bool checkOperands(token_t operand1, token_t operand2)
 {
@@ -230,8 +216,66 @@ bool checkOperands(token_t operand1, token_t operand2)
         fprintf(stderr, "[EXPR] ERROR: Possible nil in an expression, type cannot be deducted from nil!\n");
         returnError(TYPE_DEDUCTION_ERR); // Z typu nil sa neda odvodit typ
     }
-    // Operands okay
+    // Operandy ok
     return true;
+}
+
+/**
+ * @brief Funkcia vyhodnocuje kompatibilitu operandov vo vyraze
+ * Funkcia zvlast kontroluje operator '??', ktory vyzaaduje specialnu kontrolu
+ * @param operand1 Prvy token.
+ * @param operand2 Druhy token.
+ * @return True ak su datove typy rovnake, inak false.
+ */
+bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
+{
+    switch (operation.type)
+    {
+    case TOK_DOUBLE_QUEST_MARK: // '??' operator
+        // Vo Swifte nelze, napr let a = 3 ?? 4
+        if (operand1.attribute.includesNil == false && operand2.attribute.includesNil == false) // AST strom nebude obsahovat nil, zlyhal by uz skor
+        {
+            fprintf(stderr, "[EXPR] ERROR: `??` operator, where none of the operands include nil\n");
+            returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
+        }
+        // Swift nepodporuje nil ?? nil
+        if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
+        {
+            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - nil ?? nil\n");
+            returnError(OTHER_ERR);
+        }
+        // Iba jeden z operandov je nil
+        else if (operand1.type == TOK_KW_NIL || operand2.type == TOK_KW_NIL)
+        {
+            return true;
+        }
+        // Jeden z operandov obsahuje nil, Int?, Double?...
+        else if (operand1.attribute.includesNil == true || operand2.attribute.includesNil == true)
+        {
+            return true;
+        }
+        break;
+    default:
+        // Jeden z operandov nie je literal
+        if (operand1.tree->literal == false || operand2.tree->literal == false)
+        {
+            // Kontrola pretypovania typov, kde int musi byt literal
+            if ((operand1.tree->literal == false && operand1.tree->type == TOK_INT && operand2.tree->type == TOK_DOUBLE) ||
+                (operand2.tree->literal == false && operand2.tree->type == TOK_INT && operand1.tree->type == TOK_DOUBLE))
+            {
+                fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
+                returnError(TYPE_COMPATIBILITY_ERR);
+            }
+        }
+        // Ani jeden z operandov nie je literal a ich datove typy sa nerovnaju
+        else if (operand1.tree->literal == false && operand2.tree->literal == false && operand1.tree->type != operand2.tree->type)
+        {
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
+        return true;
+        break;
+    }
+    return true; // Aby sa nevypisoval warning
 }
 
 /**
@@ -252,20 +296,10 @@ void reduceArithmetic(Stack *stack)
     token_t operation = stack->elements[stack->size - 2];
 
     // Mozno nie je potreba, druha podmienka by mala stacit
-    if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = * 3)
+    if (checkOperands(operand1, operand2))
+    { // Syntax analyza -> napr. (var a : Int = * 3)
 
-        if (operand1.tree->literal == false && operand2.tree->literal == false && dataTypeEqual(operand1, operand2, operation) == false)
-        {
-            returnError(SYNTAX_ERR);
-        }
-    // INTEGER nie je literal a druhy operand je double -> ERROR
-    if (operand1.tree->literal == false || operand2.tree->literal == false)
-    {
-        if ((operand1.tree->literal == false && operand1.tree->type == TOK_INT && operand2.tree->type == TOK_DOUBLE) || (operand2.tree->literal == false && operand2.tree->type == TOK_INT && operand1.tree->type == TOK_DOUBLE))
-        {
-            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
-            returnError(TYPE_COMPATIBILITY_ERR);
-        }
+        dataTypeEqual(operand1, operand2, operation);
     }
 
     // Kontrola konkatenacie stringov
@@ -314,24 +348,15 @@ bool reduceLogical(Stack *stack)
     if (operation.type == TOK_DOUBLE_QUEST_MARK)
     {
         doubleQuestMark = true;
-        if (operand1.attribute.includesNil == false && operand2.attribute.includesNil == false)
-        {
-            returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
-        }
-        if (dataTypeEqual(operand1, operand2, operation) == false)
-        {
-            fprintf(stderr, "[EXPR] ERROR: Incompatible data types in bool expression!\n");
-            returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
-        }
+        dataTypeEqual(operand1, operand2, operation);
     }
     else
     {
-        if (checkOperands(operand1, operand2)) // Syntax analyza -> napr. (var a : Int = != 3)
-            if (dataTypeEqual(operand1, operand2, operation) == false)
-            {
-                fprintf(stderr, "[EXPR] ERROR: Incompatible data types in bool expression!\n");
-                returnError(TYPE_COMPATIBILITY_ERR); // ERROR 7, datove typy sa nezhoduju
-            }
+        // Syntax a sematicka analyza
+        if (checkOperands(operand1, operand2))
+        {
+            dataTypeEqual(operand1, operand2, operation);
+        }
     }
 
     Stack_PopUntilLesser(stack);
@@ -344,24 +369,50 @@ bool reduceLogical(Stack *stack)
     return true;
 }
 
+/**
+ * @brief Funkcia na redukciu NOT operatora
+ * @param stack zasobnik
+ * @return void
+*/
 void reduceNot(Stack *stack)
 {
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operand1 = stack->elements[stack->size - 2];  // E
     token_t operation = stack->elements[stack->size - 1]; // !
-    while (stackTop.type != TOK_LESSER || stackTop.terminal == true)
-    {
-        Stack_Pop(stack);
-        Stack_Top(stack, &stackTop);
-    }
 
-    Stack_Pop(stack);
+    Stack_PopUntilLesser(stack);
+
+    // Force unwrap nil
+    if (operand1.attribute.includesNil == false)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Force unwrap nil\n");
+        returnError(TYPE_COMPATIBILITY_ERR);
+    }
 
     token_t expr = operation;
     expr.terminal = false;
     expr.tree = make_tree(operation, operand1.tree, NULL, false);
     expr.tree->token.attribute.includesNil = false;
+    Stack_Push(stack, &expr);
+}
+
+/**
+ * @brief Funkcia na redukciu zatvoriek
+ * @param stack zasobnik
+ * @return void
+ */
+void reduceParenthesis(Stack *stack)
+{
+    token_t stackTop;
+    Stack_Top(stack, &stackTop);
+    token_t operand1 = stack->elements[stack->size - 2]; // E
+
+    Stack_PopUntilLesser(stack);
+
+    token_t expr = operand1;
+    expr.terminal = false;
+
     Stack_Push(stack, &expr);
 }
 
@@ -420,25 +471,6 @@ void applyRule(Stack *stack)
 }
 
 /**
- * @brief Funkcia na redukciu zatvoriek
- * @param stack zasobnik
- * @return void
- */
-void reduceParenthesis(Stack *stack)
-{
-    token_t stackTop;
-    Stack_Top(stack, &stackTop);
-    token_t operand1 = stack->elements[stack->size - 2]; // E
-
-    Stack_PopUntilLesser(stack);
-
-    token_t expr = operand1;
-    expr.terminal = false;
-
-    Stack_Push(stack, &expr);
-}
-
-/**
  * @brief Funkcia na zistenie ci je koniec vyrazu
  * @param token aktualny token
  * @param prevToken predchadzajuci token
@@ -447,7 +479,7 @@ void reduceParenthesis(Stack *stack)
 bool expressionEnd(token_t token, token_t prevToken)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token.type == TOK_EOL && tokenIsIdentifier(prevToken)) || token.type == TOK_EOF || token.type == TOK_L_CRL_BRCKT)
+    if ((token.type == TOK_EOL && tokenIsOperator(prevToken)) || token.type == TOK_EOF || token.type == TOK_L_CRL_BRCKT)
         return true;
     // Napriklad vyraz na viacero riadkov, kde pred EOL je operator
     return false;
@@ -478,7 +510,7 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
     // Pomocne premenne pre zistenie ci je vyraz v podmienke
     int parenCount = 0;
     bool condition = false;
-    while (token.type != TOK_EOL && token.type != TOK_EOF && token.type != TOK_R_CRL_BRCKT)
+    while (expressionEnd(token, prevToken) == false)
     {
         // Stack_Print(&stack); // DEBUG
         token.terminal = true;
@@ -538,6 +570,8 @@ token_type_t checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *g
                     returnError(SYNTAX_ERR);
                 }
             }
+
+            token.attribute.includesNil = false;
 
             // Ak je identifikator aplikuj pravidlo E → i
             if (tokenIsIdentifier(token) || token.type == TOK_KW_NIL)

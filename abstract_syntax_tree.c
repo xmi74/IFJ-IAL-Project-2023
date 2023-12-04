@@ -42,6 +42,7 @@ ast_node_t *make_leaf(token_t token)
     {
         returnError(99);
     }
+    newNode->type = token.type;
     newNode->token = token;
     newNode->left = NULL;
     newNode->right = NULL;
@@ -53,11 +54,14 @@ ast_node_t *make_leaf(token_t token)
  * @brief Funkcia na kontrolu typov.
  * @param root Ukazatel na koren stromu.
  */
-void checkTypes(ast_node_t *root, bool doubleQuestMark)
+void checkLeafTypes(ast_node_t *root, bool doubleQuestMark)
 {
+    // Nemalo by nastat
     if (root->left == NULL && root->right == NULL)
     {
-        root->type = TOK_EOF;
+        root->type = TOK_NOTHING;
+        fprintf(stderr, "[EXPR] Father node has no children");
+        returnError(INTERN_ERR);
         return;
     }
 
@@ -65,13 +69,8 @@ void checkTypes(ast_node_t *root, bool doubleQuestMark)
     {
         token_type_t leftType = root->left->type;
         token_type_t rightType = root->right->type;
-        bool leftLiteral = root->left->literal;
-        bool rightLiteral = root->right->literal;
 
-        // Set literal information for the current node
-        root->literal = leftLiteral && rightLiteral;
-
-        // If double question mark is used with NIL on either side
+        // Urcenie vysledneho typu pri operatore '??' s TOK_KW_NIL
         if (doubleQuestMark &&
             ((leftType == TOK_KW_NIL && rightType != TOK_KW_NIL) ||
              (rightType == TOK_KW_NIL && leftType != TOK_KW_NIL)))
@@ -79,23 +78,29 @@ void checkTypes(ast_node_t *root, bool doubleQuestMark)
             root->type = (leftType == TOK_KW_NIL) ? rightType : leftType;
             return;
         }
+        bool leftLiteral = root->left->literal;
+        bool rightLiteral = root->right->literal;
 
-        // If types are the same or compatible, set the type of the parent accordingly
-        if (leftType == rightType || 
-            (leftType == TOK_DOUBLE && rightLiteral && rightType == TOK_INT) || 
+        // Ponechanie informacii o literale korenu
+        root->literal = leftLiteral && rightLiteral;
+
+        // Kontrola pretypovania, kde INT musi byt literal
+        if (leftType == rightType ||
+            (leftType == TOK_DOUBLE && rightLiteral && rightType == TOK_INT) ||
             (leftLiteral && leftType == TOK_INT && rightType == TOK_DOUBLE))
         {
             root->type = (leftType == TOK_INT && rightType == TOK_DOUBLE) ? TOK_DOUBLE : leftType;
             return;
         }
-        
+
         // If none of the above conditions met, there's a type error
         root->type = TOK_NOTHING;
+        fprintf(stderr, "[EXPR] Type compatibility error");
         returnError(TYPE_COMPATIBILITY_ERR);
     }
     else
     {
-        // One child is NULL, so inherit the type of the other child
+        // Otec ma jednoho syna
         root->type = (root->left != NULL) ? root->left->type : root->right->type;
         root->literal = (root->left != NULL) ? root->left->literal : root->right->literal;
     }
@@ -114,7 +119,7 @@ ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right, 
     ast_node_t *fatherNode = make_leaf(fatherToken);
     fatherNode->left = left;
     fatherNode->right = right;
-    checkTypes(fatherNode, doubleQuestMark);
+    checkLeafTypes(fatherNode, doubleQuestMark);
 
     return fatherNode;
 }
