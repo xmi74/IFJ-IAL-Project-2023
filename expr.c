@@ -133,7 +133,7 @@ bool tokenIsIdentifier(token_t token)
  * @brief pomocna funckia pre zistenie ci je token operator
  * @param token token ktory sa ma skontrolovat
  * @return true ak je operator, inak false
-*/
+ */
 bool tokenIsOperator(token_t token)
 {
     switch (token.type)
@@ -201,7 +201,7 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
  * @param operand1 prvy operand
  * @param operand2 druhy operand
  * @return true ak su operandy v poriadku, inak false
-*/
+ */
 
 bool checkOperands(token_t operand1, token_t operand2)
 {
@@ -352,10 +352,38 @@ bool reduceLogical(Stack *stack)
     }
     else
     {
-        // Syntax a sematicka analyza
-        if (checkOperands(operand1, operand2))
+        // a == nil || a != nil || nil == nil je ok, kde a je Int?, Double?...
+        if ((operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL) &&
+            ((operand1.type == TOK_KW_NIL || operand1.attribute.includesNil == true) ||
+            (operand2.type == TOK_KW_NIL || operand2.attribute.includesNil == true)))
         {
-            dataTypeEqual(operand1, operand2, operation);
+            if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
+            {
+                // nil == nil
+            }
+            else if (operand1.type == TOK_KW_NIL && operand2.attribute.includesNil == true)
+            {
+                // nil == a, kde a je Int?, Double?...
+            }
+            else if (operand2.type == TOK_KW_NIL && operand1.attribute.includesNil == true)
+            {
+                // a == nil, kde a je Int?, Double?...
+            } else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == true) {
+                // a == b, kde a a b su Int?, Double?...
+            }
+            else
+            {
+                fprintf(stderr, "[EXPR] ERROR: Incompatible data types\n");
+                returnError(TYPE_COMPATIBILITY_ERR);
+            }
+        }
+        else
+        {
+            // Syntax a sematicka analyza
+            if (checkOperands(operand1, operand2))
+            {
+                dataTypeEqual(operand1, operand2, operation);
+            }
         }
     }
 
@@ -373,7 +401,7 @@ bool reduceLogical(Stack *stack)
  * @brief Funkcia na redukciu NOT operatora
  * @param stack zasobnik
  * @return void
-*/
+ */
 void reduceNot(Stack *stack)
 {
     token_t stackTop;
