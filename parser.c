@@ -202,7 +202,6 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
             current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT}, SYNTAX_ERR);
             gen_func_call(output, "write");
         }
-        gen_func_call(output, func->key.data);
         return func_out; // func_out neni definovane v tomto pripade
     }
     getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
