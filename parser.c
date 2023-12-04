@@ -438,6 +438,7 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
                 else
                 {
                     func_in = call_func(var_glob, local_table, global_table);
+                    var_type.attribute.includesNil = func_in.attribute.includesNil;
                 }
             }
             else
@@ -483,7 +484,6 @@ void handle_variable(token_t token_assigner, global_symtab_t *global_table, loca
     }
     
     var_type.type = kw_to_token_type(var_type.type);
-    var_type.attribute.includesNil = func_in.attribute.includesNil;
     
     
     local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, true);
@@ -706,6 +706,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     local_init_w_par_ptr_t(&local_table);
     local_table.parent = local_table_one_up;
 
+    // TODO
     for (int i = 0; i < found->param_count; i++)
     {
         local_table.table = local_insert(local_table.table, &found->params[i].identifier, found->params[i].type, found->params[i].includesNil, true, true); // paramentry nelze menit uvnitr funkce, asi?
@@ -1003,17 +1004,31 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
             }
             if (nest_level == -MAX_NEST_LEVEL)
             {
-                token_type_t return_type = checkExpression(&local_table, global_table);
-                if (return_type == TOK_NOTHING)
+                current_token = getToken();
+                if (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
                 {
-                    // error - spatny typ
-                    returnError(SYNTAX_ERR);
+                    ungetToken();
+                    token_type_t return_type = checkExpression(&local_table, global_table);
+                    if (return_type == TOK_NOTHING)
+                    {
+                        // error - spatny typ
+                        returnError(SYNTAX_ERR);
+                    }
+                    if (return_type != expected_return)
+                    {
+                        // error - spatny typ
+                        returnError(FUNCTION_RETURN_ERROR);
+                    }
                 }
-                if (return_type != expected_return)
+                else
                 {
-                    // error - spatny typ
-                    returnError(FUNCTION_RETURN_ERROR);
+                    if (expected_return != TOK_NOTHING)
+                    {
+                        // error - spatny typ
+                        returnError(FUNCTION_RETURN_ERROR);
+                    }
                 }
+                
             }
         }
         current_token = getToken();
