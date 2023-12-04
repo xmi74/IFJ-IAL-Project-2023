@@ -286,6 +286,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
 void handle_variable(token_t token_assigner, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
     token_t var_type;
+    var_type.attribute.includesNil = false;
     var_type.type = TOK_NOTHING;
     token_t func_in;
     bool is_constant = false;
