@@ -390,12 +390,21 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
 
     if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
-        token_type_t type_expr = checkExpression(local_table, (*global_table))->type;
+        ast_node_t* node = checkExpression(local_table, (*global_table));
         if (var_type.type == TOK_NOTHING)
         {
-            var_type.type = type_expr;
+            var_type.type = node->type;
         }
-        else if (var_type.type != type_expr)
+        else if (var_type.type == TOK_DOUBLE && node->type == TOK_INT)
+        {
+            //pass
+            if (node->literal == false)
+            {
+                // error - spatny typ
+                returnError(TYPE_COMPATIBILITY_ERR);
+            }
+        }	
+        else if (var_type.type != node->type)
         {
             // error - spatny typ
             returnError(TYPE_COMPATIBILITY_ERR);
@@ -552,6 +561,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 returnError(VARIABLE_DEFINITION_ERR);
             }
             var_type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
+            global_symtab_t* var_glob = (global_symtab_t*)var;
             if ((((global_symtab_t*)var)->isConstant == true && ((global_symtab_t*)var)->isInitialised == true) || ((global_symtab_t*)var)->is_func == true)
             {
                 // error - prirazeni do konstanty
@@ -610,7 +620,20 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
         {
             ast_node_t* node = checkExpression(local_table, global_table);
-            if (var_type != node->type)
+            if (var_type == TOK_NOTHING)
+            {
+                var_type = node->type;
+            }
+            else if (var_type == TOK_DOUBLE && node->type == TOK_INT)
+            {
+                //pass
+                if (node->literal == false)
+                {
+                    // error - spatny typ
+                    returnError(TYPE_COMPATIBILITY_ERR);
+                }
+            }	
+            else if (var_type != node->type)
             {
                 // error - spatny typ
                 returnError(TYPE_COMPATIBILITY_ERR);
@@ -959,15 +982,22 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
     token_t current_token;
     current_token = getToken();
 
+
     local_symtab_w_par_ptr_t local_table;
     local_init_w_par_ptr_t(&local_table);
-    local_table.parent = local_table_one_up; // checknout jeste
-
+    
     if (var_name != NULL)
     {
-        local_table.table = local_insert(local_table.table, var_name, var_type, false, true, true);
+        local_symtab_w_par_ptr_t local_table_tmp;
+        local_init_w_par_ptr_t(&local_table_tmp);
+        local_table_tmp.table = local_insert(local_table_tmp.table, var_name, var_type, false, true, true);
+        local_table_tmp.parent = local_table_one_up;
+        local_table.parent = local_table_one_up;
     }
-    
+    else
+    {
+        local_table.parent = local_table_one_up; // checknout jeste
+    }
 
 
     // nest levels:
@@ -1048,8 +1078,11 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t *glob
                     }
                     if (return_type != expected_return)
                     {
-                        // error - spatny typ
-                        returnError(SYNTAX_ERR);
+                        if (expected_return == TOK_NOTHING)
+                        {
+                            returnError(SYNTAX_ERR);
+                        }
+                        returnError(FUNCTION_USAGE_ERR);
                     }
                 }
                 else
