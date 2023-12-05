@@ -35,11 +35,11 @@ int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
     {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >
     {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // <=
     {L, L, L, L, L, U, U, U, U, U, U, R, L, R, L, R}, // >=
-    {L, L, L, L, L, L, L, L, L, L, L, U, L, R, L, R}, // ??
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, R, L, R}, // ??
     {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
-    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
-    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF)
+    {R, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
+    {R, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, U}, // $ (EOF)
 };
 
 /**
@@ -111,11 +111,12 @@ int getTokenIndex(token_t token)
 // 14: E → i
 
 /**
- * @brief pomocna funckia pre zistenie ci je token identifikator
+ * @brief pomocna funckia pre zistenie ci je token term
+ * Term je libovolný literál (celočíselný, desetinný, řetězcový či nil) nebo identifikátor.
  * @param token token ktory sa ma skontrolovat
- * @return true ak je identifikator, inak false
+ * @return true ak je term, inak false
  */
-bool tokenIsIdentifier(token_t token)
+bool tokenIsTerm(token_t token)
 {
     switch (token.type)
     {
@@ -123,6 +124,7 @@ bool tokenIsIdentifier(token_t token)
     case TOK_INT:
     case TOK_DOUBLE:
     case TOK_STRING:
+    case TOK_KW_NIL:
         return true;
     default:
         return false;
@@ -188,7 +190,8 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
         case T_STRING:
             return TOK_STRING;
         default:
-            return TOK_NOTHING;
+            fprintf(stderr, "[EXPR] ERROR: SYMTABLE Unknown identifier type\n");
+            returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
         }
     }
     // Zachovanie atributu includesNil
@@ -443,6 +446,21 @@ void reduceParenthesis(Stack *stack)
 }
 
 /**
+ * @brief Funkcia na redukciu termu
+ * @param stack zasobnik
+ * @return void
+ */
+void reduceTerm(Stack *stack)
+{
+    token_t operand;
+    Stack_Top(stack, &operand);
+    Stack_PopUntilLesser(stack);
+    operand.terminal = false;
+    Stack_Push(stack, &operand);
+    return;
+}
+
+/**
  * @brief Funkcia na aplikaciu pravidiel
  * @param stack zasobnik
  * @param table tabulka symbolov
@@ -488,6 +506,12 @@ void applyRule(Stack *stack)
         reduceNot(stack);
         return;
     }
+    else if (tokenIsTerm(stackTop))
+    {
+        // E → i
+        reduceTerm(stack);
+        return;
+    }
     else
     {
         fprintf(stderr, "[EXPR] ERROR: Unknown rule\n");
@@ -510,7 +534,8 @@ bool expressionEnd(token_t *token, token_t prevToken, bool condition)
         // Koniec podmienky, napr. if (a == 5) { ... }
         if (condition == true && token->type != TOK_L_CRL_BRCKT)
         {
-            while (token->type == TOK_EOL) {
+            while (token->type == TOK_EOL)
+            {
                 *token = getToken();
                 if (token->type == TOK_L_CRL_BRCKT)
                 {
@@ -559,14 +584,6 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
 
-        token_t stackTrueTop;
-        Stack_Top(&stack, &stackTrueTop);
-        if (tokenIsIdentifier(stackTrueTop) && (tokenIsIdentifier(token) || token.type == TOK_L_BRCKT))
-        {
-            fprintf(stderr, "[EXPR] ERROR: Two identifiers or '(' right after term in a row\n");
-            returnError(SYNTAX_ERR);
-        }
-
         int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
 
         // LOAD
@@ -579,7 +596,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
                 Stack_Top(&stack, &stackTrueTop);
 
                 // Kontrola ci operand je TERM alebo neterminal (Redukovana expression)
-                if (tokenIsIdentifier(stackTrueTop) || stackTrueTop.terminal == false)
+                if (tokenIsTerm(stackTrueTop) || stackTrueTop.terminal == false)
                 {
                     // Kontrola ci je operand literal
                     if (stackTrueTop.tree->literal == true)
@@ -598,40 +615,30 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
 
             token.attribute.includesNil = false;
 
-            // Ak je identifikator aplikuj pravidlo E → i
-            if (tokenIsIdentifier(token) || token.type == TOK_KW_NIL)
-            {
-                if (token.type == TOK_KW_NIL)
-                    token.attribute.includesNil = true;
-                // Uchovanie informacii o povodnom tokene
-                token.terminal = false;
-                token.tree = make_leaf(token);
+            // Nastavenie atributu includesNil pre nil
+            if (token.type == TOK_KW_NIL)
+                token.attribute.includesNil = true;
 
-                // Ziskanie typu tokenu z tabulky symbolov
-                if (token.type == TOK_IDENTIFIER)
-                {
-                    token.type = getTokenType(&token, table, globalTable);
-                    if (token.type == TOK_NOTHING) // nemalo by nastat, errory sa volaju vo funkcii
-                    {
-                        fprintf(stderr, "[EXPR] - SYMTABLE ERROR: Unknown identifier type\n");
-                        returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
-                    }
-                    // Token bol premenna, nastav literal na false
-                    token.tree->literal = false;
-                }
-                else
-                {
-                    // Token je literal
-                    token.tree->literal = true;
-                }
-                // Ulozenie typu tokenu do stromu, pri operaciach sa prepisuje !!
-                token.tree->type = token.type;
-                token.tree->token.attribute.includesNil = token.attribute.includesNil;
+            // Uchovanie informacii o povodnom tokene
+            token.terminal = true;
+            token.tree = make_leaf(token);
+
+            // Ziskanie typu tokenu z tabulky symbolov
+            if (token.type == TOK_IDENTIFIER)
+            {
+                token.type = getTokenType(&token, table, globalTable);
+                // Token bol identifikator
+                token.tree->literal = false;
             }
             else
             {
-                Stack_InsertLesser(&stack);
+                // Token je literal
+                token.tree->literal = true;
             }
+            // Ulozenie typu tokenu do stromu, pri operaciach sa prepisuje !!
+            token.tree->type = token.type;
+            token.tree->token.attribute.includesNil = token.attribute.includesNil;
+            Stack_InsertLesser(&stack);
             Stack_Push(&stack, &token);
 
             prevToken = token;
@@ -687,7 +694,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
     {
         if (result.type != TOK_EQUAL && result.type != TOK_NOT_EQUAL && result.type != TOK_LESSER && result.type != TOK_GREATER && result.type != TOK_LESSER_OR_EQUAL && result.type != TOK_GREATER_OR_EQUAL)
         {
-            fprintf(stderr, "[EXPR] ERROR: No bool operator in condition\n");
+            fprintf(stderr, "[EXPR] ERROR: No comparison operator in condition\n");
             returnError(TYPE_COMPATIBILITY_ERR);
         }
     }
