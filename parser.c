@@ -798,7 +798,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
  * @param local_table Ukazatel na lokalni tabulku symbolu.
  * @param global_table Ukazatel na globalni tabulku symbolu.
  */
-void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table, bool is_while)
+void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
     //token_t current_token = getToken();
     checkExpression(local_table, global_table, true);
@@ -877,7 +877,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     else
     {
         ungetToken();
-        handle_cond(local_table, global_table, false);
+        handle_cond(local_table, global_table);
         gen_if(output);
         if (getToken().type != TOK_EOL)
         {
@@ -923,7 +923,7 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
 {
     // getTokenAssert(TOK_L_BRCKT, TYPE_COMPATIBILITY_ERR);
     gen_while(output);
-    handle_cond(local_table, global_table, true);
+    handle_cond(local_table, global_table);
     gen_while_body(output);
     // getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
     if (getToken().type != TOK_EOL)
