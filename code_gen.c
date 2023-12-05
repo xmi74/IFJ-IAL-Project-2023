@@ -391,27 +391,33 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_EQUAL:{
-                append_line(output, "CALL equals\n");
+                append_line(output, "CALL prepare\n"
+                                    "CALL equals\n");
                 break;
             }
             case TOK_NOT_EQUAL:{
-                append_line(output, "CALL nequals\n");
+                append_line(output, "CALL prepare\n"
+                                    "CALL nequals\n");
                 break;
             }
             case TOK_LESSER:{
-                append_line(output, "CALL lesser\n");
+                append_line(output, "CALL prepare\n"
+                                    "CALL lesser\n");
                 break;
             }
             case TOK_LESSER_OR_EQUAL:{
-                append_line(output, "CALL lesser_or_equal\n");
+                append_line(output, "CALL prepare\n"
+                                    "CALL lesser_or_equal\n");
                 break;
             }
             case TOK_GREATER:{
-                append_line(output, "CALL greater\n");
+                append_line(output, "CALL prepare\n"
+                                    "CALL greater\n");
                 break;
             }
             case TOK_GREATER_OR_EQUAL:{
-                append_line(output, "CALL greater_or_equal\n");
+                append_line(output, "CALL prepare\n"
+                                    "CALL greater_or_equal\n");
                 break;
             }
             case TOK_DOUBLE_QUEST_MARK:{
@@ -1011,6 +1017,7 @@ void prepare_values(string_t *output){
                         "POPS LF@op0\n"
                         "TYPE LF@type0 LF@op0\n"
                         "TYPE LF@type1 LF@op1\n"
+                        "JUMPIFEQ prepare_end LF@type0 string@string\n"
                         "JUMPIFEQ prepare_end LF@type0 LF@type1\n"
                         "JUMPIFEQ prepare0 LF@type0 string@int\n"
                         "INT2FLOAT LF@op1 LF@op1\n"
