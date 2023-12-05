@@ -264,7 +264,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
 
         if (i < func->param_count - 1)
         {
-            getTokenAssert(TOK_COMMA, SYNTAX_ERR);
+            getTokenAssert(TOK_COMMA, FUNCTION_USAGE_ERR);
         }
     }
     getTokenAssert(TOK_R_BRCKT, FUNCTION_USAGE_ERR);
