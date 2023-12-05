@@ -148,12 +148,20 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
         getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
         while (current_token.type != TOK_R_BRCKT)
         {
-            current_token = getTokenAssertArr(5, (token_type_t[]){TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER, TOK_R_BRCKT}, SYNTAX_ERR);
+            current_token = getTokenAssertArr(6, (token_type_t[]){TOK_INT, TOK_DOUBLE, TOK_STRING, TOK_IDENTIFIER, TOK_R_BRCKT, TOK_KW_NIL}, SYNTAX_ERR);
             if (current_token.type == TOK_R_BRCKT)
             {
                 return func_out; // func_out neni definovane v tomto pripade
             }
 
+            if (current_token.type == TOK_KW_NIL)
+            {
+                gen_value(output, &current_token, false, NULL);
+                gen_func_call(output, "write");
+                current_token = getTokenAssertArr(2, (token_type_t[]){TOK_COMMA, TOK_R_BRCKT}, SYNTAX_ERR);
+                continue;
+            }
+            else
             if (current_token.type != TOK_IDENTIFIER)
             {
                 gen_value(output, &current_token, false, NULL);
@@ -250,8 +258,12 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
             gen_value(output, NULL, true, current_token.attribute.str.data);
         }
         else
-        {
-            if (current_token.type != kw_to_token_type(func->params[i].type))
+        {   
+            if (func->params[i].includesNil == true && current_token.type == TOK_KW_NIL)
+            {
+                // pass
+            }
+            else if (current_token.type != kw_to_token_type(func->params[i].type))
             {
                 // error - spatny typ
                 returnError(FUNCTION_USAGE_ERR);
@@ -292,8 +304,6 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
     {
         is_constant = true;
     }
-
-    
 
     //token_t identifier = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
 
