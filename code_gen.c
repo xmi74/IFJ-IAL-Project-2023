@@ -76,7 +76,9 @@ void pop_counter(){
 string_t *gen_start(){
     string_t *output = new_line(".IFJcode23\n");
     append_line(output, "DEFVAR GF@tmp_res\n"
-                        "DEFVAR GF@type\n");
+                        "DEFVAR GF@type\n"
+                        "DEFVAR GF@first_def\n"
+                        "MOVE GF@first_def bool@true\n");
     append_line(output, "JUMP main\n");
     // definitions of builtin functions
     gen_read_str(output);
@@ -122,9 +124,11 @@ void gen_end(string_t *output){
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
+        char varname[16];
+        sprintf(varname, "LF@%s\n", name);
         char *isDefined = NULL;
         if (localVariables != NULL){
-            isDefined = strstr(localVariables->data, name);
+            isDefined = strstr(localVariables->data, varname);
         }
         if (nestLevel == 0 || isDefined == NULL){
             append_line(output, "PUSHS GF@");
@@ -191,6 +195,13 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
 void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
+    global_counter++;
+    local_counter = global_counter;
+    char str[16];
+    sprintf(str, "%d", local_counter);
+    append_line(output, "JUMPIFNEQ var_end");
+    append_line(output, str);
+    append_line(output, " GF@first_def bool@true\n");
     if (nestLevel == 0){
         append_line(output, "DEFVAR GF@");
         append_line(output, name);
@@ -213,19 +224,22 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
                 append_line(output, "PUSHS nil@nil\n");
                 gen_assign(output, name, type);
             }
-            append_line(output, "DEFVAR TF@");
-            append_line(output, name);
-            append_line(output, "\n");
-            append_line(localVariables, "DEFVAR TF@");
-            append_line(localVariables, name);
-            append_line(localVariables, "\n");
-            append_line(localVariables, "MOVE TF@");
-            append_line(localVariables, name);
-            append_line(localVariables, " LF@");
-            append_line(localVariables, name);
-            append_line(localVariables, "\n");
         }
+        append_line(output, "DEFVAR TF@");
+        append_line(output, name);
+        append_line(output, "\n");
+        append_line(localVariables, "DEFVAR TF@");
+        append_line(localVariables, name);
+        append_line(localVariables, "\n");
+        append_line(localVariables, "MOVE TF@");
+        append_line(localVariables, name);
+        append_line(localVariables, " LF@");
+        append_line(localVariables, name);
+        append_line(localVariables, "\n");
     }
+    append_line(output, "LABEL var_end");
+    append_line(output, str);
+    append_line(output, "\n");
 }
 
 /**
@@ -322,11 +336,13 @@ void gen_assign(string_t *output, char *name, token_type_t type){
         append_line(output, "LABEL trans_not");
         append_line(output, str);
         append_line(output, "\n");
-        append_line(output, "MOVE TF@");
-        append_line(output, name);
-        append_line(output, " LF@");
-        append_line(output, name);
-        append_line(output, "\n");
+        if (isDefined != NULL){
+            append_line(output, "MOVE TF@");
+            append_line(output, name);
+            append_line(output, " LF@");
+            append_line(output, name);
+            append_line(output, "\n");
+        }
     }
 }
 
@@ -402,6 +418,9 @@ void gen_func_call(string_t *output, char *name){
     append_line(output, "CALL ");
     append_line(output, name);
     append_line(output, "\n");
+    if (nestLevel != 0){
+        append_line(output, "POPFRAME\n");
+    }
 }
 
 /**
@@ -438,8 +457,14 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_MUL:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "MULS\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_DIV:{
@@ -452,6 +477,9 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_PLUS:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 if (isString){
                     append_line(output, "CALL _concat\n");
                 }
@@ -459,49 +487,106 @@ void gen_expr(string_t *output, ast_node_t *tree){
                     append_line(output, "CALL prepare\n"
                                         "ADDS\n");
                 }
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_MINUS:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "SUBS\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_ASSIGN:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL equals\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_EQUAL:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "CALL equals\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_NOT_EQUAL:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "CALL nequals\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_LESSER:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "CALL lesser\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_LESSER_OR_EQUAL:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "CALL lesser_or_equal\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_GREATER:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "CALL greater\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_GREATER_OR_EQUAL:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL prepare\n"
                                     "CALL greater_or_equal\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             case TOK_DOUBLE_QUEST_MARK:{
+                if (nestLevel != 0){
+                    append_line(output, "PUSHFRAME\n");
+                }
                 append_line(output, "CALL remove_nil\n");
+                if (nestLevel != 0){
+                    append_line(output, "POPFRAME\n");
+                }
                 break;
             }
             default:{
@@ -681,11 +766,13 @@ void gen_while_end(string_t *output){
 
     char str[16];
     sprintf(str, "%d\n", local_counter);
-    append_line(output, "JUMP while");
+    append_line(output, "MOVE GF@first_def bool@false\n"
+                        "JUMP while");
     append_line(output, str);
     append_line(output, "LABEL while_end");
     append_line(output, str);
-    append_line(output, "POPFRAME\n");
+    append_line(output, "POPFRAME\n"
+                        "MOVE GF@first_def bool@true\n");
     pop_counter();
 }
 
