@@ -263,6 +263,7 @@ token_t getNextToken()
                                         }
                                         else                // ak nie je cislo, error
                                         {
+                                            ungetChar(c);
                                             doubleHandled = true;
                                             break;
                                         }
