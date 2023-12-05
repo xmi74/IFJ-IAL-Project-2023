@@ -505,7 +505,7 @@ void applyRule(Stack *stack)
 bool expressionEnd(token_t *token, token_t prevToken, bool condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) || prevToken.type == TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
+    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) || prevToken.type == TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT || token->type == TOK_R_CRL_BRCKT)
     {
         // Koniec podmienky, napr. if (a == 5) { ... }
         if (condition == true && token->type != TOK_L_CRL_BRCKT)
@@ -561,9 +561,9 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
 
         token_t stackTrueTop;
         Stack_Top(&stack, &stackTrueTop);
-        if (tokenIsIdentifier(stackTrueTop) && tokenIsIdentifier(token))
+        if (tokenIsIdentifier(stackTrueTop) && (tokenIsIdentifier(token) || token.type == TOK_L_BRCKT))
         {
-            fprintf(stderr, "[EXPR] ERROR: Two identifiers in a row\n");
+            fprintf(stderr, "[EXPR] ERROR: Two identifiers or '(' right after term in a row\n");
             returnError(SYNTAX_ERR);
         }
 
@@ -585,7 +585,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
                     if (stackTrueTop.tree->literal == true)
                     {
                         fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
-                        returnError(OTHER_ERR);
+                        returnError(TYPE_COMPATIBILITY_ERR);
                     }
                 }
                 // Oprand je operator (+-*/...)
