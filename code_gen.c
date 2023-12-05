@@ -200,18 +200,18 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
         }
     }
     else{
-        append_line(output, "DEFVAR LF@");
-        append_line(output, name);
-        append_line(output, "\n");
-        if (includesNil){
-            append_line(output, "PUSHS nil@nil\n");
-            gen_assign(output, name, type);
-        }
         char *isDefined = NULL;
         if (localVariables != NULL){
             isDefined = strstr(localVariables->data, name);
         }
         if (isDefined == NULL){
+            append_line(output, "DEFVAR LF@");
+            append_line(output, name);
+            append_line(output, "\n");
+            if (includesNil){
+                append_line(output, "PUSHS nil@nil\n");
+                gen_assign(output, name, type);
+            }
             append_line(output, "DEFVAR TF@");
             append_line(output, name);
             append_line(output, "\n");
@@ -447,7 +447,7 @@ void gen_expr(string_t *output, ast_node_t *tree){
             }
             case TOK_PLUS:{
                 if (isString){
-                    append_line(output, "CALL concat\n");
+                    append_line(output, "CALL _concat\n");
                 }
                 else{
                     append_line(output, "CALL prepare\n"
@@ -1035,7 +1035,7 @@ void gen_greater_or_eq(string_t *output){
 */
 void gen_concat(string_t *output){
     append_line(output, "# concatenation\n"
-                        "LABEL concat\n"
+                        "LABEL _concat\n"
                         "CREATEFRAME\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@op0\n"
