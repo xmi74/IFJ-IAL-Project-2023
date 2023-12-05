@@ -218,12 +218,12 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
             append_line(localVariables, "DEFVAR TF@");
             append_line(localVariables, name);
             append_line(localVariables, "\n");
+            append_line(localVariables, "MOVE TF@");
+            append_line(localVariables, name);
+            append_line(localVariables, " LF@");
+            append_line(localVariables, name);
+            append_line(localVariables, "\n");
         }
-        append_line(localVariables, "MOVE TF@");
-        append_line(localVariables, name);
-        append_line(localVariables, " LF@");
-        append_line(localVariables, name);
-        append_line(localVariables, "\n");
     }
 }
 
