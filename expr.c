@@ -502,19 +502,28 @@ void applyRule(Stack *stack)
  * @param prevToken predchadzajuci token
  * @return true ak je koniec vyrazu, inak false
  */
-bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
+bool expressionEnd(token_t *token, token_t prevToken, bool condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) || token->type != TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
+    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) && token->type != TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
     {
         // Koniec podmienky, napr. if (a == 5) { ... }
-        if (token->type == TOK_L_CRL_BRCKT)
+        if (condition == true && token->type != TOK_L_CRL_BRCKT)
         {
-            *condition = true;
+            while (token->type == TOK_EOL) {
+                *token = getToken();
+                if (token->type == TOK_L_CRL_BRCKT)
+                {
+                    break;
+                }
+            }
+            ungetToken();
+            ungetToken();
+            *token = getToken();
         }
         return true;
     }
-    if (token->type == TOK_EOL)
+    while (token->type == TOK_EOL)
         *token = getToken();
     // Napriklad vyraz na viacero riadkov, kde pred EOL je operator
     return false;
@@ -528,7 +537,7 @@ bool expressionEnd(token_t *token, token_t prevToken, bool *condition)
  * @param globalTable globalna tabulka symbolov
  * @return ast_node_t* ukazatel na koren AST stromu, kde sa nachadzaju potrebne informacie o vyraze
  */
-ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
+ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable, bool isCondition)
 {
     Stack stack;
     Stack_Init(&stack);
@@ -542,9 +551,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
     token_t token = getToken();
     token_t prevToken = token;
 
-    // Pomocne premenne pre zistenie ci je vyraz v podmienke
-    bool condition = false;
-    while (expressionEnd(&token, prevToken, &condition) == false)
+    while (expressionEnd(&token, prevToken, isCondition) == false)
     {
         // Stack_Print(&stack); // DEBUG
         token.terminal = true;
@@ -656,24 +663,6 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         }
     }
 
-    // Kontrola ci je vyraz v podmienke a na viacero riadkov
-    // TODO : Prerobit na niekolko EOL za sebou?
-    if (token.type == TOK_EOL)
-    {
-        token = getToken();
-
-        // Kontrola ci je vyraz v podmienke
-        if (token.type == TOK_L_CRL_BRCKT)
-        {
-            condition = true;
-        }
-
-        // Vratenie spravneho tokenu spat
-        ungetToken();
-        ungetToken();
-        token = getToken();
-    }
-
     // Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_COMMENT || token.type == TOK_BLOCK_COM_START || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
@@ -694,7 +683,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
     ungetToken();
 
     // Ak sme v podmienke, vyraz musi obsahovat boolovsky operator, inak chyba 7
-    if (condition == true)
+    if (isCondition == true)
     {
         if (result.type != TOK_EQUAL && result.type != TOK_NOT_EQUAL && result.type != TOK_LESSER && result.type != TOK_GREATER && result.type != TOK_LESSER_OR_EQUAL && result.type != TOK_GREATER_OR_EQUAL)
         {
