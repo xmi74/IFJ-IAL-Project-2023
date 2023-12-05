@@ -330,7 +330,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 ungetToken();
             }
             
-            gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil);
+            gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil, identifier.type);
 
             var_type.type = kw_to_token_type(var_type.type);
 
@@ -346,7 +346,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
             return;
         }
     }
-    gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil);
+    gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil, identifier.type);
     
     current_token = getToken();
 
@@ -494,7 +494,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
         }
     }
     
-    gen_assign(output, identifier.attribute.str.data);
+    gen_assign(output, identifier.attribute.str.data, var_type.type);
 
     //current_token = getTokenAssertArr(2, (token_type_t[]){TOK_EOF, TOK_EOL});
     current_token = getToken();
@@ -684,7 +684,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             }
         }
 
-        gen_assign(output, token_id.attribute.str.data);
+        gen_assign(output, token_id.attribute.str.data, var_type);
     }
     else
     {
@@ -779,8 +779,8 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     else
     {
         if (local_table.table != NULL){
-            gen_var(output, local_table.table->key.data, local_table.table->includesNil);
-            gen_assign(output, local_table.table->key.data);
+            gen_var(output, local_table.table->key.data, local_table.table->includesNil, local_table.table->type);
+            gen_assign(output, local_table.table->key.data, local_table.table->type);
         }
         parse_block(-MAX_NEST_LEVEL, TOK_L_CRL_BRCKT, &global_table, &local_table, NULL, TOK_NOTHING, type_t_to_token_type_t(found->type));
         gen_func_end(output, &token);

@@ -74,7 +74,8 @@ void pop_counter(){
 */
 string_t *gen_start(){
     string_t *output = new_line(".IFJcode23\n");
-    append_line(output, "DEFVAR GF@tmp_res\n");
+    append_line(output, "DEFVAR GF@tmp_res\n"
+                        "DEFVAR GF@type\n");
     append_line(output, "JUMP main\n");
     // definitions of builtin functions
     gen_read_str(output);
@@ -188,14 +189,14 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_var(string_t *output, char *name, bool includesNil){
+void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
     if (nestLevel == 0){
         append_line(output, "DEFVAR GF@");
         append_line(output, name);
         append_line(output, "\n");
         if (includesNil){
             append_line(output, "PUSHS nil@nil\n");
-            gen_assign(output, name);
+            gen_assign(output, name, type);
         }
     }
     else{
@@ -204,7 +205,7 @@ void gen_var(string_t *output, char *name, bool includesNil){
         append_line(output, "\n");
         if (includesNil){
             append_line(output, "PUSHS nil@nil\n");
-            gen_assign(output, name);
+            gen_assign(output, name, type);
         }
         char *isDefined = NULL;
         if (localVariables != NULL){
@@ -233,7 +234,12 @@ void gen_var(string_t *output, char *name, bool includesNil){
  * @param token Token, ktoreho meno udava nazov premennej
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
-void gen_assign(string_t *output, char *name){
+void gen_assign(string_t *output, char *name, token_type_t type){
+    global_counter++;
+    local_counter = global_counter;
+    char str[16];
+    sprintf(str, "%d", local_counter);
+
     char *isDefined = NULL;
     if (localVariables != NULL){
         isDefined = strstr(localVariables->data, name);
@@ -242,10 +248,78 @@ void gen_assign(string_t *output, char *name){
         append_line(output, "POPS GF@");
         append_line(output, name);
         append_line(output, "\n");
+        append_line(output, "TYPE GF@type GF@");
+        append_line(output, name);
+        append_line(output, "\n"
+                            "JUMPIFEQ trans_not");
+        append_line(output, str);
+        append_line(output, " GF@type ");
+        if (type == TOK_INT){
+            append_line(output, "string@int\n"
+                                "JUMPIFNEQ trans_not");
+            append_line(output, str);
+            append_line(output, " GF@type string@float\n"
+                                "FLOAT2INT GF@");
+            append_line(output, name);
+            append_line(output, " GF@");
+            append_line(output, name);
+            append_line(output, "\n");
+        }
+        else if (type == TOK_DOUBLE){
+            append_line(output, "string@float\n"
+                                "JUMPIFNEQ trans_not");
+            append_line(output, str);
+            append_line(output, " GF@type string@int\n"
+                                "INT2FLOAT GF@");
+            append_line(output, name);
+            append_line(output, " GF@");
+            append_line(output, name);
+            append_line(output, "\n");
+        }
+        else{
+            append_line(output, "GF@type\n");
+        }
+        append_line(output, "LABEL trans_not");
+        append_line(output, str);
+        append_line(output, "\n");
     }
     else{
         append_line(output, "POPS LF@");
         append_line(output, name);
+        append_line(output, "\n");
+        append_line(output, "TYPE GF@type LF@");
+        append_line(output, name);
+        append_line(output, "\n"
+                            "JUMPIFEQ trans_not");
+        append_line(output, str);
+        append_line(output, " GF@type ");
+        if (type == TOK_INT){
+            append_line(output, "string@int\n"
+                                "JUMPIFNEQ trans_not");
+            append_line(output, str);
+            append_line(output, " GF@type string@float\n"
+                                "FLOAT2INT LF@");
+            append_line(output, name);
+            append_line(output, " LF@");
+            append_line(output, name);
+            append_line(output, "\n");
+        }
+        else if (type == TOK_DOUBLE){
+            append_line(output, "string@float\n"
+                                "JUMPIFNEQ trans_not");
+            append_line(output, str);
+            append_line(output, " GF@type string@int\n"
+                                "INT2FLOAT LF@");
+            append_line(output, name);
+            append_line(output, " LF@");
+            append_line(output, name);
+            append_line(output, "\n");
+        }
+        else{
+            append_line(output, "GF@type\n");
+        }
+        append_line(output, "LABEL trans_not");
+        append_line(output, str);
         append_line(output, "\n");
         append_line(output, "MOVE TF@");
         append_line(output, name);
