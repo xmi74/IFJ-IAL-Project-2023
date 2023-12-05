@@ -435,8 +435,17 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 global_symtab_t* var_glob = (global_symtab_t*)global_search((*global_table), &current_token.attribute.str);
                 if (var_glob == NULL)
                 {
-                    // error - nedefinovana funkce
-                    returnError(FUNCTION_DEFINITION_ERR);
+                    // 
+                    if (getToken().type == TOK_L_BRCKT)
+                    {
+                        // error - nedefinovana funkce
+                        returnError(FUNCTION_DEFINITION_ERR);
+                    }
+                    else
+                    {
+                        // error - nedefinovana promenna
+                        returnError(VARIABLE_DEFINITION_ERR);
+                    }
                 }
                 if (var_glob->is_func == false)
                 {
@@ -583,7 +592,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
         else
         {
             var_type = ((local_symtab_t*)var)->type;
-            if (((local_symtab_t*)var)->isConstant == true)
+            if (((local_symtab_t*)var)->isConstant == true && ((local_symtab_t*)var)->isInitialised == true)
             {
                 // error - prirazeni do konstanty
                 returnError(OTHER_ERR);
