@@ -800,9 +800,11 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     }
     else
     {
-        if (local_table.table != NULL){
-            gen_var(output, local_table.table->key.data, local_table.table->includesNil, local_table.table->type);
-            gen_assign(output, local_table.table->key.data, local_table.table->type);
+        for (int i = 0; i < found->param_count; i++){
+            if (local_table.table != NULL){
+                gen_var(output, found->params[i].identifier.data, found->params[i].includesNil, kw_to_token_type(found->params[i].type));
+                gen_assign(output, found->params[i].identifier.data, kw_to_token_type(found->params[i].type));
+            }
         }
         parse_block(-MAX_NEST_LEVEL, TOK_L_CRL_BRCKT, &global_table, &local_table, NULL, TOK_NOTHING, type_t_to_token_type_t(found->type));
         gen_func_end(output, &token);
