@@ -363,7 +363,6 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 {
                     local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, true);
                 }
-                gen_assign(output, identifier.attribute.str.data, var_type.type); // prayge
             }
             else
             {

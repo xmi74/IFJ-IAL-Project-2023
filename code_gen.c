@@ -78,7 +78,8 @@ string_t *gen_start(){
     append_line(output, "DEFVAR GF@tmp_res\n"
                         "DEFVAR GF@type\n"
                         "DEFVAR GF@first_def\n"
-                        "MOVE GF@first_def bool@true\n");
+                        "MOVE GF@first_def bool@true\n"
+                        "CREATEFRAME\n");
     append_line(output, "JUMP main\n");
     // definitions of builtin functions
     gen_read_str(output);
@@ -114,6 +115,7 @@ void gen_end(string_t *output){
     append_line(output, "EXIT int@0\n");
     fprintf(stdout, "%s", output->data);
     dstringFree(output);
+    free(output);
 }
 
 /**
@@ -124,17 +126,17 @@ void gen_end(string_t *output){
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
-        char varname[16];
-        sprintf(varname, "LF@%s\n", name);
         char *isDefined = NULL;
         if (localVariables != NULL){
+            char varname[16];
+            sprintf(varname, "TF@%s\n", name);
             isDefined = strstr(localVariables->data, varname);
         }
         if (nestLevel == 0 || isDefined == NULL){
             append_line(output, "PUSHS GF@");
         }
         else{
-            append_line(output, "PUSHS LF@");
+            append_line(output, "PUSHS TF@");
         }
         append_line(output, name);
         append_line(output, "\n");
@@ -214,10 +216,20 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
     else{
         char *isDefined = NULL;
         if (localVariables != NULL){
-            isDefined = strstr(localVariables->data, name);
+            char varname[16];
+            sprintf(varname, "TF@%s\n", name);
+            isDefined = strstr(localVariables->data, varname);
+            append_line(localVariables, "DEFVAR TF@");
+            append_line(localVariables, name);
+            append_line(localVariables, "\n");
+            append_line(localVariables, "MOVE TF@");
+            append_line(localVariables, name);
+            append_line(localVariables, " LF@");
+            append_line(localVariables, name);
+            append_line(localVariables, "\n");
         }
         if (isDefined == NULL){
-            append_line(output, "DEFVAR LF@");
+            append_line(output, "DEFVAR TF@");
             append_line(output, name);
             append_line(output, "\n");
             if (includesNil){
@@ -225,17 +237,6 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
                 gen_assign(output, name, type);
             }
         }
-        append_line(output, "DEFVAR TF@");
-        append_line(output, name);
-        append_line(output, "\n");
-        append_line(localVariables, "DEFVAR TF@");
-        append_line(localVariables, name);
-        append_line(localVariables, "\n");
-        append_line(localVariables, "MOVE TF@");
-        append_line(localVariables, name);
-        append_line(localVariables, " LF@");
-        append_line(localVariables, name);
-        append_line(localVariables, "\n");
     }
     append_line(output, "LABEL var_end");
     append_line(output, str);
@@ -254,10 +255,11 @@ void gen_assign(string_t *output, char *name, token_type_t type){
     local_counter = global_counter;
     char str[16];
     sprintf(str, "%d", local_counter);
-
     char *isDefined = NULL;
     if (localVariables != NULL){
-        isDefined = strstr(localVariables->data, name);
+        char varname[16];
+        sprintf(varname, "TF@%s\n", name);
+        isDefined = strstr(localVariables->data, varname);
     }
     if (nestLevel == 0 || isDefined == NULL){
         append_line(output, "POPS GF@");
@@ -299,10 +301,10 @@ void gen_assign(string_t *output, char *name, token_type_t type){
         append_line(output, "\n");
     }
     else{
-        append_line(output, "POPS LF@");
+        append_line(output, "POPS TF@");
         append_line(output, name);
         append_line(output, "\n");
-        append_line(output, "TYPE GF@type LF@");
+        append_line(output, "TYPE GF@type TF@");
         append_line(output, name);
         append_line(output, "\n"
                             "JUMPIFEQ trans_not");
@@ -313,9 +315,9 @@ void gen_assign(string_t *output, char *name, token_type_t type){
                                 "JUMPIFNEQ trans_not");
             append_line(output, str);
             append_line(output, " GF@type string@float\n"
-                                "FLOAT2INT LF@");
+                                "FLOAT2INT TF@");
             append_line(output, name);
-            append_line(output, " LF@");
+            append_line(output, " TF@");
             append_line(output, name);
             append_line(output, "\n");
         }
@@ -324,9 +326,9 @@ void gen_assign(string_t *output, char *name, token_type_t type){
                                 "JUMPIFNEQ trans_not");
             append_line(output, str);
             append_line(output, " GF@type string@int\n"
-                                "INT2FLOAT LF@");
+                                "INT2FLOAT TF@");
             append_line(output, name);
-            append_line(output, " LF@");
+            append_line(output, " TF@");
             append_line(output, name);
             append_line(output, "\n");
         }
@@ -336,13 +338,6 @@ void gen_assign(string_t *output, char *name, token_type_t type){
         append_line(output, "LABEL trans_not");
         append_line(output, str);
         append_line(output, "\n");
-        if (isDefined != NULL){
-            append_line(output, "MOVE TF@");
-            append_line(output, name);
-            append_line(output, " LF@");
-            append_line(output, name);
-            append_line(output, "\n");
-        }
     }
 }
 
@@ -359,14 +354,12 @@ void gen_func(string_t *output, token_t *token){
     append_line(output, "_end\n");
     append_line(output, "LABEL ");
     append_line(output, token->attribute.str.data);
+    append_line(output, "\nPUSHFRAME\n"
+                        "CREATEFRAME\n");
     if (nestLevel == 1){
-      append_line(output, "\nCREATEFRAME\n"
-                            "PUSHFRAME\n"
-                            "CREATEFRAME\n");
-      localVariables = new_line("CREATEFRAME\n");
+        localVariables = new_line("");
     }
     else{
-        append_line(output, "\nPUSHFRAME\n");
         append_line(output, localVariables->data);
     }
 }
@@ -381,6 +374,7 @@ void gen_func_end(string_t *output, token_t *token){
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
+        free(localVariables);
         localVariables = NULL;
     }
     append_line(output, "POPFRAME\n"
@@ -412,15 +406,9 @@ void gen_func_return(string_t *output, token_t *token){
  * @param name Nazov volanej funkcie
 */
 void gen_func_call(string_t *output, char *name){
-    if (nestLevel != 0){
-        append_line(output, "PUSHFRAME\n");
-    }
     append_line(output, "CALL ");
     append_line(output, name);
     append_line(output, "\n");
-    if (nestLevel != 0){
-        append_line(output, "POPFRAME\n");
-    }
 }
 
 /**
@@ -457,14 +445,8 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_MUL:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "MULS\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_DIV:{
@@ -477,9 +459,6 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_PLUS:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 if (isString){
                     append_line(output, "CALL _concat\n");
                 }
@@ -487,106 +466,49 @@ void gen_expr(string_t *output, ast_node_t *tree){
                     append_line(output, "CALL prepare\n"
                                         "ADDS\n");
                 }
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_MINUS:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "SUBS\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_ASSIGN:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL equals\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_EQUAL:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "CALL equals\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_NOT_EQUAL:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "CALL nequals\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_LESSER:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "CALL lesser\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_LESSER_OR_EQUAL:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "CALL lesser_or_equal\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_GREATER:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "CALL greater\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_GREATER_OR_EQUAL:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL prepare\n"
                                     "CALL greater_or_equal\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             case TOK_DOUBLE_QUEST_MARK:{
-                if (nestLevel != 0){
-                    append_line(output, "PUSHFRAME\n");
-                }
                 append_line(output, "CALL remove_nil\n");
-                if (nestLevel != 0){
-                    append_line(output, "POPFRAME\n");
-                }
                 break;
             }
             default:{
@@ -615,14 +537,12 @@ void gen_if(string_t *output){
     append_line(output, str);
     append_line(output, " GF@tmp_res bool@true\n");
     append_line(output, "# body of if\n");
+    append_line(output, "PUSHFRAME\n"
+                        "CREATEFRAME\n");
     if (nestLevel == 1){
-      append_line(output, "CREATEFRAME\n"
-                            "PUSHFRAME\n"
-                            "CREATEFRAME\n");
-      localVariables = new_line("CREATEFRAME\n");
+        localVariables = new_line("");
     }
     else{
-        append_line(output, "PUSHFRAME\n");
         append_line(output, localVariables->data);
     }
 }
@@ -630,30 +550,29 @@ void gen_if(string_t *output){
 void gen_if_let(string_t *output, char *name){
     global_counter++;
     local_counter = global_counter;
-    if (nestLevel != 0){
-        append_line(output, "PUSHFRAME\n");
-    }
-    append_line(output, "CREATEFRAME\n"
-                        "PUSHFRAME\n"
-                        "DEFVAR LF@type\n"
-                        "TYPE LF@type ");
+    append_line(output, "PUSHFRAME\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@type\n"
+                        "TYPE TF@type ");
     char *isDefined = NULL;
     if (localVariables != NULL){
-        isDefined = strstr(localVariables->data, name);
+        char varname[16];
+        sprintf(varname, "TF@%s\n", name);
+        isDefined = strstr(localVariables->data, varname);
     }
 
     if (isDefined == NULL){
         append_line(output, "GF@");
     }
     else{
-        append_line(output, "LF@");
+        append_line(output, "TF@");
     }
     append_line(output, name);
     char str[16];
     sprintf(str, "%d", local_counter);
     append_line(output, "\nJUMPIFEQ let_nil");
     append_line(output, str);
-    append_line(output, " LF@type string@nil\n"
+    append_line(output, " TF@type string@nil\n"
                         "PUSHS bool@true\n"
                         "JUMP let_nil_end");
     append_line(output, str);
@@ -679,16 +598,8 @@ void gen_else(string_t *output){
     append_line(output, "# body of else\n"
                         "LABEL else");
     append_line(output, str);
-    if (nestLevel == 1){
-      append_line(output, "CREATEFRAME\n"
-                            "PUSHFRAME\n"
-                            "CREATEFRAME\n");
-      localVariables = new_line("CREATEFRAME\n");
-    }
-    else{
-        append_line(output, "PUSHFRAME\n");
-        append_line(output, localVariables->data);
-    }
+    append_line(output, "PUSHFRAME\n"
+                        "CREATEFRAME\n");
 }
 
 /**
@@ -701,6 +612,7 @@ void gen_if_end(string_t *output){
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
+        free(localVariables);
         localVariables = NULL;
     }
     append_line(output, "LABEL if_end");
@@ -720,20 +632,18 @@ void gen_while(string_t *output){
     local_counter = global_counter;
     push_counter(local_counter);
     nestLevel++;
-    if (nestLevel == 1){
-      append_line(output, "CREATEFRAME\n"
-                            "PUSHFRAME\n"
-                            "CREATEFRAME\n");
-      localVariables = new_line("CREATEFRAME\n");
-    }
-    else{
-        append_line(output, "PUSHFRAME\n");
-        append_line(output, localVariables->data);
-    }
+    append_line(output, "PUSHFRAME\n"
+                        "CREATEFRAME\n");
     append_line(output, "LABEL while");
     char str[16];
     sprintf(str, "%d\n", local_counter);
     append_line(output, str);
+    if (nestLevel == 1){
+        localVariables = new_line("");
+    }
+    else{
+        append_line(output, localVariables->data);
+    }
 }
 
 /**
@@ -761,6 +671,7 @@ void gen_while_end(string_t *output){
     nestLevel--;
     if (nestLevel == 0){
         dstringFree(localVariables);
+        free(localVariables);
         localVariables = NULL;
     }
 
@@ -786,11 +697,11 @@ void gen_while_end(string_t *output){
 void gen_read_str(string_t *output){
     append_line(output, "# func readString\n"
                 "LABEL readString\n"
-                "CREATEFRAME\n"
                 "PUSHFRAME\n"
-                "DEFVAR LF@str\n"
-                "READ LF@str string\n"
-                "PUSHS LF@str\n"
+                "CREATEFRAME\n"
+                "DEFVAR TF@str\n"
+                "READ TF@str string\n"
+                "PUSHS TF@str\n"
                 "POPFRAME\n"
                 "RETURN\n");
 }
@@ -803,11 +714,11 @@ void gen_read_str(string_t *output){
 void gen_read_int(string_t *output){
     append_line(output, "# func readINT\n"
                 "LABEL readInt\n"
-                "CREATEFRAME\n"
                 "PUSHFRAME\n"
-                "DEFVAR LF@inte\n"
-                "READ LF@inte int\n"
-                "PUSHS LF@inte\n"
+                "CREATEFRAME\n"
+                "DEFVAR TF@inte\n"
+                "READ TF@inte int\n"
+                "PUSHS TF@inte\n"
                 "POPFRAME\n"
                 "RETURN\n");
 }
@@ -820,11 +731,11 @@ void gen_read_int(string_t *output){
 void gen_read_doub(string_t *output){
     append_line(output, "# func readFloat\n"
                 "LABEL readDouble\n"
-                "CREATEFRAME\n"
                 "PUSHFRAME\n"
-                "DEFVAR LF@doub\n"
-                "READ LF@doub float\n"
-                "PUSHS LF@doub\n"
+                "CREATEFRAME\n"
+                "DEFVAR TF@doub\n"
+                "READ TF@doub float\n"
+                "PUSHS TF@doub\n"
                 "POPFRAME\n"
                 "RETURN\n");
 }
@@ -837,11 +748,11 @@ void gen_read_doub(string_t *output){
 void gen_write(string_t *output){
     append_line(output, "# func write\n"
                         "LABEL write\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@str\n"
-                        "POPS LF@str\n"
-                        "WRITE LF@str\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@str\n"
+                        "POPS TF@str\n"
+                        "WRITE TF@str\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -878,13 +789,13 @@ void gen_double2int(string_t *output){
 void gen_length(string_t *output){
     append_line(output, "# func length\n"
                         "LABEL length\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@str\n"
-                        "DEFVAR LF@len\n"
-                        "POPS LF@str\n"
-                        "STRLEN LF@len LF@str\n"
-                        "PUSHS LF@len\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@str\n"
+                        "DEFVAR TF@len\n"
+                        "POPS TF@str\n"
+                        "STRLEN TF@len TF@str\n"
+                        "PUSHS TF@len\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -897,46 +808,46 @@ void gen_length(string_t *output){
 void gen_substring(string_t *output){
     append_line(output, "# func substring\n"
                         "LABEL substring\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@i\n"
-                        "DEFVAR LF@j\n"
-                        "DEFVAR LF@str\n"
-                        "DEFVAR LF@len\n"
-                        "DEFVAR LF@res\n"
-                        "DEFVAR LF@substr\n"
-                        "DEFVAR LF@tmp\n"
-                        "POPS LF@j\n"
-                        "POPS LF@i\n"
-                        "POPS LF@str\n"
-                        "STRLEN LF@len LF@str\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@i\n"
+                        "DEFVAR TF@j\n"
+                        "DEFVAR TF@str\n"
+                        "DEFVAR TF@len\n"
+                        "DEFVAR TF@res\n"
+                        "DEFVAR TF@substr\n"
+                        "DEFVAR TF@tmp\n"
+                        "POPS TF@j\n"
+                        "POPS TF@i\n"
+                        "POPS TF@str\n"
+                        "STRLEN TF@len TF@str\n"
                         // i < 0
-                        "LT LF@res LF@i int@0\n"
-                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        "LT TF@res TF@i int@0\n"
+                        "JUMPIFEQ substring_err TF@res bool@true\n"
                         // j < 0
-                        "LT LF@res LF@j int@0\n"
-                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        "LT TF@res TF@j int@0\n"
+                        "JUMPIFEQ substring_err TF@res bool@true\n"
                         // i > j
-                        "GT LF@res LF@i LF@j\n"
-                        "JUMPIFEQ substring_err LF@res bool@true\n"
+                        "GT TF@res TF@i TF@j\n"
+                        "JUMPIFEQ substring_err TF@res bool@true\n"
                         // i >= len
-                        "GT LF@res LF@i LF@len\n"
-                        "JUMPIFEQ substring_err LF@res bool@true\n"
-                        "JUMPIFEQ substring_err LF@i LF@len\n"
+                        "GT TF@res TF@i TF@len\n"
+                        "JUMPIFEQ substring_err TF@res bool@true\n"
+                        "JUMPIFEQ substring_err TF@i TF@len\n"
                         // j > len
-                        "GT LF@res LF@j LF@len\n"
-                        "JUMPIFEQ substring_err LF@res bool@true\n"
-                        "MOVE LF@substr string@\n"
+                        "GT TF@res TF@j TF@len\n"
+                        "JUMPIFEQ substring_err TF@res bool@true\n"
+                        "MOVE TF@substr string@\n"
                         //cycle
                         "LABEL substring_cycle\n"
-                        "SUB LF@res LF@j LF@i\n"
-                        "JUMPIFEQ substring_cycle_end LF@res int@0\n"
-                        "GETCHAR LF@tmp LF@str LF@i\n"
-                        "CONCAT LF@substr LF@substr LF@tmp\n"
-                        "ADD LF@i LF@i int@1\n"
+                        "SUB TF@res TF@j TF@i\n"
+                        "JUMPIFEQ substring_cycle_end TF@res int@0\n"
+                        "GETCHAR TF@tmp TF@str TF@i\n"
+                        "CONCAT TF@substr TF@substr TF@tmp\n"
+                        "ADD TF@i TF@i int@1\n"
                         "JUMP substring_cycle\n"
                         "LABEL substring_cycle_end\n"
-                        "PUSHS LF@substr\n"
+                        "PUSHS TF@substr\n"
                         "JUMP substring_end\n"
                         "LABEL substring_err\n"
                         "PUSHS nil@nil\n"
@@ -953,13 +864,13 @@ void gen_substring(string_t *output){
 void gen_ord(string_t *output){
     append_line(output, "# func ord\n"
                         "LABEL ord\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@str\n"
-                        "DEFVAR LF@ordin\n"
-                        "POPS LF@str\n"
-                        "STRI2INT LF@ordin LF@str int@0\n"
-                        "PUSHS LF@ordin\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@str\n"
+                        "DEFVAR TF@ordin\n"
+                        "POPS TF@str\n"
+                        "STRI2INT TF@ordin TF@str int@0\n"
+                        "PUSHS TF@ordin\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -972,13 +883,13 @@ void gen_ord(string_t *output){
 void gen_chr(string_t *output){
     append_line(output, "# func chr\n"
                         "LABEL chr\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@ordin\n"
-                        "DEFVAR LF@ch\n"
-                        "POPS LF@ordin\n"
-                        "INT2CHAR LF@ch LF@ordin\n"
-                        "PUSHS LF@ch\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@ordin\n"
+                        "DEFVAR TF@ch\n"
+                        "POPS TF@ordin\n"
+                        "INT2CHAR TF@ch TF@ordin\n"
+                        "PUSHS TF@ch\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -993,13 +904,13 @@ void gen_chr(string_t *output){
 void gen_eq(string_t *output){
     append_line(output, "# function equal\n"
                         "LABEL equals\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "JUMPIFEQ eq_true LF@op0 LF@op1\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "JUMPIFEQ eq_true TF@op0 TF@op1\n"
                         "PUSHS bool@false\n"
                         "JUMP eq_end\n"
                         "LABEL eq_true\n"
@@ -1017,13 +928,13 @@ void gen_eq(string_t *output){
 void gen_neq(string_t *output){
     append_line(output, "# function not equal\n"
                         "LABEL nequals\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "JUMPIFEQ neq_true LF@op0 LF@op1\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "JUMPIFEQ neq_true TF@op0 TF@op1\n"
                         "PUSHS bool@true\n"
                         "JUMP neq_end\n"
                         "LABEL neq_true\n"
@@ -1041,15 +952,15 @@ void gen_neq(string_t *output){
 void gen_lesser(string_t *output){
     append_line(output, "# function lesser\n"
                         "LABEL lesser\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "DEFVAR LF@res\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "LT LF@res LF@op0 LF@op1\n"
-                        "PUSHS LF@res\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "DEFVAR TF@res\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "LT TF@res TF@op0 TF@op1\n"
+                        "PUSHS TF@res\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -1062,18 +973,18 @@ void gen_lesser(string_t *output){
 void gen_lesser_or_eq(string_t *output){
     append_line(output, "# function lesser or equal\n"
                         "LABEL lesser_or_equal\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "DEFVAR LF@res0\n"
-                        "DEFVAR LF@res1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "LT LF@res0 LF@op0 LF@op1\n"
-                        "EQ LF@res1 LF@op0 LF@op1\n"
-                        "PUSHS LF@res0\n"
-                        "PUSHS LF@res1\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "DEFVAR TF@res0\n"
+                        "DEFVAR TF@res1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "LT TF@res0 TF@op0 TF@op1\n"
+                        "EQ TF@res1 TF@op0 TF@op1\n"
+                        "PUSHS TF@res0\n"
+                        "PUSHS TF@res1\n"
                         "ORS\n"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -1087,14 +998,14 @@ void gen_lesser_or_eq(string_t *output){
 void gen_greater(string_t *output){
     append_line(output, "# function greater\n"
                         "LABEL greater\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "PUSHS LF@op1\n"
-                        "PUSHS LF@op0\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "PUSHS TF@op1\n"
+                        "PUSHS TF@op0\n"
                         "CALL lesser\n"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -1108,14 +1019,14 @@ void gen_greater(string_t *output){
 void gen_greater_or_eq(string_t *output){
     append_line(output, "# function greater or equal\n"
                         "LABEL greater_or_equal\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "PUSHS LF@op1\n"
-                        "PUSHS LF@op0\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "PUSHS TF@op1\n"
+                        "PUSHS TF@op0\n"
                         "CALL lesser_or_equal\n"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -1129,15 +1040,15 @@ void gen_greater_or_eq(string_t *output){
 void gen_concat(string_t *output){
     append_line(output, "# concatenation\n"
                         "LABEL _concat\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "DEFVAR LF@res\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "CONCAT LF@res LF@op0 LF@op1\n"
-                        "PUSHS LF@res\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "DEFVAR TF@res\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "CONCAT TF@res TF@op0 TF@op1\n"
+                        "PUSHS TF@res\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -1150,18 +1061,18 @@ void gen_concat(string_t *output){
 void gen_questionm(string_t *output){
     append_line(output, "# function remove nil\n"
                         "LABEL remove_nil\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "JUMPIFEQ first_nil LF@op0 nil@nil\n"
-                        "PUSHS LF@op0\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "JUMPIFEQ first_nil TF@op0 nil@nil\n"
+                        "PUSHS TF@op0\n"
                         "POPFRAME\n"
                         "RETURN\n"
                         "LABEL first_nil\n"
-                        "PUSHS LF@op1\n"
+                        "PUSHS TF@op1\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
@@ -1174,26 +1085,26 @@ void gen_questionm(string_t *output){
 void prepare_values(string_t *output){
     append_line(output, "# prepare values\n"
                         "LABEL prepare\n"
-                        "CREATEFRAME\n"
                         "PUSHFRAME\n"
-                        "DEFVAR LF@op0\n"
-                        "DEFVAR LF@op1\n"
-                        "DEFVAR LF@type0\n"
-                        "DEFVAR LF@type1\n"
-                        "POPS LF@op1\n"
-                        "POPS LF@op0\n"
-                        "TYPE LF@type0 LF@op0\n"
-                        "TYPE LF@type1 LF@op1\n"
-                        "JUMPIFEQ prepare_end LF@type0 string@string\n"
-                        "JUMPIFEQ prepare_end LF@type0 LF@type1\n"
-                        "JUMPIFEQ prepare0 LF@type0 string@int\n"
-                        "INT2FLOAT LF@op1 LF@op1\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@op0\n"
+                        "DEFVAR TF@op1\n"
+                        "DEFVAR TF@type0\n"
+                        "DEFVAR TF@type1\n"
+                        "POPS TF@op1\n"
+                        "POPS TF@op0\n"
+                        "TYPE TF@type0 TF@op0\n"
+                        "TYPE TF@type1 TF@op1\n"
+                        "JUMPIFEQ prepare_end TF@type0 string@string\n"
+                        "JUMPIFEQ prepare_end TF@type0 TF@type1\n"
+                        "JUMPIFEQ prepare0 TF@type0 string@int\n"
+                        "INT2FLOAT TF@op1 TF@op1\n"
                         "JUMP prepare_end\n"
                         "LABEL prepare0\n"
-                        "INT2FLOAT LF@op0 LF@op0\n"
+                        "INT2FLOAT TF@op0 TF@op0\n"
                         "LABEL prepare_end\n"
-                        "PUSHS LF@op0\n"
-                        "PUSHS LF@op1\n"
+                        "PUSHS TF@op0\n"
+                        "PUSHS TF@op1\n"
                         "POPFRAME\n"
                         "RETURN\n");
 }
