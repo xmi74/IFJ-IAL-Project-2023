@@ -288,6 +288,7 @@ token_t getNextToken()
                                     else                // ak nie je cislo, ani operator
                                     {
                                         ungetChar(c);
+                                        doubleHandled = true;   // nove?
                                         break;
                                     }
                                 }
@@ -503,6 +504,11 @@ token_t getNextToken()
                 //printf("pridavam do stringu znak : [ %d ]\n", c);
                 dstringAppend(&string, c);
                 c = getNextChar();
+            }
+            if (c != '"')
+            {
+                fprintf(stderr, "SCANNER: Neukonceny klasicky string! posledny znak : [ %c ]\n", c);
+                returnError(SCANNER_ERR);
             }
         }
         
