@@ -17,9 +17,7 @@ extern string_t *output;
 
 #define MAX_NEST_LEVEL 1000
 
-// Neprochazejici semanticke testy:
-// 14, 22-28, 32 - return
-// 3, 19, 20, 38, 39-40 - potreba rozdelit, konflikt s jinymi testy
+// testy 39, 40 - konflikt se semantickymi testy
 
 // TODO: promenne do global symtab v mainu
 // TODO: returns + codegen?
@@ -1079,7 +1077,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                     {
                         if (expected_return == TOK_NOTHING)
                         {
-                            returnError(SYNTAX_ERR);
+                            returnError(FUNCTION_RETURN_ERROR);
                         }
                         returnError(FUNCTION_USAGE_ERR);
                     }
@@ -1089,7 +1087,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                     if (expected_return != TOK_NOTHING)
                     {
                         // error - spatny typ
-                        returnError(SYNTAX_ERR); // TODO: podle testu SYNTAX_ERR, jeste zkontrolovat
+                        returnError(FUNCTION_RETURN_ERROR); // TODO: podle testu SYNTAX_ERR, jeste zkontrolovat
                     }
                 }
                 gen_func_return(output, &current_token);
