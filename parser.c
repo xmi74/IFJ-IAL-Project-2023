@@ -456,6 +456,12 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 }
                 else
                 {
+                    if (var_glob->type == T_NIL)
+                    {
+                        // error - nil do var bez typu
+                        returnError(TYPE_COMPATIBILITY_ERR);
+                    }
+                    
                     func_in = call_func(var_glob, local_table, (*global_table));
                     var_type.attribute.includesNil = func_in.attribute.includesNil;
                     var_type.type = func_in.type;
