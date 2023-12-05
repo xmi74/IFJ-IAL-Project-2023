@@ -64,6 +64,7 @@ int top_counter(){
 void pop_counter(){
     token_t deleteToken;
     Stack_Top(&counter_stack, &deleteToken);
+    Stack_Pop(&counter_stack);
     freeToken(&deleteToken);
 }
 
