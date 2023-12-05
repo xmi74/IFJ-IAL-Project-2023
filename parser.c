@@ -1223,7 +1223,7 @@ void find_functions(global_symtab_t **global_table)
                     returnError(OTHER_ERR); // asi 9?
                 }
 
-                getTokenAssert(TOK_COLON, SYNTAX_ERR);
+                getTokenAssert(TOK_COLON, TYPE_DEDUCTION_ERR);
 
                 current_token = getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING}, SYNTAX_ERR);
 
