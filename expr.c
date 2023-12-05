@@ -505,7 +505,7 @@ void applyRule(Stack *stack)
 bool expressionEnd(token_t *token, token_t prevToken, bool condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
-    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) && token->type != TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
+    if ((token->type == TOK_EOL && (!tokenIsOperator(prevToken) || prevToken.type == TOK_NOT)) || token->type == TOK_EOF || token->type == TOK_COMMENT || token->type == TOK_BLOCK_COM_START || token->type == TOK_L_CRL_BRCKT)
     {
         // Koniec podmienky, napr. if (a == 5) { ... }
         if (condition == true && token->type != TOK_L_CRL_BRCKT)
