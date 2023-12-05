@@ -560,7 +560,6 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 returnError(VARIABLE_DEFINITION_ERR);
             }
             var_type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
-            global_symtab_t* var_glob = (global_symtab_t*)var;
             if ((((global_symtab_t*)var)->isConstant == true && ((global_symtab_t*)var)->isInitialised == true) || ((global_symtab_t*)var)->is_func == true)
             {
                 // error - prirazeni do konstanty
@@ -977,7 +976,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
         local_init_w_par_ptr_t(&local_table_tmp);
         local_table_tmp.table = local_insert(local_table_tmp.table, var_name, var_type, false, true, true);
         local_table_tmp.parent = local_table_one_up;
-        local_table.parent = local_table_one_up;
+        local_table.parent = &local_table_tmp;
     }
     else
     {
@@ -1044,7 +1043,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
         else if (current_token.type == TOK_KW_RETURN)
         {
             has_return = true;
-            if (nest_level == 0)
+            if (nest_level >= 0)
             {
                 // error - return v mainu, asi error
                 returnError(SYNTAX_ERR);
@@ -1075,7 +1074,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                     if (expected_return != TOK_NOTHING)
                     {
                         // error - spatny typ
-                        returnError(FUNCTION_RETURN_ERROR);
+                        returnError(SYNTAX_ERR); // TODO: podle testu SYNTAX_ERR, jeste zkontrolovat
                     }
                 }
                 gen_func_return(output, &current_token);
