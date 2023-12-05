@@ -239,12 +239,22 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                     returnError(OTHER_ERR);
                     // error - nedefinovana promenna
                 }
+                if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
+                {
+                    // error - spatny typ
+                    returnError(FUNCTION_USAGE_ERR);
+                }
 
                 token_out.attribute.str = ((global_symtab_t*)var)->key;
                 token_out.type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
             }
             else
             {
+                if (((local_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
+                {
+                    // error - spatny typ
+                    returnError(FUNCTION_USAGE_ERR);
+                }
                 token_out.type = ((local_symtab_t*)var)->type;
             }
             token_out.attribute.str = ((local_symtab_t*)var)->key;
@@ -342,14 +352,30 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
 
             var_type.type = kw_to_token_type(var_type.type);
 
-            if (nest_level == 0)
-            {
-                (*global_table) = global_insert((*global_table), &identifier.attribute.str, token_type_t_to_type_t(var_type.type), false, 0, NULL, var_type.attribute.includesNil, is_constant, false);
+
+            if (var_type.attribute.includesNil == true)
+            {   
+                if (nest_level == 0)
+                {
+                    (*global_table) = global_insert((*global_table), &identifier.attribute.str, token_type_t_to_type_t(var_type.type), false, 0, NULL, var_type.attribute.includesNil, is_constant, true);
+                }
+                else
+                {
+                    local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, true);
+                }
+                gen_assign(output, identifier.attribute.str.data, var_type.type); // prayge
             }
             else
             {
-                local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, false);
-            }
+                if (nest_level == 0)
+                {
+                    (*global_table) = global_insert((*global_table), &identifier.attribute.str, token_type_t_to_type_t(var_type.type), false, 0, NULL, var_type.attribute.includesNil, is_constant, false);
+                }
+                else
+                {
+                    local_table->table = local_insert(local_table->table, &identifier.attribute.str, var_type.type, var_type.attribute.includesNil, is_constant, false);
+                }
+            }    
             
             return;
         }
@@ -459,6 +485,12 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 {
                     var_type.type = kw_to_token_type(var_type.type);
 
+                    if (var_glob->isInitialised == false)
+                    {
+                        // error - neinicializovana promenna
+                        returnError(VARIABLE_DEFINITION_ERR);
+                    }
+
                     if(var_type.type == TOK_NOTHING)
                     {
                         var_glob->type = var_glob->type;
@@ -565,7 +597,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             else
             {
                 // error - neni funkce
-                returnError(TYPE_COMPATIBILITY_ERR);
+                returnError(FUNCTION_DEFINITION_ERR);
             }
         }
         call_func(func, local_table, global_table);
@@ -665,6 +697,10 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             current_token = getToken();
             if (current_token.type != TOK_IDENTIFIER)
             {
+                {
+                    ungetToken();
+                }
+
                 if (current_token.type == TOK_INT && var_type == TOK_DOUBLE)
                 {
                     // TODO
@@ -679,6 +715,11 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             }
             else if (global_search(global_table, &current_token.attribute.str) != NULL)
             {
+                if(global_search(global_table, &current_token.attribute.str)->isInitialised == false)
+                {
+                    // error - neinicializovana promenna
+                    returnError(VARIABLE_DEFINITION_ERR);
+                }
                 if(global_search(global_table, &current_token.attribute.str)->is_func == true)
                 {
                     token_t func_in = call_func(global_search(global_table, &current_token.attribute.str), local_table, global_table);
@@ -1048,7 +1089,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
             if (nest_level != 0)
             {
                 // error - funkce definovana v podbloku
-                returnError(FUNCTION_DEFINITION_ERR);
+                returnError(OTHER_ERR);
             }
             else
             {
@@ -1202,7 +1243,7 @@ void find_functions(global_symtab_t **global_table)
             if (func != NULL)
             {
                 // error redefinice
-                returnError(FUNCTION_DEFINITION_ERR);
+                returnError(OTHER_ERR);
             }
             current_token = getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
             func_param_t *params;
@@ -1301,6 +1342,11 @@ void find_functions(global_symtab_t **global_table)
             }
             
             // obsah uvnitr funkce resim v 2. pruchodu
+        }
+        else if (current_token.type == TOK_UNDERSCORE)
+        {
+            // error
+            returnError(SYNTAX_ERR);
         }
         current_token = getToken();
     }
