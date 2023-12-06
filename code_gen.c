@@ -126,20 +126,30 @@ void gen_end(string_t *output){
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
-        char *isDefined = NULL;
+        char *newName = NULL;
+        char varname[16];
         if (localVariables != NULL){
-            char varname[16];
-            sprintf(varname, "TF@%s\n", name);
-            isDefined = strstr(localVariables->data, varname);
+            char *tmp = NULL;
+            for (int i = 0; i <= nestLevel; i++){
+                sprintf(varname, "TF@%s$%d", name, i);
+                tmp = strstr(localVariables->data, varname);
+                if (tmp != NULL){
+                    char varname2[16];
+                    sprintf(varname2, "%s", varname);
+                    newName = varname2;
+                }
+            }
         }
-        if (nestLevel == 0 || isDefined == NULL){
+        if (nestLevel == 0 || newName == NULL){
             append_line(output, "PUSHS GF@");
+            append_line(output, name);
+            append_line(output, "\n");
         }
         else{
-            append_line(output, "PUSHS TF@");
+            append_line(output, "PUSHS ");
+            append_line(output, newName);
+            append_line(output, "\n");
         }
-        append_line(output, name);
-        append_line(output, "\n");
     }
     else{
         switch (token->type) {
@@ -201,6 +211,8 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
     local_counter = global_counter;
     char str[16];
     sprintf(str, "%d", local_counter);
+    char newName[16];
+    sprintf(newName, "%s$%d", name, nestLevel);
     append_line(output, "JUMPIFNEQ var_end");
     append_line(output, str);
     append_line(output, " GF@first_def bool@true\n");
@@ -214,28 +226,20 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
         }
     }
     else{
-        char *isDefined = NULL;
-        if (localVariables != NULL){
-            char varname[16];
-            sprintf(varname, "TF@%s\n", name);
-            isDefined = strstr(localVariables->data, varname);
-            append_line(localVariables, "DEFVAR TF@");
-            append_line(localVariables, name);
-            append_line(localVariables, "\n");
-            append_line(localVariables, "MOVE TF@");
-            append_line(localVariables, name);
-            append_line(localVariables, " LF@");
-            append_line(localVariables, name);
-            append_line(localVariables, "\n");
-        }
-        if (isDefined == NULL){
-            append_line(output, "DEFVAR TF@");
-            append_line(output, name);
-            append_line(output, "\n");
-            if (includesNil){
-                append_line(output, "PUSHS nil@nil\n");
-                gen_assign(output, name, type);
-            }
+        append_line(output, "DEFVAR TF@");
+        append_line(output, newName);
+        append_line(output, "\n");
+        append_line(localVariables, "DEFVAR TF@");
+        append_line(localVariables, newName);
+        append_line(localVariables, "\n");
+        append_line(localVariables, "MOVE TF@");
+        append_line(localVariables, newName);
+        append_line(localVariables, " LF@");
+        append_line(localVariables, newName);
+        append_line(localVariables, "\n");
+        if (includesNil){
+            append_line(output, "PUSHS nil@nil\n");
+            gen_assign(output, name, type);
         }
     }
     append_line(output, "LABEL var_end");
@@ -255,13 +259,21 @@ void gen_assign(string_t *output, char *name, token_type_t type){
     local_counter = global_counter;
     char str[16];
     sprintf(str, "%d", local_counter);
-    char *isDefined = NULL;
+    char *newName = NULL;
+    char varname[16];
     if (localVariables != NULL){
-        char varname[16];
-        sprintf(varname, "TF@%s\n", name);
-        isDefined = strstr(localVariables->data, varname);
+        char *tmp = NULL;
+        for (int i = 0; i <= nestLevel; i++){
+            sprintf(varname, "TF@%s$%d", name, i);
+            tmp = strstr(localVariables->data, varname);
+            if (tmp != NULL){
+                char varname2[16];
+                sprintf(varname2, "%s", varname);
+                newName = varname2;
+            }
+        }
     }
-    if (nestLevel == 0 || isDefined == NULL){
+    if (nestLevel == 0 || newName == NULL){
         append_line(output, "POPS GF@");
         append_line(output, name);
         append_line(output, "\n");
@@ -301,11 +313,11 @@ void gen_assign(string_t *output, char *name, token_type_t type){
         append_line(output, "\n");
     }
     else{
-        append_line(output, "POPS TF@");
-        append_line(output, name);
+        append_line(output, "POPS ");
+        append_line(output, newName);
         append_line(output, "\n");
-        append_line(output, "TYPE GF@type TF@");
-        append_line(output, name);
+        append_line(output, "TYPE GF@type ");
+        append_line(output, newName);
         append_line(output, "\n"
                             "JUMPIFEQ trans_not");
         append_line(output, str);
@@ -315,10 +327,10 @@ void gen_assign(string_t *output, char *name, token_type_t type){
                                 "JUMPIFNEQ trans_not");
             append_line(output, str);
             append_line(output, " GF@type string@float\n"
-                                "FLOAT2INT TF@");
-            append_line(output, name);
-            append_line(output, " TF@");
-            append_line(output, name);
+                                "FLOAT2INT ");
+            append_line(output, newName);
+            append_line(output, " ");
+            append_line(output, newName);
             append_line(output, "\n");
         }
         else if (type == TOK_DOUBLE){
@@ -326,10 +338,10 @@ void gen_assign(string_t *output, char *name, token_type_t type){
                                 "JUMPIFNEQ trans_not");
             append_line(output, str);
             append_line(output, " GF@type string@int\n"
-                                "INT2FLOAT TF@");
-            append_line(output, name);
-            append_line(output, " TF@");
-            append_line(output, name);
+                                "INT2FLOAT ");
+            append_line(output, newName);
+            append_line(output, " ");
+            append_line(output, newName);
             append_line(output, "\n");
         }
         else{
