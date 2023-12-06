@@ -14,11 +14,6 @@
 
 extern token_table_t token_table;
 
-/**
- * @brief Inicializace tabulky tokenu.
- *
- * @param table Ukazatel na tabulku tokenu.
- */
 void initTokenTable(token_table_t *table)
 {
     table->insert = true;
@@ -32,22 +27,11 @@ void initTokenTable(token_table_t *table)
     }    
 }
 
-/**
- * @brief Dealokuje tabulku tokenu.
- *
- * @param table Ukazatel na tabulku tokenu.
- */
 void freeTokenTable(token_table_t *table)
 {
     free(table->tokens);
 }
 
-/**
- * @brief Prida token do tabulky tokenu.
- *
- * @param table Ukazatel na tabulku tokenu.
- * @param token Token, ktery se ma pridat do tabulky tokenu.
- */
 void addTableToken(token_table_t *table, token_t token)
 {
     if (table->capacity<=table->size)
@@ -63,12 +47,6 @@ void addTableToken(token_table_t *table, token_t token)
     table->size++;
 }
 
-/**
- * @brief Vrati token z tabulky tokenu.
- *
- * @param table Ukazatel na tabulku tokenu.
- * @return Token z tabulky tokenu.
- */
 token_t getTableToken(token_table_t *table)
 {
     if(table->size > table->capacity)
@@ -80,13 +58,6 @@ token_t getTableToken(token_table_t *table)
     return table->tokens[table->index++];
 }
 
-/**
- * @brief Vrati token z tabulky tokenu a zaroven overi, zda se jedna o ocekavany token.
- *
- * @param type Ocekavany typ tokenu.
- * @param err_code Chybovy kod, ktery se ma vratit v pripade, ze se nejedna o ocekavany token.
- * @return Token z tabulky tokenu.
- */
 token_t getTokenAssert(token_type_t type, int err_code) // getToken, vraci chybu pokud obdrzi jiny token nez ocekavany
 {
     token_t token = getToken();
@@ -98,14 +69,6 @@ token_t getTokenAssert(token_type_t type, int err_code) // getToken, vraci chybu
     return token;
 }
 
-/**
- * @brief Vrati token z tabulky tokenu a zaroven overi, zda se jedna o ocekavany token (ze seznamu).
- *
- * @param tok_amount Pocet ocekavanych tokenu.
- * @param type Seznam ocekavanych typu tokenu.
- * @param err_code Chybovy kod, ktery se ma vratit v pripade, ze se nejedna o ocekavany token.
- * @return Token z tabulky tokenu.
- */
 token_t getTokenAssertArr(int tok_amount, token_type_t *type, int err_code) // getToken, vraci chybu pokud obdrzi jiny token nez ze seznamu ocekavanych
 {
     token_t token = getToken();
@@ -121,11 +84,6 @@ token_t getTokenAssertArr(int tok_amount, token_type_t *type, int err_code) // g
     return token; // jen aby si kompilator nestezoval
 }
 
-/**
- * @brief Vrati token z tabulky tokenu.
- *
- * @return Token z tabulky tokenu.
- */
 token_t getToken()
 {
     if(token_table.insert == true)
@@ -140,10 +98,6 @@ token_t getToken()
     }
 }
 
-/**
- * @brief Vrati ukazatel v tabulce tokenu o 1 zpet.
- *
- */
 void ungetToken()
 {
     token_table.index--;

@@ -11,16 +11,13 @@
  */
 
 #include "stack.h"
-#include "printTokenType.c"
 
-// Funkcia na inicializaciu zasobnika
 void Stack_Init(Stack *stack)
 {
     // Kontrola, ci bola struktura spravne inicializovana
     if (stack == NULL)
     {
-        // Chyba
-        return;
+        returnError(INTERN_ERR);
     }
 
     // Inicializacia vlastnosti zasobnika
@@ -34,16 +31,8 @@ void Stack_Init(Stack *stack)
     {
         returnError(INTERN_ERR);
     }
-
-    // Kontrola, ci sa alokacia podarila
-    if (stack->elements == NULL)
-    {
-        // ERROR
-        return;
-    }
 }
 
-// Funkcia na kontrolu a zmenu velkosti zasobnika, ak je to potrebne
 void Stack_CheckSize(Stack *stack)
 {
     // Vypocet pomeru naplnenia zasobnika
@@ -61,7 +50,6 @@ void Stack_CheckSize(Stack *stack)
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
         {
-            // Chyba
             returnError(INTERN_ERR);
         }
 
@@ -81,7 +69,6 @@ void Stack_CheckSize(Stack *stack)
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
         {
-            // Chyba
             returnError(INTERN_ERR);
         }
 
@@ -91,14 +78,12 @@ void Stack_CheckSize(Stack *stack)
     }
 }
 
-// Funkcia na kontrolu, ci je zasobnik prazdny
 bool Stack_IsEmpty(const Stack *stack)
 {
     // Vrati true, ak je velkost zasobnika 0, inak false
     return stack->size == 0;
 }
 
-// Funkcia na ziskanie prvku na vrchole zasobnika
 void Stack_Top(const Stack *stack, token_t *dataPtr)
 {
     // Ak zasobnik nie je prazdny
@@ -109,7 +94,6 @@ void Stack_Top(const Stack *stack, token_t *dataPtr)
     }
 }
 
-// Funkcia na odstranenie prvku z vrcholu zasobnika
 void Stack_Pop(Stack *stack)
 {
     // Ak zasobnik nie je prazdny
@@ -124,7 +108,6 @@ void Stack_Pop(Stack *stack)
     }
 }
 
-// Funkcia na vlozenie prvku na vrchol zasobnika
 void Stack_Push(Stack *stack, token_t *element)
 {
     // Inkrementuj index vrcholu a pocet prvkov v zasobniku
@@ -138,7 +121,7 @@ void Stack_Push(Stack *stack, token_t *element)
     Stack_CheckSize(stack);
 }
 
-// Funkcia na uvolnenie struktury
+
 void Stack_Dispose(Stack *stack)
 {
     // Uvolenenie pamate alokovanej pre pole prvkov
@@ -146,17 +129,6 @@ void Stack_Dispose(Stack *stack)
 
     stack->topIndex = -1;
     stack->elements = NULL;
-}
-
-void Stack_Print(Stack *stack)
-{
-    printf("------ Stack ------\n");
-    printf("Size: %ld, capacity : %ld\n", stack->size, stack->capacity);
-    for (size_t i = 0; i < stack->size; i++)
-    {
-        printf("ID : %ld => Type: %s, terminal : %s\n", i, getTokenTypeName(stack->elements[i].type), stack->elements[i].terminal ? "true" : "false");
-    }
-    printf("-------------------\n");
 }
 
 token_t *Stack_GetTopTerminal(Stack *stack)
@@ -173,8 +145,6 @@ token_t *Stack_GetTopTerminal(Stack *stack)
     return NULL;
 }
 
-// Funkcia sluzi na vlozenie '<' pred prvy terminal v zasobniku.
-// Vyhlada index vlozenia, posunie vsetky prvky o jedno miesto doprava a vlozi '<'.
 void Stack_InsertLesser(Stack *stack)
 {
     token_t lesser;

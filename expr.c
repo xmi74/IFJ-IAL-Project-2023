@@ -42,12 +42,6 @@ int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
     {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF, Stack bottom)
 };
 
-/**
- * @brief Pomocna funkcia pre zistenie indexu tokenu v precedencnej tabulke.
- *
- * @param token Token, ktoreho index sa ma zistit.
- * @return Index tokenu v precedencnej tabulke.
- */
 int getTokenIndex(token_t token)
 {
     switch (token.type)
@@ -94,12 +88,6 @@ int getTokenIndex(token_t token)
     }
 }
 
-/**
- * @brief pomocna funckia pre zistenie ci je token term
- * Term je libovolny literal (celociselny, desatinny, retezcovy ci nil) alebo identifikator.
- * @param token token ktory sa ma skontrolovat
- * @return true ak je term, inak false
- */
 bool tokenIsTerm(token_t token)
 {
     switch (token.type)
@@ -115,11 +103,6 @@ bool tokenIsTerm(token_t token)
     }
 }
 
-/**
- * @brief pomocna funckia pre zistenie ci je token operator
- * @param token token ktory sa ma skontrolovat
- * @return true ak je operator, inak false
- */
 bool tokenIsOperator(token_t token)
 {
     switch (token.type)
@@ -142,11 +125,6 @@ bool tokenIsOperator(token_t token)
     }
 }
 
-/**
- * @brief pomocna funckia pre zistenie ci je token relational operator
- * @param token token ktory sa ma skontrolovat
- * @return true ak je relational operator, inak false
- */
 bool tokenIsRelationalOperator(token_t token)
 {
     switch (token.type)
@@ -163,13 +141,6 @@ bool tokenIsRelationalOperator(token_t token)
     }
 }
 
-/**
- * @brief Funkcia na zistenie typu tokenu z tabulky symbolov
- * Funcia tiez nastavuje atribut includesNil
- * @param token token ktoreho typ sa ma zistit
- * @param table tabulka symbolov
- * @return typ tokenu
- */
 token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
     local_symtab_t *search;
@@ -205,14 +176,6 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
     return search->type;
 }
 
-/**
- * @brief Funkcia na kontrolu operandov
- * Funkcia tiez kontroluje ci operandy neobsahuju nil, v takom pripade sa jedna o error
- * @param operand1 prvy operand
- * @param operand2 druhy operand
- * @return true ak su operandy v poriadku, inak false
- */
-
 bool checkOperands(token_t operand1, token_t operand2)
 {
     if (operand1.tree == NULL || operand2.tree == NULL || (operand1.type == TOK_LESSER && operand1.terminal == false) || (operand2.type == TOK_LESSER && operand2.terminal == false))
@@ -230,13 +193,6 @@ bool checkOperands(token_t operand1, token_t operand2)
     return true;
 }
 
-/**
- * @brief Funkcia vyhodnocuje kompatibilitu operandov vo vyraze
- * Funkcia zvlast kontroluje operator '??', ktory vyzaaduje specialnu kontrolu
- * @param operand1 Prvy token.
- * @param operand2 Druhy token.
- * @return True ak su datove typy rovnake, inak false.
- */
 bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
 {
     // Extra kontroly pre operator '??'
@@ -330,12 +286,6 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
     return true;
 }
 
-/**
- * @brief Funkcia na redukciu aritmetickych vyrazov
- * Funkcia tiez tvori uzle stromu
- * @param stack zasobnik
- * @return void
- */
 void reduceArithmetic(Stack *stack)
 {
     token_t stackTop;
@@ -359,13 +309,6 @@ void reduceArithmetic(Stack *stack)
     Stack_Push(stack, &expr);
 }
 
-/**
- * @brief Funkcia na redukciu logickych vyrazov
- * Funckia tiez tvori uzle stromu
- * @param stack zasobnik
- * @param table tabulka symbolov
- * @return true ak sa podarila redukcia, resp. datove typy sa rovnaju, inak false
- */
 bool reduceLogical(Stack *stack)
 {
     // TODO : String?, Int?, Double? - neda sa odvodit typ
@@ -437,11 +380,6 @@ bool reduceLogical(Stack *stack)
     return true;
 }
 
-/**
- * @brief Funkcia na redukciu NOT operatora
- * @param stack zasobnik
- * @return void
- */
 void reduceNot(Stack *stack)
 {
     token_t stackTop;
@@ -471,11 +409,6 @@ void reduceNot(Stack *stack)
     Stack_Push(stack, &expr);
 }
 
-/**
- * @brief Funkcia na redukciu zatvoriek
- * @param stack zasobnik
- * @return void
- */
 void reduceParenthesis(Stack *stack)
 {
     token_t stackTop;
@@ -490,11 +423,6 @@ void reduceParenthesis(Stack *stack)
     Stack_Push(stack, &expr);
 }
 
-/**
- * @brief Funkcia na redukciu termu
- * @param stack zasobnik
- * @return void
- */
 void reduceTerm(Stack *stack)
 {
     token_t operand;
@@ -505,13 +433,6 @@ void reduceTerm(Stack *stack)
     return;
 }
 
-/**
- * @brief Funkcia na aplikaciu pravidiel
- * Aplikacia pravidiel podla operatorov
- * @param stack zasobnik
- * @param table tabulka symbolov
- * @return true ak sa aplikacia pravidla podarila, ak pravidlo neexistuje alebo nastala chyba pri redukcii, tak false
- */
 void applyRule(Stack *stack)
 {
     token_t stackTop;
@@ -565,12 +486,6 @@ void applyRule(Stack *stack)
     }
 }
 
-/**
- * @brief Funkcia na zistenie ci je koniec vyrazu
- * @param token aktualny token
- * @param prevToken predchadzajuci token
- * @return true ak je koniec vyrazu, inak false
- */
 bool expressionEnd(token_t *token, token_t prevToken, bool condition)
 {
     // Obycajny koniec riadku, napr. if (a == 5), if podmienka bez zatvoriek napr. if a == 5 {}
@@ -599,12 +514,6 @@ bool expressionEnd(token_t *token, token_t prevToken, bool condition)
     return false;
 }
 
-/**
- * @brief Funkcia na zistenie precedencie
- * @param stackTop token na vrchole zasobnika
- * @param token aktualny token
- * @return int cislo reprezentujuce vyslednu operaciu
- */
 int getPrecedence(token_t stackTop, token_t token)
 {
     int incomingToken = getTokenIndex(token);
@@ -617,14 +526,6 @@ int getPrecedence(token_t stackTop, token_t token)
     return precedenceTable[getTokenIndex(stackTop)][incomingToken];
 }
 
-/**
- * @brief hlavna funkcia na analyzu vyrazov
- * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu.
- * Funkcia urcuje operaciu podla precedencnej tabulky, resp. ci sa ma vykonat LOAD, REDUCE a pod.
- * @param table tabulka symbolov
- * @param globalTable globalna tabulka symbolov
- * @return ast_node_t* ukazatel na koren AST stromu, kde sa nachadzaju potrebne informacie o vyraze
- */
 ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable, bool isCondition)
 {
     Stack stack;

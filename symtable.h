@@ -123,6 +123,8 @@ local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, strin
  * @param includesNil vkladana polozka je typu, ktory moze zahrnovat nil (true) alebo nemoze zahrnovat nil (false)
  * @param isConstant (true) ak bola premenna definovana pomocou kw let, (false) ak bola premenna definovana pomocou kw var
  * @param isInitialised oznacuje ci polozka uz bola inicializovana (true) alebo nie (false)
+ *
+ * @return ukazatel na strukturu lokalnej tabulky symbolov s pridanym pozadovanym prvkom
 */
 local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type, bool includesNil, bool isConstant, bool isInitialised);
 
@@ -175,7 +177,7 @@ global_symtab_t *global_search(global_symtab_t *global_table, string_t *key);
  * @param isConstant (true) ak bola premenna definovana pomocou kw let, (false) ak bola premenna definovana pomocou kw var
  * @param isInitialised oznacuje ci polozka uz bola inicializovana (true) alebo nie (false)
  * 
- * @return struktura globalnej tabulky symbolov s pridanym pozadovanym prvkom
+ * @return ukazatel na strukturu globalnej tabulky symbolov s pridanym pozadovanym prvkom
 */
 global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params, bool includesNil, bool isConstant, bool isInitialised);
 
