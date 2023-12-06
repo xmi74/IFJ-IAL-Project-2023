@@ -82,8 +82,16 @@ void handleEscapeSequence(int *c)
                 }
                 else if (isxdigit(*c))
                 {
-                    //int value = 0;
-                    int value = *c;
+                    int value = 0;
+                    if (isdigit(*c)) 
+                    {
+                        value = (16 * value) + (*c - '0');
+                    }
+                    else
+                    {
+                        value = (16 * value) + (tolower(*c) - 'a' + 10);
+                        //printf("nacitana hodnota v esc. sekvencii : %d\n", value);
+                    }
                     while ((*c = getNextChar()) != '}')
                     {
                         if (isxdigit(*c))
@@ -95,6 +103,7 @@ void handleEscapeSequence(int *c)
                             else
                             {
                                 value = (16 * value) + (tolower(*c) - 'a' + 10);
+                                //printf("nacitana hodnota v esc. sekvencii : %d\n", value);
                             }   
                         }
                         else
@@ -106,6 +115,7 @@ void handleEscapeSequence(int *c)
                         }
                     }
                     *c = value;
+                    //printf("nacitana hodnota appendovaneho znaku : %d\n", *c);
                 }
                 else
                 {
