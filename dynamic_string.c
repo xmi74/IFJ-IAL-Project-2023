@@ -29,10 +29,13 @@ void dstringInit(string_t *str) {
 
 // Uvolnenie pamati dynamickeho retazca
 void dstringFree(string_t *str) {
-    free(str->data);
-    str->data = NULL;
-    str->length = 0;
-    str->capacity = 0;
+    if (str != NULL || str->data != NULL)
+    {
+        free(str->data);
+        str->data = NULL;
+        str->length = 0;
+        str->capacity = 0;
+    }
 }
 
 // Pridanie znaku na koniec retazca
