@@ -355,7 +355,8 @@ void gen_func(string_t *output, token_t *token){
     append_line(output, "LABEL ");
     append_line(output, token->attribute.str.data);
     append_line(output, "\nPUSHFRAME\n"
-                        "CREATEFRAME\n");
+                        "CREATEFRAME\n"
+                        "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
         localVariables = new_line("");
     }
@@ -431,6 +432,12 @@ void gen_expr(string_t *output, ast_node_t *tree){
             }
             case TOK_IDENTIFIER:{
                 gen_value(output, NULL, true, items->nodes[index]->token.attribute.str.data);
+                if (items->nodes[index]->type == TOK_STRING){
+                    isString = true;
+                }
+                else{
+                    isString = false;
+                }
                 break;
             }
             case TOK_INT:
