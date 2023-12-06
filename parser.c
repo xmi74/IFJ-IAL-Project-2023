@@ -455,6 +455,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
             // error - spatny typ
             returnError(TYPE_COMPATIBILITY_ERR);
         }
+        ast_dispose(node);
     }
     else
     {
@@ -699,6 +700,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 // error - spatny typ
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
+            ast_dispose(node);
         }
         else
         {
@@ -871,7 +873,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
  */
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
-    checkExpression(local_table, global_table, true);
+    ast_dispose(checkExpression(local_table, global_table, true));
 }
 
 /**
@@ -1122,7 +1124,9 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                 if (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
                 {
                     ungetToken();
-                    token_type_t return_type = checkExpression(&local_table, (*global_table), false)->type;
+                    ast_node_t* node = checkExpression(&local_table, (*global_table), false);
+                    token_type_t return_type = node->type;
+                    ast_dispose(node);
                     if (return_type == TOK_NOTHING)
                     {
                         // error - spatny typ
@@ -1150,6 +1154,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
         }
         current_token = getToken();
     }
+    local_dispose(&local_table.table);
     return has_return;
 }
 
