@@ -634,16 +634,16 @@ void gen_while(string_t *output){
     nestLevel++;
     append_line(output, "PUSHFRAME\n"
                         "CREATEFRAME\n");
-    append_line(output, "LABEL while");
-    char str[16];
-    sprintf(str, "%d\n", local_counter);
-    append_line(output, str);
     if (nestLevel == 1){
         localVariables = new_line("");
     }
     else{
         append_line(output, localVariables->data);
     }
+    append_line(output, "LABEL while");
+    char str[16];
+    sprintf(str, "%d\n", local_counter);
+    append_line(output, str);
 }
 
 /**
