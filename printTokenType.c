@@ -14,8 +14,6 @@ const char *getTokenTypeName(token_type_t tokenType)
         return "TOK_INT";
     case TOK_DOUBLE:
         return "TOK_DOUBLE";
-    case TOK_STRING_START:
-        return "TOK_STRING_START";
     case TOK_STRING:
         return "TOK_STRING";
     case TOK_MUL:

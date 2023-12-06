@@ -90,7 +90,7 @@ int getTokenIndex(token_t token)
     case TOK_EOL:
         return 15; // '$'
     default:
-        return 16; // Others
+        return -1; // Others
     }
 }
 
@@ -249,7 +249,7 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
             returnError(TYPE_COMPATIBILITY_ERR);
         }
         // Jeden z operandov obsahuje nil a druhy nie alebo prvy je TOK_KW_NIL a druhy nie
-        else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == false )
+        else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == false)
         {
             // ok, skontroluj typy
         }
@@ -571,6 +571,24 @@ bool expressionEnd(token_t *token, token_t prevToken, bool condition)
 }
 
 /**
+ * @brief Funkcia na zistenie precedencie
+ * @param stackTop token na vrchole zasobnika
+ * @param token aktualny token
+ * @return int cislo reprezentujuce vyslednu operaciu
+ */
+int getPrecedence(token_t stackTop, token_t token)
+{
+    int incomingToken = getTokenIndex(token);
+    if (incomingToken == -1)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Unknown token\n");
+        returnError(SYNTAX_ERR);
+    }
+
+    return precedenceTable[getTokenIndex(stackTop)][incomingToken];
+}
+
+/**
  * @brief hlavna funkcia na analyzu vyrazov
  * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu.
  * Funkcia urcuje operaciu podla precedencnej tabulky, resp. ci sa ma vykonat LOAD, REDUCE a pod.
@@ -600,35 +618,12 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
 
-        int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
+        int precedence = getPrecedence(*stackTop, token);
 
         // LOAD
-        if (result == L)
+        if (precedence == L)
         {
-            // // Kontrola prefixoveho NOT '!' - Syntax analyza
-            // if (token.type == TOK_NOT)
-            // {
-            //     token_t stackTrueTop;
-            //     Stack_Top(&stack, &stackTrueTop);
-
-            //     // Kontrola ci operand je TERM alebo neterminal (Redukovana expression)
-            //     if (tokenIsTerm(stackTrueTop) || stackTrueTop.terminal == false)
-            //     {
-            //         // Kontrola ci je operand literal
-            //         if (stackTrueTop.tree->literal == true)
-            //         {
-            //             fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
-            //             returnError(TYPE_COMPATIBILITY_ERR);
-            //         }
-            //     }
-            //     // Oprand je operator (+-*/...)
-            //     else if (stackTrueTop.terminal == true)
-            //     {
-            //         fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
-            //         returnError(SYNTAX_ERR);
-            //     }
-            // }
-
+            // Vychodzia hodnota
             token.attribute.includesNil = false;
 
             // Nastavenie atributu includesNil pre nil
@@ -662,11 +657,11 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
             continue;
         }
         // REDUCE - pouzi pravidlo
-        else if (result == R)
+        else if (precedence == R)
         {
             applyRule(&stack);
         }
-        else if (result == E)
+        else if (precedence == E)
         {
             // Koniec analyzy vyrazu, prebehol OK
             if (stackTop->type == TOK_EOF)
@@ -680,7 +675,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         }
         else // U - Undefined
         {
-            fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...) or double '!'\n");
+            fprintf(stderr, "[EXPR] ERROR: Undefined precedence\n");
             Stack_Dispose(&stack);
             returnError(SYNTAX_ERR);
         }

@@ -52,7 +52,9 @@ ast_node_t *make_leaf(token_t token)
 
 /**
  * @brief Funkcia na kontrolu typov.
+ * Funkcia pripadne pretypuje operand, ak je to nutne.
  * @param root Ukazatel na koren stromu.
+ * @param doubleQuestMark Priznak, ci sa jedna o operator '??'.
  */
 void checkLeafTypes(ast_node_t *root, bool doubleQuestMark)
 {
@@ -69,17 +71,27 @@ void checkLeafTypes(ast_node_t *root, bool doubleQuestMark)
     {
         token_type_t leftType = root->left->type;
         token_type_t rightType = root->right->type;
-
-        // Urcenie vysledneho typu pri operatore '??' s TOK_KW_NIL
-        if (doubleQuestMark &&
-            ((leftType == TOK_KW_NIL && rightType != TOK_KW_NIL) ||
-             (rightType == TOK_KW_NIL && leftType != TOK_KW_NIL)))
-        {
-            root->type = (leftType == TOK_KW_NIL) ? rightType : leftType;
-            return;
-        }
         bool leftLiteral = root->left->literal;
         bool rightLiteral = root->right->literal;
+
+        // Urcenie vysledneho typu pri operatore '??' s TOK_KW_NIL ako lavy oprand, vysledok je automaticky lavy operand
+        if (doubleQuestMark && (leftType == TOK_KW_NIL && rightType != TOK_KW_NIL))
+        {
+            root->literal = rightLiteral; // V tomto pripade prevezmeme informaciu o literale z praveho operandu
+            root->type = leftType;
+            return;
+        }
+        // Typy sa nerovnaju, ale pravy operand je literal, pretypujeme, ak su operandy INT/DOUBLE
+        else if (doubleQuestMark && ((leftType != rightType) && rightLiteral))
+        {
+            if ((leftType == TOK_DOUBLE && rightLiteral && rightType == TOK_INT) ||
+                (leftLiteral && leftType == TOK_INT && rightType == TOK_DOUBLE))
+            {
+                root->type = TOK_DOUBLE; // Pretypovali sme INT na DOUBLE, vysledok je DOUBLE
+                // root->literal = true;    // Z operatoru ?? nevieme v tomto pripade urcit, ci je vysledok literal
+                return;
+            }
+        }
 
         // Ponechanie informacii o literale korenu
         root->literal = leftLiteral && rightLiteral;
@@ -105,7 +117,7 @@ void checkLeafTypes(ast_node_t *root, bool doubleQuestMark)
                 }
             }
 
-            // If none of the above conditions met, there's a type error
+            // Ziadna z podmienok neplati -> error
             root->type = TOK_NOTHING;
             fprintf(stderr, "[EXPR] Type compatibility error");
             returnError(TYPE_COMPATIBILITY_ERR);
@@ -126,6 +138,7 @@ void checkLeafTypes(ast_node_t *root, bool doubleQuestMark)
  * @param fatherToken Token korena (otca) stromu.
  * @param left Ukazatel na lavy uzol.
  * @param right Ukazatel na pravy uzol.
+ * @param doubleQuestMark Priznak, ci sa jedna o operator '??'.
  * @return Ukazatel na koren (otca) stromu.
  */
 ast_node_t *make_tree(token_t fatherToken, ast_node_t *left, ast_node_t *right, bool doubleQuestMark)

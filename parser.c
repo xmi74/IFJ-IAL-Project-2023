@@ -253,22 +253,25 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                     // error - nedefinovana promenna
                     returnError(OTHER_ERR);
                 }
-                if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
-                {
-                    // error - spatny typ
-                    returnError(FUNCTION_USAGE_ERR);
-                }
+                //if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
+                //{
+                //    // error - spatny typ
+                //    returnError(FUNCTION_USAGE_ERR);
+                //}
 
-                token_out.attribute.str = ((global_symtab_t*)var)->key;
+                token_out.attribute.includesNil = ((global_symtab_t*)var)->includesNil;
+                //token_out.attribute.str = ((global_symtab_t*)var)->key;
                 token_out.type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
             }
             else
             {
-                if (((local_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
-                {
-                    // error - spatny typ
-                    returnError(FUNCTION_USAGE_ERR);
-                }
+                //if (((local_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
+                //{
+                //    // error - spatny typ
+                //    returnError(FUNCTION_USAGE_ERR);
+                //}
+                token_out.attribute.includesNil = ((local_symtab_t*)var)->includesNil;
+                //token_out.attribute.str = ((local_symtab_t*)var)->key;
                 token_out.type = ((local_symtab_t*)var)->type;
             }
             token_out.attribute.str = ((local_symtab_t*)var)->key;
@@ -331,11 +334,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
 
 
     // fix aby prochazely testy 4 a 5
-    token_t identifier = getTokenAssertArr(2, (token_type_t[]){TOK_IDENTIFIER, TOK_UNDERSCORE}, SCANNER_ERR);
-    if (identifier.type == TOK_UNDERSCORE)
-    {
-        returnError(SYNTAX_ERR);
-    }
+    token_t identifier = getTokenAssertArr(2, (token_type_t[]){TOK_IDENTIFIER, TOK_UNDERSCORE}, SYNTAX_ERR);
 
     if(local_search(local_table->table, &identifier.attribute.str) != NULL || (nest_level == 0 && global_search((*global_table), &identifier.attribute.str) != NULL))
     {
@@ -434,6 +433,11 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
     if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
         ast_node_t* node = checkExpression(local_table, (*global_table), false);
+        if (node->token.type == TOK_EQUAL || node->token.type == TOK_NOT_EQUAL || node->token.type == TOK_LESSER || node->token.type == TOK_GREATER || node->token.type == TOK_LESSER_OR_EQUAL || node->token.type == TOK_GREATER_OR_EQUAL) {
+            // Ak je relacny operator vo vyraze, tak error
+            fprintf(stderr, "[PARSER] Relational operator in expression which is not in a condition\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
         if (var_type.type == TOK_NOTHING)
         {
             var_type.type = node->type;
@@ -910,6 +914,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             }
             
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+            ignore_comments();
             parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, &((global_symtab_t*)var)->key, type_t_to_token_type_t(((global_symtab_t*)var)->type), TOK_NOTHING);
         }
         else
@@ -926,6 +931,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
                 ungetToken();
             }
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+            ignore_comments();
             parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, &((local_symtab_t*)var)->key, ((local_symtab_t*)var)->type, TOK_NOTHING);
         }
     }
@@ -939,6 +945,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             ungetToken();
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+        ignore_comments();
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
     
@@ -956,6 +963,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             ungetToken();
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+        ignore_comments();
         gen_else(output);
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
@@ -983,6 +991,7 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
         ungetToken();
     }
     getTokenAssert(TOK_L_CRL_BRCKT, VARIABLE_DEFINITION_ERR);
+    ignore_comments();
     parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     gen_while_end(output);
 }
