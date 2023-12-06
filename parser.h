@@ -17,6 +17,8 @@
 
 token_type_t kw_to_token_type(token_type_t kw);
 
+void ignore_comments();
+
 token_type_t type_t_to_token_type_t(type_t type);
 
 type_t token_type_t_to_type_t(token_type_t type);
