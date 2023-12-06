@@ -2,7 +2,7 @@
  * IFJ-IAL Projekt 2023
  *
  * @file expr.c
- * @brief Bottom-up analyza vyrazov
+ * @brief Precedencna analyza vyrazov
  *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)

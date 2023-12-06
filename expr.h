@@ -1,8 +1,8 @@
 /**
  * IFJ-IAL Projekt 2023
  *
- * @file stack.h
- * @brief Header file for the implementation of a dynamic ADT stack
+ * @file expr.h
+ * @brief Precedencna analyza vyrazov
  *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)

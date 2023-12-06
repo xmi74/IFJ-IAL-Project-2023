@@ -1,3 +1,15 @@
+/**
+ * IFJ-IAL Projekt 2023
+ * 
+ * @file main.c
+ * @brief Hlavny subor programu
+ * 
+ * @author Igor Mikula (xmikul74)
+ * @author Marko Olesak (xolesa00)
+ * @author Jan Findra (xfindr01)
+ * @author Tomas Arlt (xarltt00)
+*/
+
 #include "parser.h"
 #include "code_gen.h"
 #include <assert.h>

@@ -2,7 +2,7 @@
  * IFJ-IAL Projekt 2023
  * 
  * @file token_table.h
- * @brief Implementacia programu syntakticke a semanticke analyzy
+ * @brief Implementacia tabulky spracovanych tokenov
  * 
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)

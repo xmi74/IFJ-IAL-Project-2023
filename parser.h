@@ -1,14 +1,17 @@
 /**
  * IFJ-IAL Projekt 2023
- * 
+ *
  * @file parser.h
  * @brief Implementacia programu syntakticke a semanticke analyzy
- * 
+ *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
  * @author Tomas Arlt (xarltt00)
-*/
+ */
+
+#ifndef PARSER_H
+#define PARSER_H
 
 #include <stdbool.h>
 #include "symtable.h"
@@ -46,3 +49,5 @@ void find_functions(global_symtab_t **global_table);
 bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **global_table, local_symtab_w_par_ptr_t *local_table_one_up, string_t *var_name, token_type_t var_type, token_type_t expected_return);
 
 int parse();
+
+#endif // PARSER_H

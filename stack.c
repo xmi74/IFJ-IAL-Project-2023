@@ -2,7 +2,7 @@
  * IFJ-IAL Projekt 2023
  *
  * @file stack.c
- * @brief Implementacia dynamickeho ADT stack
+ * @brief Implementacia zasobnika tokenov
  *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
@@ -57,7 +57,7 @@ void Stack_CheckSize(Stack *stack)
 
         // Realokacia pamate pre pole prvkov
         token_t *newArray = realloc(stack->elements, newSize * sizeof(token_t));
-        
+
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
         {

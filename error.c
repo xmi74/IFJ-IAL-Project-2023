@@ -1,8 +1,8 @@
 /**
  * IFJ-IAL Projekt 2023
  * 
- * @file dynamic_string.c
- * @brief Implementacia struktury a funkcii pre manipulaciu s dynamickym stringom
+ * @file error.c
+ * @brief Pomocna funckia na vypis a ukoncenie programu pri chybe
  * 
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)

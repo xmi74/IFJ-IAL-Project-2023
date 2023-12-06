@@ -1,8 +1,8 @@
 /**
  * IFJ-IAL Projekt 2023
  *
- * @file error.h
- * @brief Abstrakcny syntakticky strom
+ * @file abstract_syntax_tree.c
+ * @brief Abstraktny syntakticky strom
  *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
