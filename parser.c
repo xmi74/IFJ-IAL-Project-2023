@@ -913,6 +913,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             }
             
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+            ignore_comments();
             parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, &((global_symtab_t*)var)->key, type_t_to_token_type_t(((global_symtab_t*)var)->type), TOK_NOTHING);
         }
         else
@@ -929,6 +930,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
                 ungetToken();
             }
             getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+            ignore_comments();
             parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, &((local_symtab_t*)var)->key, ((local_symtab_t*)var)->type, TOK_NOTHING);
         }
     }
@@ -942,6 +944,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             ungetToken();
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+        ignore_comments();
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
     
@@ -959,6 +962,7 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             ungetToken();
         }
         getTokenAssert(TOK_L_CRL_BRCKT, SYNTAX_ERR);
+        ignore_comments();
         gen_else(output);
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
@@ -986,6 +990,7 @@ void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_
         ungetToken();
     }
     getTokenAssert(TOK_L_CRL_BRCKT, VARIABLE_DEFINITION_ERR);
+    ignore_comments();
     parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     gen_while_end(output);
 }
