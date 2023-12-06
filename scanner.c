@@ -74,29 +74,44 @@ void handleEscapeSequence(int *c)
         case 'u':       // HEXADECIMAL
             if ((*c = getNextChar()) == '{')
             {
-                int value = 0;
-                while ((*c = getNextChar()) != '}')
+                *c = getNextChar();
+                if (*c == '}')
                 {
-                    if (isxdigit(*c))
+                    fprintf(stderr, "\nSCANNER: Escape sekvancia [ \\u ] musi obsahovat aspon 1 hexadecimalny znak!\n");
+                    returnError(SCANNER_ERR);
+                }
+                else if (isxdigit(*c))
+                {
+                    //int value = 0;
+                    int value = *c;
+                    while ((*c = getNextChar()) != '}')
                     {
-                        if (isdigit(*c)) 
+                        if (isxdigit(*c))
                         {
-                            value = (16 * value) + (*c - '0');
+                            if (isdigit(*c)) 
+                            {
+                                value = (16 * value) + (*c - '0');
+                            }
+                            else
+                            {
+                                value = (16 * value) + (tolower(*c) - 'a' + 10);
+                            }   
                         }
                         else
                         {
-                            value = (16 * value) + (tolower(*c) - 'a' + 10);
-                        }   
+                            value = *c;
+                            fprintf(stderr, "SCANNER: Escape sekvencia [ \\u ] nebola riadne ukoncena, ocakavana [ } ], problemovy znak: %c\n", value);
+                            returnError(SCANNER_ERR);
+                            break;
+                        }
                     }
-                    else
-                    {
-                        value = *c;
-                        fprintf(stderr, "SCANNER: Escape sekvencia [ \\u ] nebola riadne ukoncena, ocakavana [ } ], problemovy znak: %c\n", value);
-                        returnError(SCANNER_ERR);
-                        break;
-                    }
+                    *c = value;
                 }
-                *c = value;                                                            
+                else
+                {
+                    fprintf(stderr, "\nSCANNER: Ocakavany znak za escape sekvenciou \\u [ } ], ale je [ %c ]\n", *c);
+                    returnError(SCANNER_ERR);  
+                }                                                                            
             }
             else
             {
@@ -468,8 +483,8 @@ token_t getNextToken()
                     fprintf(stderr, "SCANNER: Viacriadkovy string nebol riadne ukonceny (Chybajuce [ \" ] alebo odriadkovanie!\n");
                     returnError(SCANNER_ERR);
                 }
-            }           // """ koniec viacriadkoveho retazca
-            else
+            }           
+            else    // """ koniec viacriadkoveho retazca
             {
                 int emptyStringChar = 0;
                 dstringAppend(&string, emptyStringChar); // a do retazca zapis prazdny retazec
@@ -482,8 +497,7 @@ token_t getNextToken()
             {
                 if (c == '\\')              
                 {
-                    handleEscapeSequence(&c);
-               
+                    handleEscapeSequence(&c);               
                 }
                 else if (c <= 31)
                 {
@@ -664,9 +678,8 @@ token_t getNextToken()
     else if (c == '(') token.type = TOK_L_BRCKT;    // (
     else if (c == ':') token.type = TOK_COLON;      // ,       
     else if (c == ',') token.type = TOK_COMMA;      // ,
-    else if (c == EOF) token.type = TOK_EOF;        // EOF
     else if (c == '+') token.type = TOK_PLUS;       // +
-    /*  ------------------------------------ */
+    else if (c == EOF) token.type = TOK_EOF;        // EOF
     else
     {
         fprintf(stderr, "\nSCANNER: Nacitanie neznameho symbolu: [ %c ]\n", c);
