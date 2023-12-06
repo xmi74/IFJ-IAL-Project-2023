@@ -358,7 +358,7 @@ void gen_func(string_t *output, token_t *token){
                         "CREATEFRAME\n"
                         "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("#\n");
     }
     else{
         append_line(output, localVariables->data);
@@ -535,9 +535,10 @@ void gen_if(string_t *output){
     append_line(output, " GF@tmp_res bool@true\n");
     append_line(output, "# body of if\n");
     append_line(output, "PUSHFRAME\n"
-                        "CREATEFRAME\n");
+                        "CREATEFRAME\n"
+                        "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("#\n");
     }
     else{
         append_line(output, localVariables->data);
@@ -596,7 +597,14 @@ void gen_else(string_t *output){
                         "LABEL else");
     append_line(output, str);
     append_line(output, "PUSHFRAME\n"
-                        "CREATEFRAME\n");
+                        "CREATEFRAME\n"
+                        "MOVE GF@first_def bool@true\n");
+    if (nestLevel == 1){
+        localVariables = new_line("#\n");
+    }
+    else{
+        append_line(output, localVariables->data);
+    }
 }
 
 /**
@@ -633,7 +641,7 @@ void gen_while(string_t *output){
                         "CREATEFRAME\n"
                         "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("#\n");
     }
     else{
         append_line(output, localVariables->data);
