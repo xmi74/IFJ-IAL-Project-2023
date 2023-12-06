@@ -159,6 +159,27 @@ bool tokenIsOperator(token_t token)
 }
 
 /**
+ * @brief pomocna funckia pre zistenie ci je token relacny operator
+ * @param token token ktory sa ma skontrolovat
+ * @return true ak je relacny operator, inak false
+*/
+bool tokenIsRelationOperator(token_t token)
+{
+    switch (token.type)
+    {
+    case TOK_EQUAL:
+    case TOK_NOT_EQUAL:
+    case TOK_LESSER:
+    case TOK_GREATER:
+    case TOK_LESSER_OR_EQUAL:
+    case TOK_GREATER_OR_EQUAL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+/**
  * @brief Funkcia na zistenie typu tokenu z tabulky symbolov
  * Funcia tiez nastavuje atribut includesNil
  * @param token token ktoreho typ sa ma zistit
@@ -594,6 +615,10 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
 
     while (expressionEnd(&token, prevToken, isCondition) == false)
     {
+        if (isCondition == false && tokenIsRelationOperator(token)) {
+            fprintf(stderr, "[EXPR] ERROR: Comparison operator found in expression which is not a condition\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
         // Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
@@ -605,30 +630,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         // LOAD
         if (result == L)
         {
-            // // Kontrola prefixoveho NOT '!' - Syntax analyza
-            // if (token.type == TOK_NOT)
-            // {
-            //     token_t stackTrueTop;
-            //     Stack_Top(&stack, &stackTrueTop);
-
-            //     // Kontrola ci operand je TERM alebo neterminal (Redukovana expression)
-            //     if (tokenIsTerm(stackTrueTop) || stackTrueTop.terminal == false)
-            //     {
-            //         // Kontrola ci je operand literal
-            //         if (stackTrueTop.tree->literal == true)
-            //         {
-            //             fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
-            //             returnError(TYPE_COMPATIBILITY_ERR);
-            //         }
-            //     }
-            //     // Oprand je operator (+-*/...)
-            //     else if (stackTrueTop.terminal == true)
-            //     {
-            //         fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
-            //         returnError(SYNTAX_ERR);
-            //     }
-            // }
-
+            // Vychodzia hodnota
             token.attribute.includesNil = false;
 
             // Nastavenie atributu includesNil pre nil
@@ -680,7 +682,7 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         }
         else // U - Undefined
         {
-            fprintf(stderr, "[EXPR] ERROR: Undefined precedence, probably KW (String, Int, Double, nil...) or double '!'\n");
+            fprintf(stderr, "[EXPR] ERROR: Undefined precedence\n");
             Stack_Dispose(&stack);
             returnError(SYNTAX_ERR);
         }

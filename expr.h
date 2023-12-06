@@ -21,7 +21,7 @@
 
 #define PRETABLESIZE 16
 
-// Protype function header file
+// Prototypy funkcii
 token_type_t getTokenType(token_t * token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 bool checkOperands(token_t operand1, token_t operand2);
@@ -30,7 +30,7 @@ int getTokenIndex(token_t token);
 
 bool dataTypeEqual(token_t token1, token_t token2, token_t operation);
 
-bool tokenIsIdentifier(token_t token);
+bool tokenIsTerm(token_t token);
 
 void reduceArithmetic(Stack *stack);
 
