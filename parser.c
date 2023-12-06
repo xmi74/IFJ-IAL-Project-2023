@@ -433,8 +433,9 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
     if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
         ast_node_t* node = checkExpression(local_table, (*global_table), false);
-        if (node->type == TOK_EQUAL || node->type == TOK_NOT_EQUAL || node->type == TOK_LESSER || node->type == TOK_GREATER || node->type == TOK_LESSER_OR_EQUAL || node->type == TOK_GREATER_OR_EQUAL) {
+        if (node->token.type == TOK_EQUAL || node->token.type == TOK_NOT_EQUAL || node->token.type == TOK_LESSER || node->token.type == TOK_GREATER || node->token.type == TOK_LESSER_OR_EQUAL || node->token.type == TOK_GREATER_OR_EQUAL) {
             // Ak je relacny operator vo vyraze, tak error
+            fprintf(stderr, "[PARSER] Relational operator in expression which is not in a condition\n");
             returnError(TYPE_COMPATIBILITY_ERR);
         }
         if (var_type.type == TOK_NOTHING)
