@@ -259,6 +259,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                     returnError(FUNCTION_USAGE_ERR);
                 }
 
+                token_out.attribute.includesNil = ((global_symtab_t*)var)->includesNil;
                 token_out.attribute.str = ((global_symtab_t*)var)->key;
                 token_out.type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
             }
@@ -269,6 +270,8 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                     // error - spatny typ
                     returnError(FUNCTION_USAGE_ERR);
                 }
+                token_out.attribute.includesNil = ((local_symtab_t*)var)->includesNil;
+                //token_out.attribute.str = ((local_symtab_t*)var)->key;
                 token_out.type = ((local_symtab_t*)var)->type;
             }
             token_out.attribute.str = ((local_symtab_t*)var)->key;
@@ -331,11 +334,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
 
 
     // fix aby prochazely testy 4 a 5
-    token_t identifier = getTokenAssertArr(2, (token_type_t[]){TOK_IDENTIFIER, TOK_UNDERSCORE}, SCANNER_ERR);
-    if (identifier.type == TOK_UNDERSCORE)
-    {
-        returnError(SYNTAX_ERR);
-    }
+    token_t identifier = getTokenAssertArr(2, (token_type_t[]){TOK_IDENTIFIER, TOK_UNDERSCORE}, SYNTAX_ERR);
 
     if(local_search(local_table->table, &identifier.attribute.str) != NULL || (nest_level == 0 && global_search((*global_table), &identifier.attribute.str) != NULL))
     {
