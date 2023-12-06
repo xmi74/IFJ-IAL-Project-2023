@@ -70,7 +70,9 @@ void pop_counter(){
 
 void newTF(string_t *output){
     char *token;
-    token = strtok(localVariables->data, "\n");
+    char *str = malloc(sizeof(char) * localVariables->length);
+    sprintf(str, "%s", localVariables->data);
+    token = strtok(str, "\n");
 
     while (token != NULL){
         append_line(output, "DEFVAR TF@");
@@ -83,6 +85,7 @@ void newTF(string_t *output){
 
         token = strtok(NULL, "\n");
     }
+    free(str);
 }
 
 /**
