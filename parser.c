@@ -1255,7 +1255,7 @@ void find_functions(global_symtab_t **global_table)
                 returnError(OTHER_ERR);
             }
             current_token = getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
-            func_param_t *params;
+            func_param_t *params = NULL;
             int param_cntr = 0;
             current_token = getToken();
             while (current_token.type != TOK_R_BRCKT)

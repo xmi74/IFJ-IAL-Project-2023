@@ -347,6 +347,16 @@ void global_dispose(global_symtab_t **global_table)
 {
     if ((*global_table) != NULL)
     {
+        for (int i = 0; i < (*global_table)->param_count; i++)
+        {
+            dstringFree(&((*global_table)->params[i].name));
+            dstringFree(&((*global_table)->params[i].identifier));
+        }
+        if ((*global_table)->params != NULL)
+        {
+            free((*global_table)->params);
+        }
+
         global_dispose(&(*global_table)->left);
         global_dispose(&(*global_table)->right);
 
