@@ -29,6 +29,8 @@ bool tokenIsTerm(token_t token);
 
 bool tokenIsOperator(token_t token);
 
+bool tokenIsRelationalOperator(token_t token);
+
 token_type_t getTokenType(token_t * token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 
 bool checkOperands(token_t operand1, token_t operand2);

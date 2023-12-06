@@ -90,29 +90,13 @@ int getTokenIndex(token_t token)
     case TOK_EOL:
         return 15; // '$'
     default:
-        return -1; // Others
+        return -1; // Ostatne (syntax error)
     }
 }
 
-// RULES:
-// 1: E → E!
-// 2: E → E*E
-// 3: E → E/E
-// 4: E → E+E
-// 5: E → E-E
-// 6: E → E==E
-// 7: E → E!=E
-// 8: E → E<E
-// 9: E → E>E
-// 10: E → E<=E
-// 11: E → E>=E
-// 12: E → E??E
-// 13: E → (E)
-// 14: E → i
-
 /**
  * @brief pomocna funckia pre zistenie ci je token term
- * Term je libovolný literál (celočíselný, desetinný, řetězcový či nil) nebo identifikátor.
+ * Term je libovolny literal (celociselny, desatinny, retezcovy ci nil) alebo identifikator.
  * @param token token ktory sa ma skontrolovat
  * @return true ak je term, inak false
  */
@@ -188,7 +172,6 @@ bool tokenIsRelationalOperator(token_t token)
  */
 token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable)
 {
-    // TODO: PREROBIT PRE INCLUDESNIL MOZNO AJ INE ATRIBUTTY
     local_symtab_t *search;
     search = local_search_in_all(table, &token->attribute.str);
     if (search == NULL)
@@ -197,8 +180,9 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
         globalSearch = global_search(globalTable, &token->attribute.str);
         if (globalSearch == NULL)
         {
+            // ERROR 5, neda sa odvodit typ z tabulky symbolov
             fprintf(stderr, "[EXPR] ERROR: Unknown identifier type\n");
-            returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
+            returnError(VARIABLE_DEFINITION_ERR);
         }
         // Zachovanie atributu includesNil
         token->attribute.includesNil = globalSearch->includesNil;
@@ -211,8 +195,9 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
         case T_STRING:
             return TOK_STRING;
         default:
+            // ERROR 5, neda sa odvodit typ z tabulky symbolov
             fprintf(stderr, "[EXPR] ERROR: SYMTABLE Unknown identifier type\n");
-            returnError(VARIABLE_DEFINITION_ERR); // ERROR 5, neda sa odvodit typ z tabulky symbolov
+            returnError(VARIABLE_DEFINITION_ERR);
         }
     }
     // Zachovanie atributu includesNil
@@ -258,10 +243,10 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
     if (operation.type == TOK_DOUBLE_QUEST_MARK)
     {
         // Obidva operandy obsahuju nil -> error
-        if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == true) // AST strom nebude obsahovat nil, zlyhal by uz skor
+        if (operand1.tree->token.attribute.includesNil == true && operand2.tree->token.attribute.includesNil == true) // AST strom nebude obsahovat nil, zlyhal by uz skor
         {
             fprintf(stderr, "[EXPR] ERROR: `??` operator, where both of the operands include nil\n");
-            returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
+            returnError(TYPE_COMPATIBILITY_ERR);
         }
         // Oba operatory su TOK_KW_NIL
         else if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
@@ -269,7 +254,7 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
             fprintf(stderr, "[EXPR] ERROR: ?? operator : type compatibility error, type cannot be deducted from nil - 4 ?? nil\n");
             returnError(TYPE_COMPATIBILITY_ERR);
         }
-        // Jeden z operandov obsahuje nil a druhy nie alebo prvy je TOK_KW_NIL a druhy nie
+        // Lavy operand obsahuje nil a pravy nie alebo lavy je TOK_KW_NIL a pravy nie
         else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == false)
         {
             // ok, skontroluj typy
@@ -347,9 +332,7 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
 
 /**
  * @brief Funkcia na redukciu aritmetickych vyrazov
- *
  * Funkcia tiez tvori uzle stromu
- *
  * @param stack zasobnik
  * @return void
  */
@@ -524,13 +507,13 @@ void reduceTerm(Stack *stack)
 
 /**
  * @brief Funkcia na aplikaciu pravidiel
+ * Aplikacia pravidiel podla operatorov
  * @param stack zasobnik
  * @param table tabulka symbolov
  * @return true ak sa aplikacia pravidla podarila, ak pravidlo neexistuje alebo nastala chyba pri redukcii, tak false
  */
 void applyRule(Stack *stack)
 {
-    // Stack_Print(stack); // DEBUG
     token_t stackTop;
     Stack_Top(stack, &stackTop);
     token_t operation = stack->elements[stack->size - 2];
@@ -658,7 +641,6 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
 
     while (expressionEnd(&token, prevToken, isCondition) == false)
     {
-        // Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
@@ -727,31 +709,27 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         }
     }
 
-    // Stack_Print(&stack); // DEBUG
     // Pokusaj sa redukovat vysledok az pokym stack != '$E'
     while ((token.type == TOK_EOF || token.type == TOK_R_BRCKT || token.type == TOK_EOL || token.type == TOK_COMMENT || token.type == TOK_BLOCK_COM_START || token.type == TOK_L_CRL_BRCKT) && stack.size != 2)
     {
-        // Stack_Print(&stack); // DEBUG
         applyRule(&stack);
     }
 
     // Vysledok je na vrchole zasobnika, resp. koren AST stromu
-    // Stack_Print(&stack); // DEBUG
     token_t result;
     Stack_Top(&stack, &result);
     gen_expr(output, result.tree);
-    // ast_gen(result.tree); // DEBUG
     Stack_Dispose(&stack);
 
     // Vratenie tokenu spat do parseru, pre dalsiu pripadnu analyzu
     ungetToken();
 
-    // Ak sme v podmienke, vyraz musi obsahovat boolovsky operator, inak chyba 7
+    // Ak sme v podmienke, vyraz musi obsahovat relacny operator, inak chyba 7
     if (isCondition == true)
     {
         if (result.type != TOK_EQUAL && result.type != TOK_NOT_EQUAL && result.type != TOK_LESSER && result.type != TOK_GREATER && result.type != TOK_LESSER_OR_EQUAL && result.type != TOK_GREATER_OR_EQUAL)
         {
-            fprintf(stderr, "[EXPR] ERROR: No comparison operator in condition\n");
+            fprintf(stderr, "[EXPR] ERROR: No comparison operator in condition!\n");
             returnError(TYPE_COMPATIBILITY_ERR);
         }
     }
