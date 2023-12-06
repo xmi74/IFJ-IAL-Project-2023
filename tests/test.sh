@@ -35,16 +35,15 @@ execTest () {
 		printf "\tWrong return code, expected %s, got %s\n" "$4" "$returnCode"
 		printf "\tStderr output: %s\n" "$(cat "stderr.txt" | tr -d '\n')"
 		wrc=$((wrc+1))
-	elif [ -z "$(diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3")" ]; then
-		printf "\e[1m\e[32mPassed\e[0m Test %02d: %s\n" "$testNum" "$1"
-		passed=$((passed+1))
-	else
-		printf "\e[1m\e[31mFailed\e[0m Test %02d: %s\n" "$testNum" "$1"
+	elif ! diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3" > /dev/null; then
+				printf "\e[1m\e[31mFailed\e[0m Test %02d: %s\n" "$testNum" "$1"
 		failed=$((failed+1))
 		diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt "$3"
+else
+        passed=$((passed+1))
 	fi
 	testNum=$((testNum+1))
-	rm -f tmp_output.txt tmp_output2.txt
+	rm -f tmp_output.txt tmp_output2.txt stderr.txt
 }
 
 execTest "Empty program" "input/empty.swift" "output/empty.txt" 0
