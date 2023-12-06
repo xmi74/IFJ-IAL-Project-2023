@@ -18,13 +18,13 @@ enum
 {
     L, // <
     R, // >
-    E, // =
+    E, // ==
     U, // Undefined
 };
 
 int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
     /*! *  /  +  -  == != <  > <=  >= ?? (  )  i  $ */
-    {U, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // !
+    {U, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // !
     {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // *
     {L, R, R, R, R, R, R, R, R, R, R, R, L, R, L, R}, // /
     {L, L, L, R, R, R, R, R, R, R, R, R, L, R, L, R}, // +
@@ -39,7 +39,7 @@ int precedenceTable[PRETABLESIZE][PRETABLESIZE] = {
     {L, L, L, L, L, L, L, L, L, L, L, L, L, E, L, U}, // (
     {R, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // )
     {R, R, R, R, R, R, R, R, R, R, R, R, U, R, U, R}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, U}, // $ (EOF)
+    {L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E}, // $ (EOF, Stack bottom)
 };
 
 /**
@@ -198,6 +198,7 @@ token_type_t getTokenType(token_t *token, local_symtab_w_par_ptr_t *table, globa
     token->attribute.includesNil = search->includesNil;
     return search->type;
 }
+
 /**
  * @brief Funkcia na kontrolu operandov
  * Funkcia tiez kontroluje ci operandy neobsahuju nil, v takom pripade sa jedna o error
@@ -235,28 +236,37 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
     switch (operation.type)
     {
     case TOK_DOUBLE_QUEST_MARK: // '??' operator
-        // Vo Swifte nelze, napr let a = 3 ?? 4
-        if (operand1.attribute.includesNil == false && operand2.attribute.includesNil == false) // AST strom nebude obsahovat nil, zlyhal by uz skor
+        // Obidva operandy obsahuju nil -> error
+        if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == true) // AST strom nebude obsahovat nil, zlyhal by uz skor
         {
-            fprintf(stderr, "[EXPR] ERROR: `??` operator, where none of the operands include nil\n");
+            fprintf(stderr, "[EXPR] ERROR: `??` operator, where both of the operands include nil\n");
             returnError(TYPE_COMPATIBILITY_ERR); // Z typu nil sa neda odvodit typ
         }
-        // Swift nepodporuje nil ?? nil
-        if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
+        // Oba operatory su TOK_KW_NIL
+        else if (operand1.type == TOK_KW_NIL && operand2.type == TOK_KW_NIL)
         {
-            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - nil ?? nil\n");
-            returnError(OTHER_ERR);
+            fprintf(stderr, "[EXPR] ERROR: ?? operator : type compatibility error, type cannot be deducted from nil - 4 ?? nil\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
         }
-        // Iba jeden z operandov je nil
-        else if (operand1.type == TOK_KW_NIL || operand2.type == TOK_KW_NIL)
+        // Jeden z operandov obsahuje nil a druhy nie alebo prvy je TOK_KW_NIL a druhy nie
+        else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == false )
         {
-            return true;
+            // ok, skontroluj typy
         }
-        // Jeden z operandov obsahuje nil, Int?, Double?...
-        else if (operand1.attribute.includesNil == true || operand2.attribute.includesNil == true)
+        else
         {
-            return true;
+            fprintf(stderr, "[EXPR] ERROR: ?? operator\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
         }
+
+        // Kontrola typov, typy sa nerovnaju a operand2 nie je literal, takze sa neda pretypovat
+        // Hlbsia kontrola prebieha pri vytvarani stromu
+        if ((operand1.tree->type != operand2.tree->type) && operand2.tree->literal == false)
+        {
+            fprintf(stderr, "[EXPR] ERROR: ?? operator : type compatibility error, types are not equal!\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
+
         break;
     default:
         // Jeden z operandov nie je literal
@@ -416,6 +426,12 @@ void reduceNot(Stack *stack)
     if (operand1.attribute.includesNil == false)
     {
         fprintf(stderr, "[EXPR] ERROR: Force unwrap nil\n");
+        returnError(TYPE_COMPATIBILITY_ERR);
+    }
+
+    if (operand1.tree->literal == true)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Force unwrap literal\n");
         returnError(TYPE_COMPATIBILITY_ERR);
     }
 
@@ -589,29 +605,29 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
         // LOAD
         if (result == L)
         {
-            // Kontrola prefixoveho NOT '!' - Syntax analyza
-            if (token.type == TOK_NOT)
-            {
-                token_t stackTrueTop;
-                Stack_Top(&stack, &stackTrueTop);
+            // // Kontrola prefixoveho NOT '!' - Syntax analyza
+            // if (token.type == TOK_NOT)
+            // {
+            //     token_t stackTrueTop;
+            //     Stack_Top(&stack, &stackTrueTop);
 
-                // Kontrola ci operand je TERM alebo neterminal (Redukovana expression)
-                if (tokenIsTerm(stackTrueTop) || stackTrueTop.terminal == false)
-                {
-                    // Kontrola ci je operand literal
-                    if (stackTrueTop.tree->literal == true)
-                    {
-                        fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
-                        returnError(TYPE_COMPATIBILITY_ERR);
-                    }
-                }
-                // Oprand je operator (+-*/...)
-                else if (stackTrueTop.terminal == true)
-                {
-                    fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
-                    returnError(SYNTAX_ERR);
-                }
-            }
+            //     // Kontrola ci operand je TERM alebo neterminal (Redukovana expression)
+            //     if (tokenIsTerm(stackTrueTop) || stackTrueTop.terminal == false)
+            //     {
+            //         // Kontrola ci je operand literal
+            //         if (stackTrueTop.tree->literal == true)
+            //         {
+            //             fprintf(stderr, "[EXPR] ERROR: Suffix '!' operand cannot be used with a literal\n");
+            //             returnError(TYPE_COMPATIBILITY_ERR);
+            //         }
+            //     }
+            //     // Oprand je operator (+-*/...)
+            //     else if (stackTrueTop.terminal == true)
+            //     {
+            //         fprintf(stderr, "[EXPR] ERROR: Prefix '!' operand\n");
+            //         returnError(SYNTAX_ERR);
+            //     }
+            // }
 
             token.attribute.includesNil = false;
 
