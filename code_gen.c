@@ -385,19 +385,9 @@ void gen_func_end(string_t *output, token_t *token){
     append_line(output, "_end\n");
 }
 
-void gen_func_return(string_t *output, token_t *token){
-    if (token->type == TOK_EOL){
-        append_line(output, "POPFRAME\n"
-                            "RETURN\n");
-    }
-    else{
-        if (token->type == TOK_IDENTIFIER){
-            gen_value(output, NULL, true, token->attribute.str.data);
-        }
-        else{
-            gen_value(output, token, false, NULL);
-        }
-    }
+void gen_func_return(string_t *output){
+    append_line(output, "POPFRAME\n"
+                        "RETURN\n");
 }
 
 /**

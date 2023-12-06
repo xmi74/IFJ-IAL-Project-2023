@@ -41,7 +41,7 @@ void gen_assign(string_t *output, char *name, token_type_t type);
 
 void gen_func(string_t *output, token_t *token);
 
-void gen_func_return(string_t *output, token_t *token);
+void gen_func_return(string_t *output);
 
 void gen_func_end(string_t *output, token_t *token);
 

@@ -1146,7 +1146,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                         returnError(FUNCTION_RETURN_ERROR); // TODO: podle testu SYNTAX_ERR, jeste zkontrolovat
                     }
                 }
-                gen_func_return(output, &current_token);
+                gen_func_return(output);
             }
         }
         current_token = getToken();
