@@ -12,18 +12,12 @@
 
 #include "stack.h"
 
-/**
- * @brief Inicializacia zasobnika
- * @param stack Ukazatel na zasobnik
- * @return void
-*/
 void Stack_Init(Stack *stack)
 {
     // Kontrola, ci bola struktura spravne inicializovana
     if (stack == NULL)
     {
-        // Chyba
-        return;
+        returnError(INTERN_ERR);
     }
 
     // Inicializacia vlastnosti zasobnika
@@ -37,20 +31,8 @@ void Stack_Init(Stack *stack)
     {
         returnError(INTERN_ERR);
     }
-
-    // Kontrola, ci sa alokacia podarila
-    if (stack->elements == NULL)
-    {
-        // ERROR
-        return;
-    }
 }
 
-/**
- * @brief Kontrola a zmena velkosti zasobnika, ak je to potrebne
- * @param stack Ukazatel na zasobnik
- * @return void
-*/
 void Stack_CheckSize(Stack *stack)
 {
     // Vypocet pomeru naplnenia zasobnika
@@ -68,7 +50,6 @@ void Stack_CheckSize(Stack *stack)
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
         {
-            // Chyba
             returnError(INTERN_ERR);
         }
 
@@ -88,7 +69,6 @@ void Stack_CheckSize(Stack *stack)
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
         {
-            // Chyba
             returnError(INTERN_ERR);
         }
 
@@ -98,23 +78,12 @@ void Stack_CheckSize(Stack *stack)
     }
 }
 
-/**
- * @brief Funkcia na zistenie, ci je zasobnik prazdny
- * Funkcia vrati true, ak je velkost zasobnika 0, inak false
- * @param stack Ukazatel na zasobnik
- * @return bool
-*/
 bool Stack_IsEmpty(const Stack *stack)
 {
     // Vrati true, ak je velkost zasobnika 0, inak false
     return stack->size == 0;
 }
 
-/**
- * @brief Funkcia na zistenie prvku na vrchole zasobnika
- * Funkcia nahra do dataPtr adresu prvku na vrchole zasobnika
- * @param stack Ukazatel na zasobnik
-*/
 void Stack_Top(const Stack *stack, token_t *dataPtr)
 {
     // Ak zasobnik nie je prazdny
@@ -125,11 +94,6 @@ void Stack_Top(const Stack *stack, token_t *dataPtr)
     }
 }
 
-/**
- * @brief Funkcia na odstranenie prvku z vrcholu zasobnika
- * @param stack Ukazatel na zasobnik
- * @return void
-*/
 void Stack_Pop(Stack *stack)
 {
     // Ak zasobnik nie je prazdny
@@ -144,12 +108,6 @@ void Stack_Pop(Stack *stack)
     }
 }
 
-/**
- * @brief Funkcia na vlozenie prvku na vrchol zasobnika
- * @param stack Ukazatel na zasobnik
- * @param element Ukazatel na pridavany prvok
- * @return void
-*/
 void Stack_Push(Stack *stack, token_t *element)
 {
     // Inkrementuj index vrcholu a pocet prvkov v zasobniku
@@ -163,12 +121,7 @@ void Stack_Push(Stack *stack, token_t *element)
     Stack_CheckSize(stack);
 }
 
-// Funkcia na uvolnenie struktury
-/**
- * @brief Funkcia na uvolnenie struktury
- * @param stack Ukazatel na zasobnik
- * @return void
-*/
+
 void Stack_Dispose(Stack *stack)
 {
     // Uvolenenie pamate alokovanej pre pole prvkov
@@ -178,11 +131,6 @@ void Stack_Dispose(Stack *stack)
     stack->elements = NULL;
 }
 
-/**
- * @brief Funkcia vracia najvyssi token, ktory je terminal
- * @param stack Ukazatel na zasobnik
- * @return token_t
-*/
 token_t *Stack_GetTopTerminal(Stack *stack)
 {
     token_t *currToken = NULL;
@@ -197,12 +145,6 @@ token_t *Stack_GetTopTerminal(Stack *stack)
     return NULL;
 }
 
-/**
- * @brief Funkcia sluzi na vlozenie '<' pred prvy terminal v zasobniku.
- * Vyhlada index vlozenia, posunie vsetky prvky o jedno miesto doprava a vlozi '<'.
- * @param stack Ukazatel na zasobnik
- * @return void
-*/
 void Stack_InsertLesser(Stack *stack)
 {
     token_t lesser;
@@ -246,11 +188,6 @@ void Stack_InsertLesser(Stack *stack)
     }
 }
 
-/**
- * @brief Funkcia sluzi na odstranenie vsetkych prvkov z vrcholu zasobnika az po najblizsi terminal.
- * @param stack Ukazatel na zasobnik
- * @return void
-*/
 void Stack_PopUntilLesser(Stack *stack)
 {
     token_t stackTop;
