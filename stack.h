@@ -10,13 +10,14 @@
  * @author Tomas Arlt (xarltt00)
  */
 
+
+#ifndef STACK_H
+#define STACK_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include "scanner.h"
-
-#ifndef STACK_H
-#define STACK_H
 
 // Definicie konstant pre inicializacnu kapacitu zasobnika a faktor prealokacie resp. dealokacie
 #define STACK_INITIAL_CAPACITY 10
