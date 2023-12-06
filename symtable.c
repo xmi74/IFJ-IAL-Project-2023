@@ -130,6 +130,10 @@ local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_t
     {
         // pridanie noveho uzlu
         local_table = (local_symtab_t *)malloc(sizeof(struct local_symtab));
+        if (local_table == NULL)
+        {
+            returnError(INTERN_ERR);
+        }
         dstringInit(&(local_table->key));
         dstringCopy(&(local_table->key), key);
         local_table->type = type;

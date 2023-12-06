@@ -10,8 +10,10 @@
  * @author Tomas Arlt (xarltt00)
 */
 
+#ifndef TOKEN_TABLE_H
+#define TOKEN_TABLE_H
+
 #include "symtable.h"
-#include "error.h"
 #include <stdbool.h>
 
 // Struktura tabulky tokenu
@@ -43,3 +45,5 @@ token_t getTokenAssert(token_type_t type, int err_code);
 token_t getTokenAssertArr(int tok_amount, token_type_t *type, int err_code);
 
 void ungetToken();
+
+#endif

@@ -10,14 +10,15 @@
  * @author Tomas Artl (xarltt00)
  */
 
-#include "stack.h"
-#include "token_table.h"
-#include "error.h"
-#include "abstract_syntax_tree.h"
-#include "code_gen.h"
 
 #ifndef EXPR_H
 #define EXPR_H
+
+#include "stack.h"
+#include "token_table.h"
+#include "abstract_syntax_tree.h"
+#include "code_gen.h"
+#include "error.h"
 
 #define PRETABLESIZE 16
 

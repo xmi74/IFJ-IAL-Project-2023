@@ -11,8 +11,8 @@
  */
 
 
-#ifndef _SCANNER_H_
-#define _SCANNER_H_
+#ifndef SCANNER_H
+#define SCANNER_H
 
 #include <stdbool.h>
 #include "dynamic_string.h"

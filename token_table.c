@@ -28,7 +28,7 @@ void initTokenTable(token_table_t *table)
     table->tokens = malloc(table->capacity * sizeof(token_t));
     if (table->tokens == NULL)
     {
-        // error
+        returnError(INTERN_ERR);
     }    
 }
 
@@ -56,7 +56,7 @@ void addTableToken(token_table_t *table, token_t token)
         table->tokens = realloc(table->tokens, table->capacity * sizeof(token_t)); // asi fixnout memleak
         if (table->tokens == NULL)
         {
-            // error
+            returnError(INTERN_ERR);
         }
     }
     table->tokens[table->size] = token;
