@@ -22,7 +22,6 @@
 
 #define PRETABLESIZE 16
 
-// Prototypy funkcii
 /**
  * @brief Pomocna funkcia pre zistenie indexu tokenu v precedencnej tabulke.
  *
@@ -31,7 +30,6 @@
  */
 int getTokenIndex(token_t token);
 
-
 /**
  * @brief pomocna funckia pre zistenie ci je token term
  * Term je libovolny literal (celociselny, desatinny, retezcovy ci nil) alebo identifikator.
@@ -39,7 +37,6 @@ int getTokenIndex(token_t token);
  * @return true ak je term, inak false
  */
 bool tokenIsTerm(token_t token);
-
 
 /**
  * @brief pomocna funckia pre zistenie ci je token operator
