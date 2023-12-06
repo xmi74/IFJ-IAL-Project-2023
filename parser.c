@@ -316,7 +316,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
         current_token = getToken();
         if (current_token.type == TOK_R_BRCKT)
         {
-            // error - spatny pocet parametru
+            // error - zavorka za carkou
             returnError(SYNTAX_ERR);
         }
         else
