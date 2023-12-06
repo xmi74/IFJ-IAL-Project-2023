@@ -207,6 +207,21 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
 */
 void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
+    bool isDefined = false;
+    char varname[16];
+    if (localVariables != NULL){
+        char *tmp = NULL;
+        for (int i = 0; i <= nestLevel; i++){
+            sprintf(varname, "TF@%s$%d", name, i);
+            tmp = strstr(localVariables->data, varname);
+            if (tmp != NULL){
+                isDefined = true;
+            }
+        }
+    }
+    if (isDefined){
+        return;
+    }
     global_counter++;
     local_counter = global_counter;
     char str[16];
