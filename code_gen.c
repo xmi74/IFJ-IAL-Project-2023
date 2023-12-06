@@ -633,7 +633,8 @@ void gen_while(string_t *output){
     push_counter(local_counter);
     nestLevel++;
     append_line(output, "PUSHFRAME\n"
-                        "CREATEFRAME\n");
+                        "CREATEFRAME\n"
+                        "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
         localVariables = new_line("");
     }
