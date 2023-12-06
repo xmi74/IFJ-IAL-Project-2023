@@ -29,6 +29,10 @@ int top_counter();
 
 void pop_counter();
 
+void newTF(string_t *output);
+
+void updateValues(string_t *output);
+
 string_t *gen_start();
 
 void gen_end(string_t *output);
