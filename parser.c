@@ -17,12 +17,6 @@ extern string_t *output;
 
 #define MAX_NEST_LEVEL 1000
 
-// testy 39, 40 - konflikt se semantickymi testy
-
-// TODO: promenne do global symtab v mainu
-// TODO: returns + codegen?
-// TODO: globalni promenne - test 17
-
 /**
  * @brief Konvertuje typ z type_t na token_type_t.
  *
@@ -110,7 +104,6 @@ token_type_t kw_to_token_type(token_type_t kw)
  */
 void load_built_in_functions()
 {
-
     char funcs[500];
     strcpy(funcs,
     "func write (_ term : String ) {}\n"
@@ -143,7 +136,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
     token_t func_out;
     func_out.type = TOK_NOTHING;
     token_t current_token;
-    if (strcmp(func->key.data, "write") == 0)
+    if (strcmp(func->key.data, "write") == 0) // write se zpracovava samostatne kvuli promenlivemu poctu parametru
     {
         getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
         while (current_token.type != TOK_R_BRCKT)
@@ -236,8 +229,8 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                 var = global_search(global_table, &current_token.attribute.str);
                 if (var == NULL)
                 {
-                    returnError(OTHER_ERR);
                     // error - nedefinovana promenna
+                    returnError(OTHER_ERR);
                 }
                 if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
                 {
@@ -269,7 +262,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
         }
         else
         {   
-            if (func->params[i].includesNil == true && current_token.type == TOK_KW_NIL)
+            if (func->params[i].includesNil == true && current_token.type == TOK_KW_NIL) // umoznuje prirazeni nil do parametru
             {
                 // pass
             }
@@ -315,9 +308,8 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
         is_constant = true;
     }
 
-    //token_t identifier = getTokenAssert(TOK_IDENTIFIER, SYNTAX_ERR);
 
-    // aby prochazely testy 4 a 5
+    // fix aby prochazely testy 4 a 5
     token_t identifier = getTokenAssertArr(2, (token_type_t[]){TOK_IDENTIFIER, TOK_UNDERSCORE}, SCANNER_ERR);
     if (identifier.type == TOK_UNDERSCORE)
     {
@@ -383,8 +375,6 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
     
     current_token = getToken();
 
-
-    // TODO: tohle upravit, + volani expr
 
     if (current_token.type == TOK_EOF)
     {
@@ -460,7 +450,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
             var_type.type = kw_to_token_type(var_type.type);
             gen_value(output, &current_token, false, NULL);
         }
-        else if (current_token.type == TOK_IDENTIFIER)
+        else if (current_token.type == TOK_IDENTIFIER) // prirazeni promenne nebo volani funkce
         {
             local_symtab_t* var_loc = local_search_in_all(local_table, &current_token.attribute.str);
             if (var_loc == NULL)
@@ -468,7 +458,6 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 global_symtab_t* var_glob = (global_symtab_t*)global_search((*global_table), &current_token.attribute.str);
                 if (var_glob == NULL)
                 {
-                    // 
                     if (getToken().type == TOK_L_BRCKT)
                     {
                         // error - nedefinovana funkce
@@ -544,7 +533,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
                 //error - spatny typ
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
-            gen_value(output, &current_token, false, NULL); // TODO: overit
+            gen_value(output, &current_token, false, NULL);
         }
     }
     
@@ -580,7 +569,6 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
  */
 void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table, local_symtab_w_par_ptr_t *local_table, int nest_level)
 {
-    // TODO: tady asi bude potreba jeste upravit ten shadowing neinicializovanych promennych
     token_t current_token = getToken();
     if (current_token.type == TOK_L_BRCKT) // za id ihned '('
     {
@@ -622,10 +610,6 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
             if (nest_level == 0)
             {
                 ((global_symtab_t*)var)->isInitialised = true;
-            }
-            else
-            {
-                // TODO
             }
         }
         else
@@ -702,8 +686,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
 
                 if (current_token.type == TOK_INT && var_type == TOK_DOUBLE)
                 {
-                    // TODO
-                    //current_token.type = TOK_DOUBLE;
+                    // pass, pretypovani int na double
                 }
                 else if (current_token.type != var_type)
                 {
@@ -722,7 +705,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 if(global_search(global_table, &current_token.attribute.str)->is_func == true)
                 {
                     token_t func_in = call_func(global_search(global_table, &current_token.attribute.str), local_table, global_table);
-                    if (func_in.type != var_type) // TODO  || func_in.attribute.includesNil 
+                    if (func_in.type != var_type)
                     {
                         // error - spatny typ
                         returnError(TYPE_COMPATIBILITY_ERR);
@@ -818,7 +801,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
     local_init_w_par_ptr_t(&local_table);
     local_table.parent = local_table_one_up;
 
-    // TODO
+
     for (int i = 0; i < found->param_count; i++)
     {
         local_table.table = local_insert(local_table.table, &found->params[i].identifier, kw_to_token_type(found->params[i].type), found->params[i].includesNil, true, true); // paramentry nelze menit uvnitr funkce, asi?
@@ -863,7 +846,6 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
  */
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
-    //token_t current_token = getToken();
     checkExpression(local_table, global_table, true);
 }
 
@@ -882,7 +864,6 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
     {
         current_token = getToken();
     }
-    
 
     if (current_token.type == TOK_KW_LET)
     {
@@ -902,15 +883,6 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
             {
                 // error - non-nil promenna v if-let
                 returnError(OTHER_ERR);
-            }
-            if (((global_symtab_t*)var)->isInitialised == false)
-            {
-                // TODO - predat true
-                //gen_value(output, 1, false, NULL);
-            }
-            else
-            {
-                //TODO
             }
             if (getToken().type != TOK_EOL)
             {
@@ -950,7 +922,6 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
         parse_block(nest_level + 1, TOK_L_CRL_BRCKT, &global_table, local_table, NULL, TOK_NOTHING, TOK_NOTHING);
     }
     
-
     current_token = getToken();
 
     if(current_token.type == TOK_EOL)
@@ -984,11 +955,9 @@ void handle_if(int nest_level, local_symtab_w_par_ptr_t *local_table, global_sym
  */
 void handle_while(int nest_level, local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
-    // getTokenAssert(TOK_L_BRCKT, TYPE_COMPATIBILITY_ERR);
     gen_while(output);
     handle_cond(local_table, global_table);
     gen_while_body(output);
-    // getTokenAssert(TOK_R_BRCKT, SYNTAX_ERR);
     if (getToken().type != TOK_EOL)
     {
         ungetToken();
@@ -1028,7 +997,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
     }
     else
     {
-        // error
+        // error - neznamy typ bloku
         returnError(SYNTAX_ERR);
     }
 
@@ -1143,7 +1112,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                     if (expected_return != TOK_NOTHING)
                     {
                         // error - spatny typ
-                        returnError(FUNCTION_RETURN_ERROR); // TODO: podle testu SYNTAX_ERR, jeste zkontrolovat
+                        returnError(FUNCTION_RETURN_ERROR);
                     }
                 }
                 gen_func_return(output);
@@ -1198,7 +1167,7 @@ void read_subblock(token_t token)
         }
         else if (current_token.type == TOK_R_CRL_BRCKT || current_token.type == TOK_R_BRCKT) // (...} nebo {...)
         {
-            // error
+            // error - uzaviraci zavorka bud volne, nebo nasledujici spatny typ zavorky
             returnError(SYNTAX_ERR);
         }
         else if (current_token.type == TOK_KW_FUNC)
@@ -1247,7 +1216,7 @@ void find_functions(global_symtab_t **global_table)
             global_symtab_t* func = global_search(*global_table, &func_name.attribute.str);
             if (func != NULL)
             {
-                // error redefinice
+                // error - redefinice
                 returnError(OTHER_ERR);
             }
             current_token = getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
@@ -1259,7 +1228,7 @@ void find_functions(global_symtab_t **global_table)
                 token_t name = current_token;
                 if (name.type == TOK_UNDERSCORE)
                 {
-                    //dstringAppend(&name.attribute.str, '_'); 
+                    // pass, _ je validni jmeno
                 }
                 else if (name.type != TOK_IDENTIFIER)
                 {
@@ -1267,11 +1236,10 @@ void find_functions(global_symtab_t **global_table)
                     returnError(SYNTAX_ERR);
                 }
                 
-                // TODO: opravit pripad _ _ : Int
                 token_t id = getToken();
                 if (id.type == TOK_UNDERSCORE)
                 {
-                    dstringAppend(&id.attribute.str, '_'); 
+                    // pass, umoznuje passovat nevyuzite parametry
                 }
                 else if (id.type != TOK_IDENTIFIER)
                 {
@@ -1300,12 +1268,11 @@ void find_functions(global_symtab_t **global_table)
                     }
                 }
                 else
-                {
-                    
+                { 
                     func_param_t* tmp = realloc(params, sizeof(func_param_t) * (param_cntr + 1)); // neni idealni, ale asi nebude tolik paramentru aby na tom zalezelo
                     if (tmp == 0)
                     {
-                        // error
+                        // error - realloc fail
                         returnError(INTERN_ERR);
                     }
                     params = tmp;
@@ -1326,15 +1293,10 @@ void find_functions(global_symtab_t **global_table)
                 param_cntr++;
             }
 
-            if (param_cntr == 0) // TODO: toto je asi zbytecne, jelikoz is_func existuje
-            {
-                params = malloc(sizeof(func_param_t));
-            }
-
             current_token = getToken();
             if (current_token.type == TOK_ARROW)
             {
-                current_token = getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING}, SYNTAX_ERR); // TODO: toto crashne pokud má funkce >1 parametr
+                current_token = getTokenAssertArr(3, (token_type_t[]){TOK_KW_DOUBLE, TOK_KW_INT, TOK_KW_STRING}, SYNTAX_ERR);
                 type_t current_token_type;
                 current_token_type = token_type_t_to_type_t(kw_to_token_type(current_token.type));
                 
@@ -1350,7 +1312,7 @@ void find_functions(global_symtab_t **global_table)
         }
         else if (current_token.type == TOK_UNDERSCORE)
         {
-            // error
+            // error - _ neni validni identifikator
             returnError(SYNTAX_ERR);
         }
         current_token = getToken();
