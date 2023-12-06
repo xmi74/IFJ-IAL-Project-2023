@@ -19,18 +19,6 @@
 
 #include "scanner.h"
 
-/* TODO
-    • Kontrola funkcnosti escape sekvencie
-    • Viacriadkovy string """
-    • Pridanie riadkov, na ktorych nastala chyba ?
-    • mozno iny zapis escape sekvencii - aby sa zapisovali ako cisla do retazcov
-
-    • Kde vsade mozu nastat chyby :
-        1) neznamy znak
-        2) v cisle - napr. 1e...
-        3) prevody identifikatory, klucove slova
-        4) v escape sekvenciach stringov
-*/
 
 // Nacitanie znaku zo vstupu
 int getNextChar() 
@@ -455,7 +443,8 @@ token_t getNextToken()
                         {
                             //printf("Appendujem newLine, %c\n", c);
                             dstringAppend(&string, newLine);
-                            dstringAppend(&string, c);
+                            ungetChar(c);
+                            //dstringAppend(&string, c);
                         }
                     }
                     else if (c == '\\')              // Escape sekvencia
@@ -516,6 +505,7 @@ token_t getNextToken()
         token.type = TOK_STRING;
         token.attribute.str = string;   // neni potreba dstring copy ?
     }
+    // FSM - DONE od dola
     else if (c == '*')  // tu sa spracovava koniec blokoveho komentaru ?
     {
         token.type = TOK_MUL;
