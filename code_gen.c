@@ -459,6 +459,7 @@ void gen_expr(string_t *output, ast_node_t *tree){
                 break;
             }
             case TOK_DIV:{
+                append_line(output, "CALL prepare\n");
                 if (items->nodes[index]->left->type == TOK_INT){
                     append_line(output, "IDIVS\n");
                 }
