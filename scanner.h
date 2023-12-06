@@ -18,12 +18,6 @@
 #include "dynamic_string.h"
 #include "error.h"
 
-
-// Identifikator - znak podtrzitka '_' , zaciatok zadania
-// Escape Sekvencia
-// Blokovy komentar - aby nebral text
-// Volanie errorov
-
 // Typ tokenu
 typedef enum typ
 {
@@ -82,9 +76,7 @@ typedef enum typ
     TOK_COMMENT,         // // 
     TOK_BLOCK_COM_START, // /*
     TOK_BLOCK_COM_END,   // */  
-    TOK_EOL,             // END OF LINE
-
-    TOK_STRING_START    // treba vyhodit
+    TOK_EOL              // END OF LINE
 } token_type_t;
 
 // Atribut tokenu
