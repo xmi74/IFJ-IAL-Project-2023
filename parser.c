@@ -310,7 +310,23 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
             ungetToken();
         }
     }
-    getTokenAssert(TOK_R_BRCKT, FUNCTION_USAGE_ERR);
+    current_token = getTokenAssertArr(2, (token_type_t[]){TOK_R_BRCKT, TOK_COMMA}, FUNCTION_USAGE_ERR);
+    if (current_token.type == TOK_COMMA)
+    {
+        current_token = getToken();
+        if (current_token.type == TOK_R_BRCKT)
+        {
+            // error - spatny pocet parametru
+            returnError(SYNTAX_ERR);
+        }
+        else
+        {
+            // error - spatny pocet parametru
+            returnError(FUNCTION_USAGE_ERR);
+        }
+        ungetToken();
+    }
+    
     gen_func_call(output, func->key.data);
     func_out.type = kw_to_token_type(type_t_to_token_type_t(func->type));
     func_out.attribute.includesNil = func->includesNil;
