@@ -65,7 +65,7 @@ void handleEscapeSequence(int *c)
         case 'r':       // '\r'
             *c = '\r';
             break;        
-        case '\"':
+        case '\"':      // '\"'
             *c = '\"';
             break;
         case '\'':      // '\'' podla swift dokumentacie
@@ -90,7 +90,6 @@ void handleEscapeSequence(int *c)
                     else
                     {
                         value = (16 * value) + (tolower(*c) - 'a' + 10);
-                        //printf("nacitana hodnota v esc. sekvencii : %d\n", value);
                     }
                     while ((*c = getNextChar()) != '}')
                     {
@@ -103,7 +102,6 @@ void handleEscapeSequence(int *c)
                             else
                             {
                                 value = (16 * value) + (tolower(*c) - 'a' + 10);
-                                //printf("nacitana hodnota v esc. sekvencii : %d\n", value);
                             }   
                         }
                         else
@@ -115,7 +113,6 @@ void handleEscapeSequence(int *c)
                         }
                     }
                     *c = value;
-                    //printf("nacitana hodnota appendovaneho znaku : %d\n", *c);
                 }
                 else
                 {
@@ -176,7 +173,7 @@ void assignIdentifier(token_t *token, string_t identifier)
     {
         token->type = TOK_KW_STRING;
     }
-    else if (strcmp(identifier.data, "_") == 0) // samotne _ nie je ID, __ uz je ID
+    else if (strcmp(identifier.data, "_") == 0) // samotne _ nie je ID
     {
         token->type = TOK_UNDERSCORE;
     }
@@ -198,7 +195,6 @@ void assignIdentifier(token_t *token, string_t identifier)
 // Hlavna funkcia lexikalneho analyzatora, vracia token s priradenym typom a atributom
 token_t getNextToken() 
 {
-    //int lineNumber = 1; // Cislo riadku
     token_t token;
     int c;
 
@@ -234,7 +230,7 @@ token_t getNextToken()
         }        
     } 
     /*  ------ SPRACOVANIE CISELNY LITERAL ------ */
-    else if (isdigit(c))    // ciselny literal musi byt oddeleny medzerou od dalsieho znaku
+    else if (isdigit(c))
     {
         char buffer[300];
         int i = 0;
@@ -244,7 +240,7 @@ token_t getNextToken()
         while (doubleHandled == false &&(c = getNextChar()) != EOF) 
         {
             /*  ------ SPRACOVANIE DOUBLE LITERALU S DESATINNOU CIARKOU ------ */
-            if (c == '.')   // ak dostanem bodku -> mozu nasledovat iba dalsie cisla
+            if (c == '.')
             {
                 buffer[i++] = c;    // zapis . do bufferu
                 c = getNextChar();
@@ -253,19 +249,19 @@ token_t getNextToken()
                     buffer[i++] = c;        
                     while ((c = getNextChar()) != EOF)
                     {
-                        if (isdigit(c))     // ak je cislo, pripisuj dalej   ZA . MOZE BYT AJ DALSI EXPONENT
+                        if (isdigit(c))     // ak je cislo, pripisuj dalej
                         {
                             buffer[i++] = c;
                         }
-                        else if (c == 'e' || c == 'E')   // ak dostanem e/E   -> moze nasledovat +/- alebo iba dalsie cisla
+                        else if (c == 'e' || c == 'E')   // ak e/E -> moze nasledovat +/- alebo iba dalsie cisla
                         {
-                            buffer[i++] = c;     // zapis e/E do bufferu
+                            buffer[i++] = c;            // zapis e/E do bufferu
                             c = getNextChar();
                             if (c == '+' || c == '-')     // za exponentom moze nasledovat +/-
                             {
                                 buffer[i++] = c;    
                                 c = getNextChar();
-                                if (isdigit(c))         // ak pride +/- tak musi nasledovat aspon 1 cislo
+                                if (isdigit(c))         // ak +/- tak musi nasledovat aspon 1 cislo
                                 {
                                     buffer[i++] = c;
                                     while ((c = getNextChar()) != EOF)
@@ -274,7 +270,7 @@ token_t getNextToken()
                                         {
                                             buffer[i++] = c;
                                         }
-                                        else                // ak nie je cislo, error
+                                        else                // ak nie je cislo, prirad token
                                         {
                                             ungetChar(c);
                                             doubleHandled = true;
@@ -286,8 +282,7 @@ token_t getNextToken()
                                 {
                                     fprintf(stderr, "SCANNER: Za Exponentom DOUBLE literalu nasledovaneho znamienkom musi nasledovat aspon 1 cislo\n");
                                     returnError(SCANNER_ERR);
-                                }
-                                
+                                }                                
                             }
                             else if (isdigit(c))    // ak za Exponentom prislo cislo bez znamienka, je automaticky kladny
                             {
@@ -298,35 +293,35 @@ token_t getNextToken()
                                     {
                                         buffer[i++] = c;
                                     }
-                                    else                // ak nie je cislo, ani operator
+                                    else                // ak nie je cislo, prirad token
                                     {
                                         ungetChar(c);
-                                        doubleHandled = true;   // nove?
+                                        doubleHandled = true; 
                                         break;
                                     }
                                 }
                             }
-                            else    // ak za exponentom nasleduje hocico ine ako +/-/cislo -> error
+                            else    // ak za exponentom nenasleduje +/-/cislo -> error
                             {
                                 fprintf(stderr, "\nSCANNER: Za exponentom DOUBLE literalu musi nasledovat +/-/cislo : [ %c ]\n", c);
                                 returnError(SCANNER_ERR);
                             }                
                         }
-                        else
+                        else    // ak nie je cislo, ani exponent, prirad token
                         {
                             doubleHandled = true;
                             break;                            
                         }                        
                     }
-                }
-                else                    // ak za . nenasleduje cislo -> error
+                }      
+                else    // ak za . nenasleduje cislo -> error                 
                 {
                     fprintf(stderr, "\nSCANNER: Chyba pri zapise do double literalu ! za '.' musi nasledovat cislo\n");
                     returnError(SCANNER_ERR);
                 }
             }             
             /*  ------ SPRACOVANIE DOUBLE LITERALU S EXPONENTOM ------ */
-            else if (c == 'e' || c == 'E')   // ak dostanem e/E   -> moze nasledovat +/- alebo iba dalsie cisla
+            else if (c == 'e' || c == 'E')   // ak e/E -> moze nasledovat +/- alebo iba dalsie cisla
             {
                 buffer[i++] = c;     // zapis e/E do bufferu
                 c = getNextChar();
@@ -343,14 +338,14 @@ token_t getNextToken()
                             {
                                 buffer[i++] = c;
                             }
-                            else                // ak nie je cislo, error
+                            else                // ak nie je cislo, prirad token
                             {
                                 doubleHandled = true;
                                 break;
                             }
                         }
                     }
-                    else    // ak za exponentom nenasleduje aspon 1 cislo -> error
+                    else    // ak za exponentom so znamienkom nie je cislo -> error
                     {
                         fprintf(stderr, "SCANNER: Za Exponentom DOUBLE literalu nasledovaneho znamienkom musi nasledovat aspon 1 cislo\n");
                         returnError(SCANNER_ERR);
@@ -425,7 +420,7 @@ token_t getNextToken()
                 }
                 else
                 {
-                    fprintf(stderr, "SCANNER: Chybajuce odriadkovanie za inicializaciou [ \"\"\" ] viacriadkoveho retazca\n ");  // Je to error?
+                    fprintf(stderr, "SCANNER: Chybajuce odriadkovanie za inicializaciou [ \"\"\" ] viacriadkoveho retazca\n ");
                     returnError(SCANNER_ERR);
                 }
                 while ((c = getNextChar()) != EOF)  // Som vo viacriadkovom retazci, za prvym odriadkovanim a zacinam nacitavat znaky
@@ -442,38 +437,30 @@ token_t getNextToken()
                             {
                                 int SecondQuotation = c;
                                 c = getNextChar();
-                                if (c == '"')       // chceme ukoncit string
+                                if (c == '"')       // ukoncenie viacriadkoveho retazca
                                 {             
                                     stringFinished = true;               
                                     break;
                                 }
-                                else            // nechceme ukoncit string
+                                else                // pokracovanie vo viacriadkovom retazci s 2x "
                                 {
-                                    //printf("Appendujem newLine, firstQuotation, secondQuotation, char\n");
                                     dstringAppend(&string, newLine);            // zapis newLine
                                     dstringAppend(&string, firstQuotation);     // zapis 1. "
                                     dstringAppend(&string, SecondQuotation);    // zapis 2. "
-                                    //printf("2. \" : zapisujem znak : [ %c ]\n", c);
-                                    ungetChar(c);
-                                    //dstringAppend(&string, c);                  // zapis znaku
+                                    ungetChar(c);                       
                                 }
                             }
-                            else
+                            else        // pokracovanie vo viacriadkovom retazci s '\n' a 1x "
                             {
-                                //printf("Appendujem newLine, firstQuotation, char\n");
                                 dstringAppend(&string, newLine);
                                 dstringAppend(&string, firstQuotation);
-                                //printf("1. \" : zapisujem znak : [ %c ]\n", c);
                                 ungetChar(c);
-                                //dstringAppend(&string, c);                            
                             }
                         }
-                        else
+                        else    // pokracovanie vo viacriadkovom retazci s '\n'
                         {
-                            //printf("Appendujem newLine, %c\n", c);
                             dstringAppend(&string, newLine);
                             ungetChar(c);
-                            //dstringAppend(&string, c);
                         }
                     }
                     else if (c == '\\')              // Escape sekvencia
@@ -483,7 +470,6 @@ token_t getNextToken()
                     }
                     else
                     {
-                        //printf("Appendujem %c\n", c);
                         dstringAppend(&string, c);
                     }
                     
@@ -494,14 +480,14 @@ token_t getNextToken()
                     returnError(SCANNER_ERR);
                 }
             }           
-            else    // """ koniec viacriadkoveho retazca
+            else    // ak nie je viacriadkovy retazez
             {
                 int emptyStringChar = 0;
-                dstringAppend(&string, emptyStringChar); // a do retazca zapis prazdny retazec
-                ungetChar(c);               // vrat znak 
+                dstringAppend(&string, emptyStringChar); // zapis '\0' do retazca
+                ungetChar(c);   
             }
         }
-        else                    // " klasicky string
+        else       // " klasicky string
         {
             while (c != EOF) 
             {
@@ -518,7 +504,6 @@ token_t getNextToken()
                 {
                     break;
                 }
-                //printf("pridavam do stringu znak : [ %d ]\n", c);
                 dstringAppend(&string, c);
                 c = getNextChar();
             }
@@ -528,30 +513,27 @@ token_t getNextToken()
                 returnError(SCANNER_ERR);
             }
         }
-        
-        //ungetChar(c);
         token.type = TOK_STRING;
-        token.attribute.str = string;   // neni potreba dstring copy ?
+        token.attribute.str = string;
     }
-    // FSM - DONE od dola
-    else if (c == '*')  // tu sa spracovava koniec blokoveho komentaru ?
+    else if (c == '*')  
     {
         token.type = TOK_MUL;
         c = getNextChar();
-        if (c == '/')                               // */
+        if (c == '/')               // */
         {
             token.type = TOK_BLOCK_COM_END;         
         }
-        else                       // *
+        else                        // *
         {
             ungetChar(c);
         }   
     }
-    else if (c == '/')  // tu sa spracovava zaciatok blokoveho komentaru
+    else if (c == '/')
     {
         token.type = TOK_DIV;
         c = getNextChar();
-        if (c == '*')   // Blokovy komentar /* ... */
+        if (c == '*')               // Blokovy komentar /* ... */
         {
             token.type = TOK_BLOCK_COM_START;
             int nestedCommentLevel = 1;
@@ -580,7 +562,7 @@ token_t getNextToken()
                 returnError(SCANNER_ERR);
             }
         }
-        else if (c == '/')  // Riadkovy koment // ...
+        else if (c == '/')      // Riadkovy koment // ...
         {
             token.type = TOK_COMMENT;
             while ((c = getNextChar()) != EOF && c != '\n')
@@ -597,24 +579,24 @@ token_t getNextToken()
     {
         token.type = TOK_MINUS;                 
         c = getNextChar();
-        if (c == '>')                               // ->
+        if (c == '>')           // ->
         {
             token.type = TOK_ARROW;
         }
-        else
+        else                    // -
         {
             ungetChar(c);            
         } 
     }
-    else if (c == '!')                              // !
+    else if (c == '!')
     {
         token.type = TOK_NOT;
-        c = getNextChar();
-        if (c == '=')                               // !=
+        c = getNextChar();      
+        if (c == '=')           // !=
         {
             token.type = TOK_NOT_EQUAL;
         } 
-        else 
+        else                    // !
         {
             ungetChar(c);
         }
@@ -623,37 +605,37 @@ token_t getNextToken()
     {
         token.type = TOK_LESSER;
         c = getNextChar();
-        if (c == '=')                               // <=
+        if (c == '=')           // <=
         {
             token.type = TOK_LESSER_OR_EQUAL;       
         } 
-        else 
+        else                    // <
         {
             ungetChar(c);                          
         }
     }
     else if (c == '>')
     {
-        token.type = TOK_GREATER;               // >
+        token.type = TOK_GREATER;    
         c = getNextChar();
-        if (c == '=')
+        if (c == '=')           // >=
         {
-             token.type = TOK_GREATER_OR_EQUAL;     // >=
+             token.type = TOK_GREATER_OR_EQUAL;     
         }
-        else
+        else                    // >
         {
             ungetChar(c);                 
         }
     }
     else if (c == '=')
     {
-        token.type = TOK_ASSIGN;                 // =
+        token.type = TOK_ASSIGN;                 
         c = getNextChar();
-        if (c == '=')
+        if (c == '=')           // ==
         {
-            token.type = TOK_EQUAL;                // ==
+            token.type = TOK_EQUAL;                
         }
-        else
+        else                    // =
         {
             ungetChar(c);                           
         }
@@ -661,11 +643,11 @@ token_t getNextToken()
     else if (c == '?')
     {
         c = getNextChar();
-        if (c == '?')
+        if (c == '?')           // ??
         {
-            token.type = TOK_DOUBLE_QUEST_MARK;     // ??
+            token.type = TOK_DOUBLE_QUEST_MARK;     
         }
-        else
+        else                    // samotny ?
         {
             fprintf(stderr, "\nSCANNER: Nemozno nacitat samotny [ ? ]\n");
             returnError(SCANNER_ERR);
@@ -673,14 +655,13 @@ token_t getNextToken()
     }    
     else if (c == '\n')
     {
-        token.type = TOK_EOL;                       // EOL
-
+        token.type = TOK_EOL;   // EOL
         c = getNextChar();
         while (c == '\n' || isspace(c))
         {
             c = getNextChar();
         }
-        ungetChar(c);                               // ERROR
+        ungetChar(c);    
     }
     else if (c == '}') token.type = TOK_R_CRL_BRCKT;// }
     else if (c == '{') token.type = TOK_L_CRL_BRCKT;// {
