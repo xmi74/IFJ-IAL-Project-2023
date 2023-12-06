@@ -90,7 +90,7 @@ int getTokenIndex(token_t token)
     case TOK_EOL:
         return 15; // '$'
     default:
-        return 16; // Others
+        return -1; // Others
     }
 }
 
@@ -152,27 +152,6 @@ bool tokenIsOperator(token_t token)
     case TOK_LESSER_OR_EQUAL:
     case TOK_GREATER_OR_EQUAL:
     case TOK_DOUBLE_QUEST_MARK:
-        return true;
-    default:
-        return false;
-    }
-}
-
-/**
- * @brief pomocna funckia pre zistenie ci je token relacny operator
- * @param token token ktory sa ma skontrolovat
- * @return true ak je relacny operator, inak false
-*/
-bool tokenIsRelationOperator(token_t token)
-{
-    switch (token.type)
-    {
-    case TOK_EQUAL:
-    case TOK_NOT_EQUAL:
-    case TOK_LESSER:
-    case TOK_GREATER:
-    case TOK_LESSER_OR_EQUAL:
-    case TOK_GREATER_OR_EQUAL:
         return true;
     default:
         return false;
@@ -270,7 +249,7 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
             returnError(TYPE_COMPATIBILITY_ERR);
         }
         // Jeden z operandov obsahuje nil a druhy nie alebo prvy je TOK_KW_NIL a druhy nie
-        else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == false )
+        else if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == false)
         {
             // ok, skontroluj typy
         }
@@ -592,6 +571,24 @@ bool expressionEnd(token_t *token, token_t prevToken, bool condition)
 }
 
 /**
+ * @brief Funkcia na zistenie precedencie
+ * @param stackTop token na vrchole zasobnika
+ * @param token aktualny token
+ * @return int cislo reprezentujuce vyslednu operaciu
+ */
+int getPrecedence(token_t stackTop, token_t token)
+{
+    int incomingToken = getTokenIndex(token);
+    if (incomingToken == -1)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Unknown token\n");
+        returnError(SYNTAX_ERR);
+    }
+
+    return precedenceTable[getTokenIndex(stackTop)][incomingToken];
+}
+
+/**
  * @brief hlavna funkcia na analyzu vyrazov
  * Funkcia tiez vola generator kodu, pre vygenerovanie kodu vyrazu z jeho AST stromu.
  * Funkcia urcuje operaciu podla precedencnej tabulky, resp. ci sa ma vykonat LOAD, REDUCE a pod.
@@ -615,20 +612,16 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
 
     while (expressionEnd(&token, prevToken, isCondition) == false)
     {
-        if (isCondition == false && tokenIsRelationOperator(token)) {
-            fprintf(stderr, "[EXPR] ERROR: Comparison operator found in expression which is not a condition\n");
-            returnError(TYPE_COMPATIBILITY_ERR);
-        }
         // Stack_Print(&stack); // DEBUG
         token.terminal = true;
 
         token_t *stackTop;
         stackTop = Stack_GetTopTerminal(&stack);
 
-        int result = precedenceTable[getTokenIndex(*stackTop)][getTokenIndex(token)];
+        int precedence = getPrecedence(*stackTop, token);
 
         // LOAD
-        if (result == L)
+        if (precedence == L)
         {
             // Vychodzia hodnota
             token.attribute.includesNil = false;
@@ -664,11 +657,11 @@ ast_node_t *checkExpression(local_symtab_w_par_ptr_t *table, global_symtab_t *gl
             continue;
         }
         // REDUCE - pouzi pravidlo
-        else if (result == R)
+        else if (precedence == R)
         {
             applyRule(&stack);
         }
-        else if (result == E)
+        else if (precedence == E)
         {
             // Koniec analyzy vyrazu, prebehol OK
             if (stackTop->type == TOK_EOF)

@@ -433,6 +433,10 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
     if ((current_token.type != TOK_EOF && current_token.type != TOK_EOL) && is_func == false)
     {
         ast_node_t* node = checkExpression(local_table, (*global_table), false);
+        if (node->type == TOK_EQUAL || node->type == TOK_NOT_EQUAL || node->type == TOK_LESSER || node->type == TOK_GREATER || node->type == TOK_LESSER_OR_EQUAL || node->type == TOK_GREATER_OR_EQUAL) {
+            // Ak je relacny operator vo vyraze, tak error
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
         if (var_type.type == TOK_NOTHING)
         {
             var_type.type = node->type;
