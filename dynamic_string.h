@@ -7,7 +7,7 @@
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author
+ * @author Tomas Arlt (xarltt00)
 */
 
 #ifndef _DYNAMIC_STRING_H_
@@ -24,21 +24,42 @@ typedef struct {
     size_t capacity;    // Kapacita (kolko znakov sa moze ulozit)
 } string_t;
 
-// Inicializacia dynamickeho retazca
+/**
+ * @brief Inicializacia dynamickeho retazca
+ * 
+ * @param str ukazatel na inicializovany retazec
+*/
 void dstringInit(string_t *str);
 
-// Uvolnenie pamati dynamickeho retazca
+/**
+ * @brief Uvolnenie pamati dynamickeho retazca
+ * 
+ * @param str ukazatel na uvolnovany retazec
+*/
 void dstringFree(string_t *str);
 
-// Pridanie znaku na koniec retazca
+/**
+ * @brief Pridanie znaku na koniec retazca
+ * 
+ * @param str ukazatel na retazec, do ktoreho sa vklada charakter
+ * @param c vkladany charakter
+*/
 void dstringAppend(string_t *str, char c);
 
-// Prevedenie celeho retazca zo source -> destination 
-// (funguje ako strcpy pre dynamicky retazec)
+/**
+ * @brief Skopirovanie celeho retazca do ineho
+ * 
+ * @param destination retazec, do ktoreho sa ma vysledok ulozit
+ * @param source retazec, ktory ma byt ulozeny do vysledku
+*/
 int dstringCopy(string_t *destination, string_t *source);
 
-// Porovnanie retazcov str_1 a str_2
-// (funguje ako strcmp pre dynamicky retazec)
+/**
+ * @brief Porovnanie retazcov
+ * 
+ * @param str_1 1. porovnavany retazec
+ * @param str_2 2. porovnavany retazec
+*/
 int dstringCompare(string_t *str_1, string_t *str_2);
 
 #endif
