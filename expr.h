@@ -7,7 +7,7 @@
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author Tomas Artl (xarltt00)
+ * @author Tomas Arlt (xarltt00)
  */
 
 
