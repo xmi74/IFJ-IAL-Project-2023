@@ -24,9 +24,6 @@ typedef enum type_t
     T_NIL
 } type_t;
 
-// Premenna - definovana podla let / var
-// Premenna - inicializovana ?
-
 typedef struct local_symtab
 {
     string_t key;               
@@ -35,7 +32,6 @@ typedef struct local_symtab
     bool isConstant;            // Je konstanta?
     bool isInitialised;         // Je inicializovana?
     int height;                 // Vyska stromu
-    //int depth;                  // Hlbka zanorenia
     struct local_symtab *left;  // Lavy potomok
     struct local_symtab *right; // Pravy potomok
 } local_symtab_t;
@@ -63,9 +59,7 @@ typedef struct global_symtab
     bool isConstant;            // Je konstanta?
     bool isInitialised;         // Je inicializovana?
     int height;                 // Vyska stromu
-    //int depth;                  // Hlbka zanorenia
     bool is_func;               // Je funkce?
-    //bool defined;               // Funkcia - deklarovana ci len definovana
     int param_count;            // Pocet parametru funkce
     func_param_t *params;       // Parametre funkcie
     struct global_symtab *left; // Lavy potomok
@@ -86,22 +80,57 @@ local_symtab_t* rotateLeftL(local_symtab_t *criticalNode);   // Rotacia lokalnej
 
 /* FUNKCIE LOKALNEJ TABULKY SYMBOLOV */
 
-// Inicializacia lokalnej tabulky
+/**
+ * @brief Inicializacia lokalnej tabulky
+ * 
+ * @param local_table inicializovana struktura
+*/
 void local_init(local_symtab_t **local_table);
 
-// Inicializace lokalni tabulky s ukazatelem na predka
+/**
+ * @brief Inicializace lokalni tabulky s ukazatelem na predka
+ * 
+ * @param local_table inicializovana struktura
+*/
 void local_init_w_par_ptr_t(local_symtab_w_par_ptr_t *local_table);
 
-// Vyhladanie symbolu (na zaklade kluca - key) v lokalnej tabulke
+/**
+ * @brief Vyhladanie symbolu (na zaklade kluca - key) v lokalnej tabulke
+ * 
+ * @param local_table prehladavana struktura
+ * @param key hladana polozka
+ * 
+ * @return odkaz na hladany prvok v strukture, NULL ak prvok nie je pritomny
+*/
 local_symtab_t *local_search(local_symtab_t *local_table, string_t *key);
 
-// Vyhledavani symbolu v lokalni tabulce a v jejich predcich
+/**
+ * @brief Vyhledavani symbolu v lokalni tabulce a v jejich predcich
+ * 
+ * @param local_table prehladavana struktura
+ * @param key hladana polozka
+ * 
+ * @return odkaz na hladany prvok v strukture, NULL ak prvok nie je pritomny
+*/
 local_symtab_t *local_search_in_all(local_symtab_w_par_ptr_t *local_table, string_t *key);
 
-// Vlozenie symbolu do lokalnej tabulky
+/**
+ * @brief Vlozenie symbolu do lokalnej tabulky
+ * 
+ * @param local_table struktura, do ktorej sa bude vkladat polozka
+ * @param key nazov vkladanej polozky
+ * @param type typ vkladanej polozky
+ * @param includesNil vkladana polozka je typu, ktory moze zahrnovat nil (true) alebo nemoze zahrnovat nil (false)
+ * @param isConstant (true) ak bola premenna definovana pomocou kw let, (false) ak bola premenna definovana pomocou kw var
+ * @param isInitialised oznacuje ci polozka uz bola inicializovana (true) alebo nie (false)
+*/
 local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_type_t type, bool includesNil, bool isConstant, bool isInitialised);
 
-// Uvolnenie pamati lokalnej tabulky
+/**
+ * @brief Uvolnenie pamati lokalnej tabulky
+ * 
+ * @param local_table struktura, ktorej pamat sa ma uvolnit
+*/
 void local_dispose(local_symtab_t **local_table);
 
 
@@ -116,16 +145,45 @@ int balanceG(global_symtab_t *local_symtab);
 global_symtab_t* rotateRightG(global_symtab_t *criticalNode);  
 global_symtab_t* rotateLeftG(global_symtab_t *criticalNode);   
 
-// Inicializacia globalnej tabulky
+/**
+ * @brief Inicializacia struktury globalnej tabulky symbolov
+ * 
+ * @param global_table inicializovana tabulka
+*/
 void global_init(global_symtab_t **global_table);
 
-// Vyhladanie symbolu (na zaklade kluca - key) v globalnej tabulke
+/**
+ * @brief Vyhladanie symbolu (na zaklade kluca - key) v globalnej tabulke symbolov
+ * 
+ * @param global_table prehladavana struktura
+ * @param key hladana polozka
+ * 
+ * @return odkaz na hladany prvok v strukture, NULL ak prvok nie je pritomny
+*/
 global_symtab_t *global_search(global_symtab_t *global_table, string_t *key);
 
-// Vlozenie symbolu do globalnej tabulky
+/**
+ * @brief Vlozenie symbolu do globalnej tabulky symbolov
+ * 
+ * @param global_table struktura, do ktorej sa bude vkladat polozka
+ * @param key nazov vkladanej polozky
+ * @param type typ vkladanej polozky
+ * @param is_func oznacuje ci je vkladana polozka funkcia (true) alebo premenna (false)
+ * @param param_count pocet parametrov v pripade funkcie
+ * @param params struktura s informaciami o vkladanych parametroch v pripade funkcie
+ * @param includesNil vkladana polozka je typu, ktory moze zahrnovat nil (true) alebo nemoze zahrnovat nil (false)
+ * @param isConstant (true) ak bola premenna definovana pomocou kw let, (false) ak bola premenna definovana pomocou kw var
+ * @param isInitialised oznacuje ci polozka uz bola inicializovana (true) alebo nie (false)
+ * 
+ * @return struktura globalnej tabulky symbolov s pridanym pozadovanym prvkom
+*/
 global_symtab_t* global_insert(global_symtab_t *global_table, string_t *key, type_t type, bool is_func, int param_count, func_param_t *params, bool includesNil, bool isConstant, bool isInitialised);
 
-// Uvolnenie pamati globalnej tabulky
+/**
+ * @brief Uvolnenie pamati globalnej tabulky
+ * 
+ * @param global_table struktura, ktorej pamat sa ma uvolnit
+*/
 void global_dispose(global_symtab_t **global_table);
 
 #endif
