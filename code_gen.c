@@ -49,6 +49,11 @@ void append_line(string_t *str1, char* str2){
     dstringAppend(str1, str2[index]);
 }
 
+/**
+ * @brief Funkcia na vlozenie pocitadla na vrchol zasobnika
+ * 
+ * @param counter Cislo, ktore sa ma vlozit
+*/
 void push_counter(int counter){
     token_t newToken;
     initToken(&newToken);
@@ -56,11 +61,19 @@ void push_counter(int counter){
     Stack_Push(&counter_stack, &newToken);
 }
 
+/**
+ * @brief Funkcia na ziskanie hodnoty na vrchole zasobniku pocitadiel
+ * 
+ * @return Hodnota pocitadla na vrchole
+*/
 int top_counter(){
     int top = counter_stack.elements[counter_stack.topIndex].attribute.intValue;
     return top;
 }
 
+/**
+ * @brief Funkcie na odstranenie pocitadla z vrcholu zasobnika
+*/
 void pop_counter(){
     token_t deleteToken;
     Stack_Top(&counter_stack, &deleteToken);
@@ -68,6 +81,11 @@ void pop_counter(){
     freeToken(&deleteToken);
 }
 
+/**
+ * @brief Funkcia na skopirovanie premennych z lokalneho ramca na docasny
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void newTF(string_t *output){
     char *token;
     char *str = malloc(sizeof(char) * localVariables->length);
@@ -88,6 +106,12 @@ void newTF(string_t *output){
     free(str);
 }
 
+
+/**
+ * @brief Funkcia na aktualizovanie premennych v nadradenom bloku
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+*/
 void updateValues(string_t *output){
     char *token;
     char *str = malloc(sizeof(char) * localVariables->length);
@@ -168,6 +192,8 @@ void gen_end(string_t *output){
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
  * @param token Token, ktoreho hodnota sa ma nacitat
+ * @param isVariable True, ak je to premenna, false inak
+ * @param name Nazov premennej
 */
 void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
@@ -250,8 +276,9 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
  * @brief Funkcia na vytvorenie premennej
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param token Token, ktoreho meno udava nazov premennej
- * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
+ * @param name Nazov premennej
+ * @param includesNil True, ak premenna moze obsahovat nil, false inak
+ * @param type Typ tokenu
 */
 void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
     bool isDefined = false;
@@ -309,8 +336,8 @@ void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
  * @brief Funckia na priradenie hodnoty premennnej
  * 
  * @param output Ukazatel na dynamicky string, v ktorom je output
- * @param token Token, ktoreho meno udava nazov premennej
- * @param function Bool, ktory udava, ci premmenna je vo funkcii (true - vo funkcii; false - v maine)
+ * @param name Nazov premennej
+ * @param type Typ tokenu
 */
 void gen_assign(string_t *output, char *name, token_type_t type){
     global_counter++;
@@ -618,6 +645,12 @@ void gen_if(string_t *output){
     }
 }
 
+/**
+ * @brief Funkcia na vyhodnotenie podmienky typu if-let
+ * 
+ * @param output Ukazatel na dynamicky string, v ktorom je output
+ * @param name Nazov skumanej premennej
+*/
 void gen_if_let(string_t *output, char *name){
     global_counter++;
     local_counter = global_counter;
