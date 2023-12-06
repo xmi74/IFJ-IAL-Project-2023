@@ -428,7 +428,9 @@ token_t getNextToken()
                                     dstringAppend(&string, newLine);            // zapis newLine
                                     dstringAppend(&string, firstQuotation);     // zapis 1. "
                                     dstringAppend(&string, SecondQuotation);    // zapis 2. "
-                                    dstringAppend(&string, c);                  // zapis znaku
+                                    //printf("2. \" : zapisujem znak : [ %c ]\n", c);
+                                    ungetChar(c);
+                                    //dstringAppend(&string, c);                  // zapis znaku
                                 }
                             }
                             else
@@ -436,7 +438,9 @@ token_t getNextToken()
                                 //printf("Appendujem newLine, firstQuotation, char\n");
                                 dstringAppend(&string, newLine);
                                 dstringAppend(&string, firstQuotation);
-                                dstringAppend(&string, c);                            
+                                //printf("1. \" : zapisujem znak : [ %c ]\n", c);
+                                ungetChar(c);
+                                //dstringAppend(&string, c);                            
                             }
                         }
                         else
