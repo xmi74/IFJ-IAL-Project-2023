@@ -10,11 +10,11 @@
  * @author Tomas Arlt (xarltt00)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #ifndef ERROR_H
 #define ERROR_H
+
+#include <stdio.h>
+#include <stdlib.h>
 
 // Errorove navratove hodnoty
 
@@ -30,6 +30,6 @@
 #define OTHER_ERR 9               // ostatne semanticke chyby
 #define INTERN_ERR 99             // interna chyba prekladaca
 
-#endif
-
 void returnError(int GLOBAL_ERROR_VALUE);
+
+#endif

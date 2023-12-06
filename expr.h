@@ -1,13 +1,13 @@
 /**
  * IFJ-IAL Projekt 2023
  *
- * @file stack.h
- * @brief Header file for the implementation of a dynamic ADT stack
+ * @file expr.h
+ * @brief Precedencna analyza vyrazov
  *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author Tomas Artl (xarltt00)
+ * @author Tomas Arlt (xarltt00)
  */
 
 
@@ -28,6 +28,8 @@ int getTokenIndex(token_t token);
 bool tokenIsTerm(token_t token);
 
 bool tokenIsOperator(token_t token);
+
+bool tokenIsRelationalOperator(token_t token);
 
 token_type_t getTokenType(token_t * token, local_symtab_w_par_ptr_t *table, global_symtab_t *globalTable);
 

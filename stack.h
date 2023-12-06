@@ -2,12 +2,12 @@
  * IFJ-IAL Projekt 2023
  *
  * @file stack.h
- * @brief Hlavickovy subor ADT stacku
+ * @brief Implementacia zasobnika tokenov
  *
  * @author Igor Mikula (xmikul74)
  * @author Marko Olesak (xolesa00)
  * @author Jan Findra (xfindr01)
- * @author Tomas Artl (xarltt00)
+ * @author Tomas Arlt (xarltt00)
  */
 
 #include <stdio.h>
