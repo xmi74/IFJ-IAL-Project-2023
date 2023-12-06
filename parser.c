@@ -260,7 +260,7 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                 }
 
                 token_out.attribute.includesNil = ((global_symtab_t*)var)->includesNil;
-                token_out.attribute.str = ((global_symtab_t*)var)->key;
+                //token_out.attribute.str = ((global_symtab_t*)var)->key;
                 token_out.type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
             }
             else
