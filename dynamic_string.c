@@ -12,15 +12,12 @@
 
 #include "dynamic_string.h"
 
-#define INITIAL_SIZE 16
-
-
 // Inicializacia dynamickeho retazca
 void dstringInit(string_t *str) {
     str->data = (char *)malloc(INITIAL_SIZE * sizeof(char));
     if (str->data == NULL) {
         fprintf(stderr, "ERROR : Alokacia dynamickeho stringu (dstringInit()).\n");
-        exit(EXIT_FAILURE);
+        returnError(INTERN_ERR);
     }
     str->data[0] = '\0';
     str->length = 0;
@@ -45,7 +42,7 @@ void dstringAppend(string_t *str, char c) {
         char *newData = (char *)realloc(str->data, newCapacity);
         if (newData == NULL) {
             fprintf(stderr, "ERROR : Alokacia dynamickeho stringu (dstringAppend()).\n");
-            exit(EXIT_FAILURE);
+            returnError(INTERN_ERR);
         }
         str->data = newData;
         str->capacity = newCapacity;
@@ -68,9 +65,9 @@ int dstringCopy(string_t *destination, string_t *source)
     if (source->length >= destination->capacity)
     {
         destination->data = realloc(destination->data, source->length + 1);
-        if (!destination->data)
+        if (destination->data == NULL)
         {
-            return 99;
+            returnError(INTERN_ERR);
         }
         destination->capacity = source->length + 1;
     }

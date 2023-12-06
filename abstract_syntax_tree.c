@@ -23,7 +23,7 @@ void ast_init(ast_node_t *tree)
 
     if (tree == NULL)
     {
-        returnError(99);
+        returnError(OTHER_ERR);
     }
 }
 
@@ -195,6 +195,10 @@ void ast_add_node_to_items(ast_node_t *node, ast_items_t *items)
     {
         items->capacity = items->capacity * 2 + 8;
         items->nodes = realloc(items->nodes, items->capacity * (sizeof(ast_node_t *)));
+        if (items->nodes == NULL)
+        {
+            returnError(99);
+        }
     }
     items->nodes[items->size] = node;
     items->size++;

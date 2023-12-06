@@ -10,12 +10,15 @@
  * @author Tomas Arlt (xarltt00)
 */
 
-#ifndef _DYNAMIC_STRING_H_
-#define _DYNAMIC_STRING_H_
+#ifndef DYNAMIC_STRING_H
+#define DYNAMIC_STRING_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "error.h"
+
+#define INITIAL_SIZE 16
 
 // Struktura dynamickeho retazca
 typedef struct {

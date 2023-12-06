@@ -13,8 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef _ERROR_H
-#define _ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 // Errorove navratove hodnoty
 

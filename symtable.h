@@ -10,8 +10,8 @@
  * @author Tomas Arlt (xarltt00)
 */
 
-#ifndef _SYMTABLE_H_
-#define _SYMTABLE_H_
+#ifndef SYMTABLE_H
+#define SYMTABLE_H
 
 #include "scanner.h"
 #include <stdbool.h>

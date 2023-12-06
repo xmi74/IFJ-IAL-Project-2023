@@ -10,14 +10,14 @@
  * @author Tomas Arlt (xarltt00)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "scanner.h"
-#include "error.h"
 
 #ifndef ABSTRACT_SYNTAX_TREE_H
 #define ABSTRACT_SYNTAX_TREE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include "scanner.h"
+#include "error.h"
 typedef struct ast_node
 {
     token_t token;

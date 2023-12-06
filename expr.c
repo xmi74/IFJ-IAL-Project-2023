@@ -159,6 +159,27 @@ bool tokenIsOperator(token_t token)
 }
 
 /**
+ * @brief pomocna funckia pre zistenie ci je token relational operator
+ * @param token token ktory sa ma skontrolovat
+ * @return true ak je relational operator, inak false
+ */
+bool tokenIsRelationalOperator(token_t token)
+{
+    switch (token.type)
+    {
+    case TOK_EQUAL:
+    case TOK_NOT_EQUAL:
+    case TOK_LESSER:
+    case TOK_GREATER:
+    case TOK_LESSER_OR_EQUAL:
+    case TOK_GREATER_OR_EQUAL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+/**
  * @brief Funkcia na zistenie typu tokenu z tabulky symbolov
  * Funcia tiez nastavuje atribut includesNil
  * @param token token ktoreho typ sa ma zistit
@@ -233,9 +254,9 @@ bool checkOperands(token_t operand1, token_t operand2)
  */
 bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
 {
-    switch (operation.type)
+    // Extra kontroly pre operator '??'
+    if (operation.type == TOK_DOUBLE_QUEST_MARK)
     {
-    case TOK_DOUBLE_QUEST_MARK: // '??' operator
         // Obidva operandy obsahuju nil -> error
         if (operand1.attribute.includesNil == true && operand2.attribute.includesNil == true) // AST strom nebude obsahovat nil, zlyhal by uz skor
         {
@@ -266,43 +287,62 @@ bool dataTypeEqual(token_t operand1, token_t operand2, token_t operation)
             fprintf(stderr, "[EXPR] ERROR: ?? operator : type compatibility error, types are not equal!\n");
             returnError(TYPE_COMPATIBILITY_ERR);
         }
+    }
 
-        break;
-    default:
-        // Jeden z operandov nie je literal
-        if (operand1.tree->literal == false || operand2.tree->literal == false)
+    // Jeden z operandov nie je literal
+    if (operand1.tree->literal == false || operand2.tree->literal == false)
+    {
+        // Kontrola pretypovania typov, kde int musi byt literal
+        if ((operand1.tree->literal == false && operand1.tree->type == TOK_INT && operand2.tree->type == TOK_DOUBLE) ||
+            (operand2.tree->literal == false && operand2.tree->type == TOK_INT && operand1.tree->type == TOK_DOUBLE))
         {
-            // Kontrola pretypovania typov, kde int musi byt literal
-            if ((operand1.tree->literal == false && operand1.tree->type == TOK_INT && operand2.tree->type == TOK_DOUBLE) ||
-                (operand2.tree->literal == false && operand2.tree->type == TOK_INT && operand1.tree->type == TOK_DOUBLE))
-            {
-                fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
-                returnError(TYPE_COMPATIBILITY_ERR);
-            }
-        }
-        // Ani jeden z operandov nie je literal a ich datove typy sa nerovnaju
-        else if (operand1.tree->literal == false && operand2.tree->literal == false && operand1.tree->type != operand2.tree->type)
-        {
+            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where Int is not literal\n");
             returnError(TYPE_COMPATIBILITY_ERR);
         }
+    }
+    // Ani jeden z operandov nie je literal a ich datove typy sa nerovnaju
+    else if (operand1.tree->literal == false && operand2.tree->literal == false && operand1.tree->type != operand2.tree->type)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Incompatible data types - Int + Double, where none of them is literal\n");
+        returnError(TYPE_COMPATIBILITY_ERR);
+    }
 
-        if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
+    if (operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL)
+    {
+        if ((operand1.tree->type == TOK_STRING && operand2.tree->token.attribute.includesNil == true) ||
+            (operand2.tree->type == TOK_STRING && operand1.tree->token.attribute.includesNil == true))
         {
-            if (operation.type == TOK_MINUS || operation.type == TOK_DIV || operation.type == TOK_MUL)
-            {
-                fprintf(stderr, "[EXPR] ERROR: Invalid operator, concat operator is + => String + String\n");
-                returnError(TYPE_COMPATIBILITY_ERR); // TODO : KONTROLA? napr. 5 * "string"
-            }
+            return true;
+        }
+        else if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
+        {
+            return true;
         }
         else if (operand1.tree->type == TOK_STRING || operand2.tree->type == TOK_STRING)
         {
-            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - String + notString\n");
-            returnError(TYPE_COMPATIBILITY_ERR); // TODO : Kontrola napr. 5 + "string"
+            fprintf(stderr, "[EXPR] ERROR: Incompatible data types - String == notString\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
         }
-        return true;
-        break;
     }
-    return true; // Aby sa nevypisoval warning
+
+    if (operand1.tree->type == TOK_STRING && operand2.tree->type == TOK_STRING)
+    {
+        if (tokenIsRelationalOperator(operation))
+        {
+            return true;
+        }
+        else if (operation.type == TOK_MINUS || operation.type == TOK_DIV || operation.type == TOK_MUL)
+        {
+            fprintf(stderr, "[EXPR] ERROR: Invalid operator, String -/* String\n");
+            returnError(TYPE_COMPATIBILITY_ERR);
+        }
+    }
+    else if (operand1.tree->type == TOK_STRING || operand2.tree->type == TOK_STRING)
+    {
+        fprintf(stderr, "[EXPR] ERROR: Incompatible data types - String + notString\n");
+        returnError(TYPE_COMPATIBILITY_ERR); // TODO : Kontrola napr. 5 + "string"
+    }
+    return true;
 }
 
 /**
@@ -387,6 +427,12 @@ bool reduceLogical(Stack *stack)
                 fprintf(stderr, "[EXPR] ERROR: Incompatible data types\n");
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
+        }
+        else if ((operation.type == TOK_EQUAL || operation.type == TOK_NOT_EQUAL) &&
+                 (operand1.attribute.includesNil == true || operand2.attribute.includesNil == true) &&
+                 dataTypeEqual(operand1, operand2, operation))
+        {
+            // Jeden z operandov moze zahrnovat nil, typy sa nemusia rovnat, ak sa daju pretypovat
         }
         else
         {

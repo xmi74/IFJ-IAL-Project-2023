@@ -30,6 +30,10 @@ void Stack_Init(Stack *stack)
 
     // Alokacia pamate pre pole prvkov
     stack->elements = malloc(stack->capacity * sizeof(token_t));
+    if (stack->elements == NULL)
+    {
+        returnError(INTERN_ERR);
+    }
 
     // Kontrola, ci sa alokacia podarila
     if (stack->elements == NULL)
@@ -53,12 +57,12 @@ void Stack_CheckSize(Stack *stack)
 
         // Realokacia pamate pre pole prvkov
         token_t *newArray = realloc(stack->elements, newSize * sizeof(token_t));
-
+        
         // Kontrola, ci sa realokacia podarila
         if (newArray == NULL)
         {
             // Chyba
-            return;
+            returnError(INTERN_ERR);
         }
 
         // Aktualizacia vlastnosti zasobnika
@@ -78,7 +82,7 @@ void Stack_CheckSize(Stack *stack)
         if (newArray == NULL)
         {
             // Chyba
-            return;
+            returnError(INTERN_ERR);
         }
 
         // Aktualizacia vlastnosti zasobnika

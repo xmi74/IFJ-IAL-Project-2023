@@ -253,25 +253,25 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                     // error - nedefinovana promenna
                     returnError(OTHER_ERR);
                 }
-                //if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
-                //{
-                //    // error - spatny typ
-                //    returnError(FUNCTION_USAGE_ERR);
-                //}
 
                 token_out.attribute.includesNil = ((global_symtab_t*)var)->includesNil;
+                if (token_out.attribute.includesNil != func->params[i].includesNil)
+                {
+                    // error - spatny typ
+                    returnError(FUNCTION_USAGE_ERR);
+                }
                 //token_out.attribute.str = ((global_symtab_t*)var)->key;
                 token_out.type = type_t_to_token_type_t(((global_symtab_t*)var)->type);
             }
             else
             {
-                //if (((local_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
-                //{
-                //    // error - spatny typ
-                //    returnError(FUNCTION_USAGE_ERR);
-                //}
+                
                 token_out.attribute.includesNil = ((local_symtab_t*)var)->includesNil;
-                //token_out.attribute.str = ((local_symtab_t*)var)->key;
+                if (token_out.attribute.includesNil != func->params[i].includesNil)
+                {
+                    // error - spatny typ
+                    returnError(FUNCTION_USAGE_ERR);
+                }
                 token_out.type = ((local_symtab_t*)var)->type;
             }
             token_out.attribute.str = ((local_symtab_t*)var)->key;
@@ -302,9 +302,31 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
         if (i < func->param_count - 1)
         {
             getTokenAssert(TOK_COMMA, FUNCTION_USAGE_ERR);
+            if (getToken().type == TOK_R_BRCKT)
+            {
+                // error - spatny pocet parametru
+                returnError(SYNTAX_ERR);
+            }
+            ungetToken();
         }
     }
-    getTokenAssert(TOK_R_BRCKT, FUNCTION_USAGE_ERR);
+    current_token = getTokenAssertArr(2, (token_type_t[]){TOK_R_BRCKT, TOK_COMMA}, FUNCTION_USAGE_ERR);
+    if (current_token.type == TOK_COMMA)
+    {
+        current_token = getToken();
+        if (current_token.type == TOK_R_BRCKT)
+        {
+            // error - zavorka za carkou
+            returnError(SYNTAX_ERR);
+        }
+        else
+        {
+            // error - spatny pocet parametru
+            returnError(FUNCTION_USAGE_ERR);
+        }
+        ungetToken();
+    }
+    
     gen_func_call(output, func->key.data);
     func_out.type = kw_to_token_type(type_t_to_token_type_t(func->type));
     func_out.attribute.includesNil = func->includesNil;
@@ -455,6 +477,7 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
             // error - spatny typ
             returnError(TYPE_COMPATIBILITY_ERR);
         }
+        ast_dispose(node);
     }
     else
     {
@@ -699,6 +722,7 @@ void handle_assign_or_call_func(token_t token_id, global_symtab_t *global_table,
                 // error - spatny typ
                 returnError(TYPE_COMPATIBILITY_ERR);
             }
+            ast_dispose(node);
         }
         else
         {
@@ -871,7 +895,7 @@ void handle_func_def(global_symtab_t *global_table, local_symtab_w_par_ptr_t *lo
  */
 void handle_cond(local_symtab_w_par_ptr_t *local_table, global_symtab_t *global_table)
 {
-    checkExpression(local_table, global_table, true);
+    ast_dispose(checkExpression(local_table, global_table, true));
 }
 
 /**
@@ -1122,7 +1146,9 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
                 if (current_token.type != TOK_EOL && current_token.type != TOK_EOF)
                 {
                     ungetToken();
-                    token_type_t return_type = checkExpression(&local_table, (*global_table), false)->type;
+                    ast_node_t* node = checkExpression(&local_table, (*global_table), false);
+                    token_type_t return_type = node->type;
+                    ast_dispose(node);
                     if (return_type == TOK_NOTHING)
                     {
                         // error - spatny typ
@@ -1150,6 +1176,7 @@ bool parse_block(int nest_level, token_type_t block_start, global_symtab_t **glo
         }
         current_token = getToken();
     }
+    local_dispose(&local_table.table);
     return has_return;
 }
 
@@ -1200,11 +1227,6 @@ void read_subblock(token_t token)
             // error - uzaviraci zavorka bud volne, nebo nasledujici spatny typ zavorky
             returnError(SYNTAX_ERR);
         }
-        else if (current_token.type == TOK_KW_FUNC)
-        {
-            // error - funkce definovana v podbloku
-            returnError(SYNTAX_ERR);
-        }
         current_token = getToken();
     }
     return;
@@ -1250,7 +1272,7 @@ void find_functions(global_symtab_t **global_table)
                 returnError(OTHER_ERR);
             }
             current_token = getTokenAssert(TOK_L_BRCKT, SYNTAX_ERR);
-            func_param_t *params;
+            func_param_t *params = NULL;
             int param_cntr = 0;
             current_token = getToken();
             while (current_token.type != TOK_R_BRCKT)

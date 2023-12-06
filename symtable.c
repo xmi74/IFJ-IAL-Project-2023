@@ -130,6 +130,10 @@ local_symtab_t* local_insert(local_symtab_t *local_table, string_t *key, token_t
     {
         // pridanie noveho uzlu
         local_table = (local_symtab_t *)malloc(sizeof(struct local_symtab));
+        if (local_table == NULL)
+        {
+            returnError(INTERN_ERR);
+        }
         dstringInit(&(local_table->key));
         dstringCopy(&(local_table->key), key);
         local_table->type = type;
@@ -347,6 +351,16 @@ void global_dispose(global_symtab_t **global_table)
 {
     if ((*global_table) != NULL)
     {
+        for (int i = 0; i < (*global_table)->param_count; i++)
+        {
+            dstringFree(&((*global_table)->params[i].name));
+            dstringFree(&((*global_table)->params[i].identifier));
+        }
+        if ((*global_table)->params != NULL)
+        {
+            free((*global_table)->params);
+        }
+
         global_dispose(&(*global_table)->left);
         global_dispose(&(*global_table)->right);
 
