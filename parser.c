@@ -253,11 +253,11 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
                     // error - nedefinovana promenna
                     returnError(OTHER_ERR);
                 }
-                if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
-                {
-                    // error - spatny typ
-                    returnError(FUNCTION_USAGE_ERR);
-                }
+                //if (((global_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
+                //{
+                //    // error - spatny typ
+                //    returnError(FUNCTION_USAGE_ERR);
+                //}
 
                 token_out.attribute.includesNil = ((global_symtab_t*)var)->includesNil;
                 //token_out.attribute.str = ((global_symtab_t*)var)->key;
@@ -265,11 +265,11 @@ token_t call_func(global_symtab_t *func, local_symtab_w_par_ptr_t *local_table, 
             }
             else
             {
-                if (((local_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
-                {
-                    // error - spatny typ
-                    returnError(FUNCTION_USAGE_ERR);
-                }
+                //if (((local_symtab_t*)var)->includesNil != current_token.attribute.includesNil)
+                //{
+                //    // error - spatny typ
+                //    returnError(FUNCTION_USAGE_ERR);
+                //}
                 token_out.attribute.includesNil = ((local_symtab_t*)var)->includesNil;
                 //token_out.attribute.str = ((local_symtab_t*)var)->key;
                 token_out.type = ((local_symtab_t*)var)->type;
