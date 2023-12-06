@@ -391,7 +391,6 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
             return;
         }
     }
-    gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil, identifier.type);
     
     current_token = getToken();
 
@@ -562,6 +561,8 @@ void handle_variable(token_t token_assigner, global_symtab_t **global_table, loc
         }
     }
     
+    
+    gen_var(output, identifier.attribute.str.data, var_type.attribute.includesNil, identifier.type);
     gen_assign(output, identifier.attribute.str.data, var_type.type);
 
     current_token = getToken();
