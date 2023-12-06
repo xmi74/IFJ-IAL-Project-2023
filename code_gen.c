@@ -88,6 +88,31 @@ void newTF(string_t *output){
     free(str);
 }
 
+void updateValues(string_t *output){
+    char *token;
+    char *str = malloc(sizeof(char) * localVariables->length);
+    sprintf(str, "%s", localVariables->data);
+    char var[16];
+    sprintf(var, "$%d", nestLevel);
+    char *isDefined;
+    token = strtok(str, "\n");
+
+    while (token != NULL){
+        isDefined = NULL;
+        isDefined = strstr(token, var);
+        if (isDefined != NULL){
+            append_line(output, "\nMOVE LF@");
+            append_line(output, token);
+            append_line(output, " TF@");
+            append_line(output, token);
+            append_line(output, "\n");
+        }
+
+        token = strtok(NULL, "\n");
+    }
+    free(str);
+}
+
 /**
  * @brief Funkcia na vytvorenie zaciatku generovaneho outputu
  * 
@@ -148,11 +173,13 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
     if (isVariable){
         char *newName = NULL;
         char varname[16];
+        char searchName[16];
         if (localVariables != NULL){
             char *tmp = NULL;
             for (int i = 0; i <= nestLevel; i++){
                 sprintf(varname, "%s$%d", name, i);
-                tmp = strstr(localVariables->data, varname);
+                sprintf(searchName, "\n%s$%d\n", name, i);
+                tmp = strstr(localVariables->data, searchName);
                 if (tmp != NULL){
                     char varname2[16];
                     sprintf(varname2, "%s", varname);
@@ -229,11 +256,13 @@ void gen_value(string_t *output, token_t *token, bool isVariable, char* name){
 void gen_var(string_t *output, char *name, bool includesNil, token_type_t type){
     bool isDefined = false;
     char varname[16];
+    char searchName[16];
     if (localVariables != NULL){
         char *tmp = NULL;
         for (int i = 0; i <= nestLevel; i++){
             sprintf(varname, "%s$%d", name, i);
-            tmp = strstr(localVariables->data, varname);
+            sprintf(searchName, "\n%s$%d\n", name, i);
+            tmp = strstr(localVariables->data, searchName);
             if (tmp != NULL){
                 isDefined = true;
             }
@@ -290,11 +319,13 @@ void gen_assign(string_t *output, char *name, token_type_t type){
     sprintf(str, "%d", local_counter);
     char *newName = NULL;
     char varname[16];
+    char searchName[16];
     if (localVariables != NULL){
         char *tmp = NULL;
         for (int i = 0; i <= nestLevel; i++){
             sprintf(varname, "%s$%d", name, i);
-            tmp = strstr(localVariables->data, varname);
+            sprintf(searchName, "\n%s$%d\n", name, i);
+            tmp = strstr(localVariables->data, searchName);
             if (tmp != NULL){
                 char varname2[16];
                 sprintf(varname2, "%s", varname);
@@ -399,7 +430,7 @@ void gen_func(string_t *output, token_t *token){
                         "CREATEFRAME\n"
                         "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("\n");
     }
     else{
         newTF(output);
@@ -580,7 +611,7 @@ void gen_if(string_t *output){
                         "CREATEFRAME\n"
                         "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("\n");
     }
     else{
         newTF(output);
@@ -642,7 +673,7 @@ void gen_else(string_t *output){
                         "CREATEFRAME\n"
                         "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("\n");
     }
     else{
         newTF(output);
@@ -683,7 +714,7 @@ void gen_while(string_t *output){
                         "CREATEFRAME\n"
                         "MOVE GF@first_def bool@true\n");
     if (nestLevel == 1){
-        localVariables = new_line("");
+        localVariables = new_line("\n");
     }
     else{
         newTF(output);
@@ -717,6 +748,7 @@ void gen_while_body(string_t *output){
 void gen_while_end(string_t *output){
     local_counter = top_counter();
     nestLevel--;
+    updateValues(output);
     if (nestLevel == 0){
         dstringFree(localVariables);
         free(localVariables);
